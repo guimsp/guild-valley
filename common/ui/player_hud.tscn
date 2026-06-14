@@ -1,0 +1,576 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://common/ui/player_hud.gd" id="1_player_hud"]
+[ext_resource type="PackedScene" path="res://common/ui/market_ui.tscn" id="2_market_ui"]
+[ext_resource type="PackedScene" path="res://common/ui/crafting_ui.tscn" id="3_crafting_ui"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
+bg_color = Color(0.08, 0.08, 0.12, 0.85)
+border_width_bottom = 2
+border_color = Color(0.24, 0.24, 0.35, 0.6)
+content_margin_left = 12
+content_margin_right = 12
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompt"]
+bg_color = Color(0.08, 0.08, 0.12, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.6, 0.86, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv"]
+bg_color = Color(0.1, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.42, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 16
+content_margin_bottom = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_profile"]
+bg_color = Color(0.06, 0.06, 0.09, 0.7)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.2, 0.3, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 12
+content_margin_right = 12
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_build"]
+bg_color = Color(0.1, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.65, 0.44, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 16
+content_margin_bottom = 16
+
+
+[node name="PlayerHUD" type="CanvasLayer"]
+script = ExtResource("1_player_hud")
+
+[node name="HUDControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopBar" type="PanelContainer" parent="HUDControl"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
+
+[node name="HBox" type="HBoxContainer" parent="HUDControl/TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="GoldLabel" type="Label" parent="HUDControl/TopBar/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
+theme_override_font_sizes/font_size = 18
+text = "1,000 Gold"
+
+[node name="TimeLabel" type="Label" parent="HUDControl/TopBar/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 16
+text = "Day 1 - 06:00 AM"
+
+[node name="Spacer" type="Control" parent="HUDControl/TopBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Careers" type="HBoxContainer" parent="HUDControl/TopBar/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FarmerVBox" type="VBoxContainer" parent="HUDControl/TopBar/HBox/Careers"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+alignment = 1
+
+[node name="FarmerLevelLabel" type="Label" parent="HUDControl/TopBar/HBox/Careers/FarmerVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Farmer Lv. 1"
+
+[node name="FarmerXPBar" type="ProgressBar" parent="HUDControl/TopBar/HBox/Careers/FarmerVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 6)
+layout_mode = 2
+show_percentage = false
+
+[node name="CraftsmanVBox" type="VBoxContainer" parent="HUDControl/TopBar/HBox/Careers"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+alignment = 1
+
+[node name="CraftsmanLevelLabel" type="Label" parent="HUDControl/TopBar/HBox/Careers/CraftsmanVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Craftsman Lv. 1"
+
+[node name="CraftsmanXPBar" type="ProgressBar" parent="HUDControl/TopBar/HBox/Careers/CraftsmanVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 6)
+layout_mode = 2
+show_percentage = false
+
+[node name="TailorVBox" type="VBoxContainer" parent="HUDControl/TopBar/HBox/Careers"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+alignment = 1
+
+[node name="TailorLevelLabel" type="Label" parent="HUDControl/TopBar/HBox/Careers/TailorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Tailor Lv. 1"
+
+[node name="TailorXPBar" type="ProgressBar" parent="HUDControl/TopBar/HBox/Careers/TailorVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 6)
+layout_mode = 2
+show_percentage = false
+
+[node name="InteractPrompt" type="PanelContainer" parent="HUDControl"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -38.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_prompt")
+
+[node name="InteractLabel" type="Label" parent="HUDControl/InteractPrompt"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "Press [E] to Trade"
+horizontal_alignment = 1
+
+[node name="InventoryPanel" type="PanelContainer" parent="HUDControl"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(720, 430)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -215.0
+offset_right = 360.0
+offset_bottom = 215.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_inv")
+
+[node name="MainLayout" type="VBoxContainer" parent="HUDControl/InventoryPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SplitBox" type="HBoxContainer" parent="HUDControl/InventoryPanel/MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="LeftColumn" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox"]
+custom_minimum_size = Vector2(230, 0)
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ProfilePanel" type="PanelContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_profile")
+
+[node name="ProfileVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/ProfilePanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ProfileTitle" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/ProfilePanel/ProfileVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 14
+text = "Adventurer Profile"
+
+[node name="ProfileGoldLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/ProfilePanel/ProfileVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "1,000 Gold"
+
+[node name="ProfileTimeLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/ProfilePanel/ProfileVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Day 1 - 06:00 AM"
+
+[node name="InventorySection" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="BagLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/InventorySection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Bag Space (4 Slots)"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/InventorySection"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryGrid" type="GridContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/InventorySection/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="RightColumn" type="PanelContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CareerTabContainer" type="TabContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Farmer" type="MarginContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="FarmerVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ProgressVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="FarmerProgressLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox/ProgressVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "0 / 100 XP"
+horizontal_alignment = 2
+
+[node name="FarmerProgressBar" type="ProgressBar" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox/ProgressVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="Label" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Crafting Recipes"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FarmerRecipeList" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="Craftsman" type="MarginContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="CraftsmanVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ProgressVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CraftsmanProgressLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox/ProgressVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "0 / 100 XP"
+horizontal_alignment = 2
+
+[node name="CraftsmanProgressBar" type="ProgressBar" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox/ProgressVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="Label" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Crafting Recipes"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CraftsmanRecipeList" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="Tailor" type="MarginContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="TailorVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ProgressVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TailorProgressLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox/ProgressVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "0 / 100 XP"
+horizontal_alignment = 2
+
+[node name="TailorProgressBar" type="ProgressBar" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox/ProgressVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="Label" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Crafting Recipes"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TailorRecipeList" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="CloseButtonHBox" type="HBoxContainer" parent="HUDControl/InventoryPanel/MainLayout"]
+layout_mode = 2
+alignment = 1
+
+[node name="PanelCloseButton" type="Button" parent="HUDControl/InventoryPanel/MainLayout/CloseButtonHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+text = "Close"
+
+
+
+[node name="BuildPanel" type="PanelContainer" parent="HUDControl"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 480)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -240.0
+offset_right = 320.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_build")
+
+[node name="MainLayout" type="VBoxContainer" parent="HUDControl/BuildPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="HUDControl/BuildPanel/MainLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.65, 0.44, 1)
+theme_override_font_sizes/font_size = 18
+text = "Construction Menu"
+horizontal_alignment = 1
+
+[node name="ToolsHBox" type="HBoxContainer" parent="HUDControl/BuildPanel/MainLayout"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="MoveToolButton" type="Button" parent="HUDControl/BuildPanel/MainLayout/ToolsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Move Building (75% Cost)"
+
+[node name="DemolishToolButton" type="Button" parent="HUDControl/BuildPanel/MainLayout/ToolsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Demolish (80% Refund)"
+
+[node name="BuildTabContainer" type="TabContainer" parent="HUDControl/BuildPanel/MainLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="All" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/All"]
+layout_mode = 2
+
+[node name="AllList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/All/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Farmer" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Farmer"]
+layout_mode = 2
+
+[node name="FarmerList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Farmer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Craftsman" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Craftsman"]
+layout_mode = 2
+
+[node name="CraftsmanList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Craftsman/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Tailor" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Tailor"]
+layout_mode = 2
+
+[node name="TailorList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Tailor/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CloseButtonHBox" type="HBoxContainer" parent="HUDControl/BuildPanel/MainLayout"]
+layout_mode = 2
+alignment = 1
+
+[node name="BuildCloseButton" type="Button" parent="HUDControl/BuildPanel/MainLayout/CloseButtonHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+text = "Close"
+
+
+[node name="MarketUI" parent="HUDControl" instance=ExtResource("2_market_ui")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="CraftingUI" parent="HUDControl" instance=ExtResource("3_crafting_ui")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1

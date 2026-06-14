@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://components/market/market_stall.gd" id="1_market_stall"]
+[ext_resource type="Script" path="res://components/inventory/inventory_component.gd" id="2_inventory_component"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stall_phys"]
+size = Vector2(80, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 50.0
+
+[node name="MarketStall" type="StaticBody2D"]
+y_sort_enabled = true
+script = ExtResource("1_market_stall")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_stall_phys")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -40.0
+offset_top = -24.0
+offset_right = 40.0
+offset_bottom = 24.0
+color = Color(0.5, 0.35, 0.24, 1)
+
+[node name="RoofColorRect" type="ColorRect" parent="ColorRect"]
+layout_mode = 0
+offset_top = -8.0
+offset_right = 80.0
+offset_bottom = 4.0
+color = Color(0.24, 0.65, 0.44, 1)
+
+[node name="InteractionArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+shape = SubResource("CircleShape2D_interact")
+
+[node name="InventoryComponent" type="Node" parent="."]
+script = ExtResource("2_inventory_component")
+max_slots = 12
+max_weight = 200.0

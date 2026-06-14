@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://cap00wb6262ko"]
+
+[ext_resource type="PackedScene" uid="uid://boybayv3srswx" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="Script" uid="uid://60mo05k25351" path="res://components/teleport/teleport_trigger.gd" id="2_teleport"]
+[ext_resource type="PackedScene" path="res://common/ui/player_hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://components/crafting/crafting_bench.tscn" id="4_crafting_bench"]
+[ext_resource type="PackedScene" path="res://components/sleep/bed.tscn" id="5_bed"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(320, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(32, 16)
+
+[node name="HouseInterior" type="Node2D" unique_id=1196636624]
+
+[node name="Floor" type="ColorRect" parent="." unique_id=585893967]
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 400.0
+offset_bottom = 300.0
+color = Color(0.38, 0.24, 0.15, 1)
+
+[node name="Walls" type="Node2D" parent="." unique_id=1447850998]
+
+[node name="StaticBody2D_North" type="StaticBody2D" parent="Walls" unique_id=1648259805]
+position = Vector2(250, 92)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/StaticBody2D_North" unique_id=171104150]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="StaticBody2D_South" type="StaticBody2D" parent="Walls" unique_id=461170397]
+position = Vector2(250, 308)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/StaticBody2D_South" unique_id=1289961354]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="StaticBody2D_West" type="StaticBody2D" parent="Walls" unique_id=1706003696]
+position = Vector2(92, 200)
+rotation = 1.5708
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/StaticBody2D_West" unique_id=981621590]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="StaticBody2D_East" type="StaticBody2D" parent="Walls" unique_id=1739120484]
+position = Vector2(408, 200)
+rotation = 1.5708
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/StaticBody2D_East" unique_id=1365432336]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Player" parent="." unique_id=1276107493 instance=ExtResource("1_player")]
+position = Vector2(250, 200)
+
+[node name="DoorTrigger" type="Area2D" parent="." unique_id=271581014]
+position = Vector2(250, 299)
+script = ExtResource("2_teleport")
+target_scene_path = "res://entities/world/world.tscn"
+target_spawn_position = Vector2(400, 260)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoorTrigger" unique_id=238178279]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="ColorRect" type="ColorRect" parent="DoorTrigger" unique_id=1582497663]
+offset_left = -16.0
+offset_top = -8.0
+offset_right = 16.0
+offset_bottom = 8.0
+color = Color(0.2, 0.6, 0.8, 0.8)
+metadata/_edit_use_anchors_ = true
+
+[node name="PlayerHUD" parent="." unique_id=534888013 instance=ExtResource("3_hud")]
+
+[node name="CraftingBench" parent="." unique_id=2074700505 instance=ExtResource("4_crafting_bench")]
+position = Vector2(150, 140)
+
+[node name="Bed" parent="." unique_id=206945284 instance=ExtResource("5_bed")]
+position = Vector2(330, 140)

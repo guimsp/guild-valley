@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://entities/rival/ai_rival.gd" id="2_ai_rival"]
+[ext_resource type="Script" path="res://components/inventory/inventory_component.gd" id="3_inventory"]
+
+[node name="AIRival" instance=ExtResource("1_player")]
+script = ExtResource("2_ai_rival")
+speed = 80.0
+gold = 100
+
+[node name="AnimatedSprite2D" parent="." index="1"]
+modulate = Color(1, 0.6, 0.6, 1)
+
+[node name="Camera2D" parent="." index="2"]
+enabled = false
+
+[node name="InventoryComponent" type="Node" parent="."]
+script = ExtResource("3_inventory")
+max_slots = 12
+max_weight = 100.0

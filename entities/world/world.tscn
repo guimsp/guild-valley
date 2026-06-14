@@ -1,0 +1,369 @@
+[gd_scene format=3 uid="uid://c2q230n01i32j"]
+
+[ext_resource type="PackedScene" uid="uid://boybayv3srswx" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://components/teleport/teleport_trigger.gd" id="2_teleport"]
+[ext_resource type="PackedScene" path="res://common/ui/player_hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://components/market/market_stall.tscn" id="4_market_stall"]
+[ext_resource type="PackedScene" path="res://components/crafting/crafting_bench.tscn" id="5_crafting_bench"]
+[ext_resource type="Script" path="res://components/time/time_cycle_modulate.gd" id="6_time_cycle"]
+[ext_resource type="PackedScene" path="res://entities/rival/ai_rival.tscn" id="7_ai_rival"]
+[ext_resource type="PackedScene" path="res://components/sleep/bed.tscn" id="8_bed"]
+[ext_resource type="Script" path="res://components/settlements/city.gd" id="9_city"]
+[ext_resource type="Script" path="res://components/settlements/town.gd" id="10_town"]
+[ext_resource type="Script" path="res://components/roads/road_segment.gd" id="11_road_segment"]
+[ext_resource type="Script" path="res://components/placement/building_lot.gd" id="12_building_lot"]
+[ext_resource type="PackedScene" path="res://components/gathering/wheat_field_grid.tscn" id="13_wheat_grid"]
+[ext_resource type="PackedScene" path="res://components/gathering/cotton_patch_grid.tscn" id="14_cotton_grid"]
+[ext_resource type="PackedScene" path="res://components/gathering/ore_mine.tscn" id="15_ore_mine"]
+[ext_resource type="PackedScene" path="res://components/buildings/house.tscn" id="16_house"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(64, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(32, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_interior"]
+size = Vector2(320, 16)
+
+[node name="World" type="Node2D"]
+y_sort_enabled = true
+
+[node name="TimeCycleModulate" type="CanvasModulate" parent="."]
+script = ExtResource("6_time_cycle")
+
+[node name="PlayerHUD" parent="." instance=ExtResource("3_hud")]
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(1550, 500)
+
+[node name="AIRival" parent="." instance=ExtResource("7_ai_rival")]
+position = Vector2(2050, 500)
+
+[node name="PlayerHouse" type="StaticBody2D" parent="."]
+y_sort_enabled = true
+position = Vector2(1550, 420)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerHouse"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="ColorRect" type="ColorRect" parent="PlayerHouse"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.25, 0.25, 0.25, 1)
+
+[node name="HouseDoor" type="Area2D" parent="."]
+position = Vector2(1550, 460)
+script = ExtResource("2_teleport")
+is_local_teleport = true
+target_spawn_position = Vector2(3250, 3260)
+ownership_type = "Player"
+owner_id = "Player"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseDoor"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="ColorRect" type="ColorRect" parent="HouseDoor"]
+offset_left = -16.0
+offset_top = -8.0
+offset_right = 16.0
+offset_bottom = 8.0
+color = Color(0.2, 0.6, 0.8, 0.8)
+
+[node name="RivalHouse" type="StaticBody2D" parent="."]
+y_sort_enabled = true
+position = Vector2(2050, 420)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RivalHouse"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="ColorRect" type="ColorRect" parent="RivalHouse"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.4, 0.2, 0.2, 1)
+
+[node name="RivalHouseDoor" type="Area2D" parent="."]
+position = Vector2(2050, 460)
+script = ExtResource("2_teleport")
+is_local_teleport = true
+target_spawn_position = Vector2(3250, 3260)
+ownership_type = "NPC"
+owner_id = "Rival"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RivalHouseDoor"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="ColorRect" type="ColorRect" parent="RivalHouseDoor"]
+offset_left = -16.0
+offset_top = -8.0
+offset_right = 16.0
+offset_bottom = 8.0
+color = Color(0.8, 0.2, 0.2, 0.8)
+
+[node name="MainHighway" type="Area2D" parent="."]
+script = ExtResource("11_road_segment")
+size = Vector2(1200, 64)
+position = Vector2(1200, 900)
+
+[node name="OutpostRoad" type="Area2D" parent="."]
+script = ExtResource("11_road_segment")
+size = Vector2(64, 500)
+position = Vector2(1200, 1150)
+
+[node name="ValleyCity" type="Node2D" parent="."]
+position = Vector2(600, 800)
+script = ExtResource("9_city")
+city_name = "Valley City"
+radius_of_influence = 800.0
+prosperity = 80
+market_node_path = NodePath("CityMarket")
+
+[node name="CityRoad" type="Area2D" parent="ValleyCity"]
+script = ExtResource("11_road_segment")
+size = Vector2(64, 600)
+position = Vector2(0, 100)
+
+[node name="CityMarket" type="ColorRect" parent="ValleyCity"]
+offset_left = -200.0
+offset_top = 200.0
+offset_right = 200.0
+offset_bottom = 350.0
+color = Color(0.45, 0.45, 0.48, 0.3)
+
+[node name="CityMarketStall" parent="ValleyCity/CityMarket" instance=ExtResource("4_market_stall")]
+position = Vector2(200, 75)
+
+[node name="CityCraftingBench" parent="ValleyCity" instance=ExtResource("5_crafting_bench")]
+position = Vector2(-120, -150)
+
+[node name="Lot_City_B1_L1" type="Area2D" parent="ValleyCity"]
+position = Vector2(-350, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B1_L2" type="Area2D" parent="ValleyCity"]
+position = Vector2(-250, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B1_L3" type="Area2D" parent="ValleyCity"]
+position = Vector2(-150, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B2_L1" type="Area2D" parent="ValleyCity"]
+position = Vector2(150, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B2_L2" type="Area2D" parent="ValleyCity"]
+position = Vector2(250, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B2_L3" type="Area2D" parent="ValleyCity"]
+position = Vector2(350, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B3_L1" type="Area2D" parent="ValleyCity"]
+position = Vector2(-350, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B3_L2" type="Area2D" parent="ValleyCity"]
+position = Vector2(-250, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B3_L3" type="Area2D" parent="ValleyCity"]
+position = Vector2(-150, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B4_L1" type="Area2D" parent="ValleyCity"]
+position = Vector2(150, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B4_L2" type="Area2D" parent="ValleyCity"]
+position = Vector2(250, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B4_L3" type="Area2D" parent="ValleyCity"]
+position = Vector2(350, 0)
+script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../PublicHall")
+
+[node name="PublicHall" parent="ValleyCity" instance=ExtResource("16_house")]
+position = Vector2(350, 0)
+ownership_type = "Public"
+is_buyable = false
+custom_name = "Town Hall"
+
+[node name="Mineville" type="Node2D" parent="."]
+position = Vector2(1800, 800)
+script = ExtResource("10_town")
+town_name = "Mineville"
+prosperity = 30
+ownership_province = "Valley Province"
+market_node_path = NodePath("TownMarket")
+
+[node name="TownRoad" type="Area2D" parent="Mineville"]
+script = ExtResource("11_road_segment")
+size = Vector2(64, 600)
+position = Vector2(0, 100)
+
+[node name="TownMarket" type="ColorRect" parent="Mineville"]
+offset_left = -150.0
+offset_top = 200.0
+offset_right = 150.0
+offset_bottom = 350.0
+color = Color(0.45, 0.45, 0.48, 0.3)
+
+[node name="TownMarketStall" parent="Mineville/TownMarket" instance=ExtResource("4_market_stall")]
+position = Vector2(150, 75)
+
+[node name="Lot_Town_B1_L1" type="Area2D" parent="Mineville"]
+position = Vector2(-350, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B1_L2" type="Area2D" parent="Mineville"]
+position = Vector2(-250, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B1_L3" type="Area2D" parent="Mineville"]
+position = Vector2(-150, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B2_L1" type="Area2D" parent="Mineville"]
+position = Vector2(150, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B2_L2" type="Area2D" parent="Mineville"]
+position = Vector2(250, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B2_L3" type="Area2D" parent="Mineville"]
+position = Vector2(350, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B3_L1" type="Area2D" parent="Mineville"]
+position = Vector2(-350, 0)
+script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../House_Mineville_1")
+
+[node name="House_Mineville_1" parent="Mineville" instance=ExtResource("16_house")]
+position = Vector2(-350, 0)
+is_rental = true
+ownership_type = "NPC"
+owner_id = ""
+custom_name = "Rental House"
+
+[node name="Lot_Town_B3_L2" type="Area2D" parent="Mineville"]
+position = Vector2(-250, 0)
+script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../House_Mineville_2")
+
+[node name="House_Mineville_2" parent="Mineville" instance=ExtResource("16_house")]
+position = Vector2(-250, 0)
+is_rental = true
+ownership_type = "NPC"
+owner_id = ""
+custom_name = "Rental House"
+
+[node name="Lot_Town_B3_L3" type="Area2D" parent="Mineville"]
+position = Vector2(-150, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B4_L1" type="Area2D" parent="Mineville"]
+position = Vector2(150, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B4_L2" type="Area2D" parent="Mineville"]
+position = Vector2(250, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B4_L3" type="Area2D" parent="Mineville"]
+position = Vector2(350, 0)
+script = ExtResource("12_building_lot")
+
+[node name="MineOutpost" type="Node2D" parent="."]
+position = Vector2(1200, 1400)
+script = ExtResource("10_town")
+town_name = "Mine Outpost"
+is_resource_node = true
+prosperity = 15
+ownership_province = "Neutral Province"
+
+[node name="OutpostInternalRoad" type="Area2D" parent="MineOutpost"]
+script = ExtResource("11_road_segment")
+size = Vector2(400, 64)
+position = Vector2(0, 0)
+
+[node name="WheatFieldGrid" parent="MineOutpost" instance=ExtResource("13_wheat_grid")]
+position = Vector2(-150, 0)
+
+[node name="CottonPatchGrid" parent="MineOutpost" instance=ExtResource("14_cotton_grid")]
+position = Vector2(150, 0)
+
+[node name="OreMine" parent="MineOutpost" instance=ExtResource("15_ore_mine")]
+position = Vector2(0, 120)
+
+[node name="HouseInterior" type="Node2D" parent="."]
+y_sort_enabled = true
+position = Vector2(3000, 3000)
+
+[node name="Floor" type="ColorRect" parent="HouseInterior"]
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 400.0
+offset_bottom = 300.0
+color = Color(0.38, 0.24, 0.15, 1)
+
+[node name="Walls" type="Node2D" parent="HouseInterior"]
+
+[node name="StaticBody2D_North" type="StaticBody2D" parent="HouseInterior/Walls"]
+position = Vector2(250, 92)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_North"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="StaticBody2D_South" type="StaticBody2D" parent="HouseInterior/Walls"]
+position = Vector2(250, 308)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_South"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="StaticBody2D_West" type="StaticBody2D" parent="HouseInterior/Walls"]
+position = Vector2(92, 200)
+rotation = 1.5708
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_West"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="StaticBody2D_East" type="StaticBody2D" parent="HouseInterior/Walls"]
+position = Vector2(408, 200)
+rotation = 1.5708
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_East"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="DoorTrigger" type="Area2D" parent="HouseInterior"]
+position = Vector2(250, 290)
+script = ExtResource("2_teleport")
+is_local_teleport = true
+target_spawn_position = Vector2(1550, 490)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/DoorTrigger"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="ColorRect" type="ColorRect" parent="HouseInterior/DoorTrigger"]
+offset_left = -16.0
+offset_top = -8.0
+offset_right = 16.0
+offset_bottom = 8.0
+color = Color(0.2, 0.6, 0.8, 0.8)
+
+[node name="CraftingBench" parent="HouseInterior" instance=ExtResource("5_crafting_bench")]
+position = Vector2(150, 140)
+
+[node name="Bed" parent="HouseInterior" instance=ExtResource("8_bed")]
+position = Vector2(330, 140)

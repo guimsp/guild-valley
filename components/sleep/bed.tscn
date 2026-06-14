@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://components/sleep/bed.gd" id="1_bed"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bed_phys"]
+size = Vector2(64, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 45.0
+
+[node name="Bed" type="StaticBody2D"]
+y_sort_enabled = true
+script = ExtResource("1_bed")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_bed_phys")
+
+[node name="FrameColorRect" type="ColorRect" parent="."]
+offset_left = -32.0
+offset_top = -24.0
+offset_right = 32.0
+offset_bottom = 24.0
+color = Color(0.42, 0.29, 0.20, 1)
+
+[node name="PillowColorRect" type="ColorRect" parent="FrameColorRect"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 16.0
+offset_bottom = 44.0
+color = Color(0.94, 0.94, 0.96, 1)
+
+[node name="SheetColorRect" type="ColorRect" parent="FrameColorRect"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 4.0
+offset_right = 60.0
+offset_bottom = 44.0
+color = Color(0.2, 0.4, 0.8, 1)
+
+[node name="InteractionArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+shape = SubResource("CircleShape2D_interact")

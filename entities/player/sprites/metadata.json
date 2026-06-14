@@ -1,0 +1,121 @@
+{
+  "group_id": "672c1f34-efea-4119-8bfc-639abdeb0da0",
+  "states": [
+    {
+      "character": {
+        "id": "6088620d-4719-43d8-8a5a-b19097bd7201",
+        "name": "A white peasant in medieval",
+        "prompt": "A white peasant in medieval clothes (cloth) in high res pixel art (32bit) seen from a high top down perspective, looking front with brown hair and beard",
+        "size": {
+          "width": 220,
+          "height": 220
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-06-12T17:27:12.235409+00:00"
+      },
+      "folder": "A_white_peasant_in_medieval",
+      "frames": {
+        "rotations": {
+          "south": "A_white_peasant_in_medieval/rotations/south.png",
+          "south-east": "A_white_peasant_in_medieval/rotations/south-east.png",
+          "east": "A_white_peasant_in_medieval/rotations/east.png",
+          "north-east": "A_white_peasant_in_medieval/rotations/north-east.png",
+          "north": "A_white_peasant_in_medieval/rotations/north.png",
+          "north-west": "A_white_peasant_in_medieval/rotations/north-west.png",
+          "west": "A_white_peasant_in_medieval/rotations/west.png",
+          "south-west": "A_white_peasant_in_medieval/rotations/south-west.png"
+        },
+        "animations": {
+          "Make_a_walking_animation_where_the_character_moves": {
+            "west": [
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_000.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_001.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_002.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_003.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_004.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_005.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_006.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/west/frame_007.png"
+            ],
+            "east": [
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_000.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_001.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_002.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_003.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_004.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_005.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_006.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/east/frame_007.png"
+            ],
+            "south": [
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_000.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_001.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_002.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_003.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_004.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_005.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_006.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/south/frame_007.png"
+            ],
+            "north": [
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_000.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_001.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_002.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_003.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_004.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_005.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_006.png",
+              "A_white_peasant_in_medieval/animations/Make_a_walking_animation_where_the_character_moves/north/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "386b185d-7c87-415a-abfe-fece13249659",
+        "name": "The same white medie",
+        "prompt": "A white peasant in medieval clothes (cloth) in high res pixel art (32bit) seen from a high top down perspective, looking front with brown hair and beard",
+        "size": {
+          "width": 220,
+          "height": 220
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-06-12T18:29:57.135284+00:00"
+      },
+      "folder": "The_same_white_medie",
+      "frames": {
+        "rotations": {
+          "south": "The_same_white_medie/rotations/south.png",
+          "south-east": "The_same_white_medie/rotations/south-east.png",
+          "east": "The_same_white_medie/rotations/east.png",
+          "north-east": "The_same_white_medie/rotations/north-east.png",
+          "north": "The_same_white_medie/rotations/north.png",
+          "north-west": "The_same_white_medie/rotations/north-west.png",
+          "west": "The_same_white_medie/rotations/west.png",
+          "south-west": "The_same_white_medie/rotations/south-west.png"
+        },
+        "animations": {
+          "Create_a_walking_animation_just_like_the_one_we_ha": {
+            "south": [
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_000.png",
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_001.png",
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_002.png",
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_003.png",
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_004.png",
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_005.png",
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_006.png",
+              "The_same_white_medie/animations/Create_a_walking_animation_just_like_the_one_we_ha/south/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.0",
+  "export_date": "2026-06-12T21:48:33.504374"
+}

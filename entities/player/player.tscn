@@ -1,0 +1,208 @@
+[gd_scene format=3 uid="uid://boybayv3srswx"]
+
+[ext_resource type="Script" uid="uid://corhqtj5mpd8r" path="res://entities/player/player.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dc6iofe40mskl" path="res://entities/player/sprites/rotations/east.png" id="tex_idle_east"]
+[ext_resource type="Texture2D" uid="uid://hcoccdkxnexv" path="res://entities/player/sprites/rotations/north.png" id="tex_idle_north"]
+[ext_resource type="Texture2D" uid="uid://ni7ipq7kcwbb" path="res://entities/player/sprites/rotations/south.png" id="tex_idle_south"]
+[ext_resource type="Texture2D" uid="uid://c1wf8k8ylfu4" path="res://entities/player/sprites/rotations/west.png" id="tex_idle_west"]
+[ext_resource type="Texture2D" uid="uid://vuqonornaptr" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_000.png" id="tex_walk_east_0"]
+[ext_resource type="Texture2D" uid="uid://d33a4helwic4o" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_001.png" id="tex_walk_east_1"]
+[ext_resource type="Texture2D" uid="uid://5yij1o3ec21v" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_002.png" id="tex_walk_east_2"]
+[ext_resource type="Texture2D" uid="uid://6mwsy7pxmw1e" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_003.png" id="tex_walk_east_3"]
+[ext_resource type="Texture2D" uid="uid://bgosgu4cu2by6" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_004.png" id="tex_walk_east_4"]
+[ext_resource type="Texture2D" uid="uid://c8i7cikfp2vms" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_005.png" id="tex_walk_east_5"]
+[ext_resource type="Texture2D" uid="uid://cveq4iown6m6f" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_006.png" id="tex_walk_east_6"]
+[ext_resource type="Texture2D" uid="uid://d1kthh6mll7xy" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/east/frame_007.png" id="tex_walk_east_7"]
+[ext_resource type="Texture2D" uid="uid://ptqwm6klrf1i" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_000.png" id="tex_walk_north_0"]
+[ext_resource type="Texture2D" uid="uid://c0pnnxdepmc21" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_001.png" id="tex_walk_north_1"]
+[ext_resource type="Texture2D" uid="uid://dhjls2o2yo3ku" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_002.png" id="tex_walk_north_2"]
+[ext_resource type="Texture2D" uid="uid://bbduegm0mys8w" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_003.png" id="tex_walk_north_3"]
+[ext_resource type="Texture2D" uid="uid://c58nwp310c8yb" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_004.png" id="tex_walk_north_4"]
+[ext_resource type="Texture2D" uid="uid://bvd4bqewkp78k" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_005.png" id="tex_walk_north_5"]
+[ext_resource type="Texture2D" uid="uid://dwtxg88l33gjh" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_006.png" id="tex_walk_north_6"]
+[ext_resource type="Texture2D" uid="uid://ohuayhifb1ij" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/north/frame_007.png" id="tex_walk_north_7"]
+[ext_resource type="Texture2D" uid="uid://cav430kyosdns" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_000.png" id="tex_walk_south_0"]
+[ext_resource type="Texture2D" uid="uid://nsbkrr8osyie" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_001.png" id="tex_walk_south_1"]
+[ext_resource type="Texture2D" uid="uid://cp8xaut0krdgt" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_002.png" id="tex_walk_south_2"]
+[ext_resource type="Texture2D" uid="uid://dr7rha1ysbdss" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_003.png" id="tex_walk_south_3"]
+[ext_resource type="Texture2D" uid="uid://cwteyy2n6trrg" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_004.png" id="tex_walk_south_4"]
+[ext_resource type="Texture2D" uid="uid://0qi6h1b7fc64" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_005.png" id="tex_walk_south_5"]
+[ext_resource type="Texture2D" uid="uid://cjxk3h8t7ysqm" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_006.png" id="tex_walk_south_6"]
+[ext_resource type="Texture2D" uid="uid://b34h6k7xer23y" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/south/frame_007.png" id="tex_walk_south_7"]
+[ext_resource type="Texture2D" uid="uid://cj4vroofhgowh" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_000.png" id="tex_walk_west_0"]
+[ext_resource type="Texture2D" uid="uid://dppvbq8cvha5j" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_001.png" id="tex_walk_west_1"]
+[ext_resource type="Texture2D" uid="uid://b0o3u82c355el" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_002.png" id="tex_walk_west_2"]
+[ext_resource type="Texture2D" uid="uid://ur036u05g6m7" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_003.png" id="tex_walk_west_3"]
+[ext_resource type="Texture2D" uid="uid://c3dwnglusai1c" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_004.png" id="tex_walk_west_4"]
+[ext_resource type="Texture2D" uid="uid://da8jswdnysens" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_005.png" id="tex_walk_west_5"]
+[ext_resource type="Texture2D" uid="uid://dilidpravs1sv" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_006.png" id="tex_walk_west_6"]
+[ext_resource type="Texture2D" uid="uid://b3pcxwb02tkti" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_007.png" id="tex_walk_west_7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(31, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_1"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_idle_east")
+}],
+"loop": true,
+"name": &"idle_east",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_idle_north")
+}],
+"loop": true,
+"name": &"idle_north",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_idle_south")
+}],
+"loop": true,
+"name": &"idle_south",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_idle_west")
+}],
+"loop": true,
+"name": &"idle_west",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_east_7")
+}],
+"loop": true,
+"name": &"walk_east",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_north_7")
+}],
+"loop": true,
+"name": &"walk_north",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_south_7")
+}],
+"loop": true,
+"name": &"walk_south",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("tex_walk_west_7")
+}],
+"loop": true,
+"name": &"walk_west",
+"speed": 8.0
+}]
+
+[node name="Player" type="CharacterBody2D"]
+y_sort_enabled = true
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1121400411]
+position = Vector2(-0.5, -8)
+shape = SubResource("RectangleShape2D_1")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1572280867]
+position = Vector2(0, -80)
+sprite_frames = SubResource("SpriteFrames_1")
+animation = &"idle_south"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1732116126]

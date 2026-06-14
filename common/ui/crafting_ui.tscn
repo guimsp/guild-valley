@@ -1,0 +1,153 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://common/ui/crafting_ui.gd" id="1_crafting_ui"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.11, 0.11, 0.15, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.27, 0.27, 0.38, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[node name="CraftingUI" type="PanelContainer"]
+custom_minimum_size = Vector2(600, 460)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -230.0
+offset_right = 300.0
+offset_bottom = 230.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+script = ExtResource("1_crafting_ui")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "Crafting Station"
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/TitleBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "X"
+
+[node name="Columns" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="RecipeSidebar" type="VBoxContainer" parent="MarginContainer/VBoxContainer/Columns"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Columns/RecipeSidebar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Recipes"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/Columns/RecipeSidebar"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RecipeList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/Columns/RecipeSidebar/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/Columns/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RecipeNameLabel" type="Label" parent="MarginContainer/VBoxContainer/Columns/DetailPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Recipe Title"
+
+[node name="RecipeCareerLabel" type="Label" parent="MarginContainer/VBoxContainer/Columns/DetailPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Required: Career Level"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/Columns/DetailPanel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Columns/DetailPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Required Ingredients:"
+
+[node name="IngredientsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/Columns/DetailPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="ProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/Columns/DetailPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+
+[node name="CraftButton" type="Button" parent="MarginContainer/VBoxContainer/Columns/DetailPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Craft Item"
+
+[node name="CloseButtonHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="BottomCloseButton" type="Button" parent="MarginContainer/VBoxContainer/CloseButtonHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+text = "Close"
+
+[node name="XPPopupLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 5
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.38, 0.88, 0.38, 1)
+theme_override_font_sizes/font_size = 16
+text = "+15 Farmer XP!"
+horizontal_alignment = 1
