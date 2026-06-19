@@ -206,9 +206,26 @@ func propose_marriage(npc_id: String, npc_name: String) -> Dictionary:
 	if GameState.is_married:
 		return {"status": "rejected", "message": "You are already married!"}
 		
+	# Enforce personal home requirement
+	var player_house = null
+	for house in get_tree().get_nodes_in_group("Houses"):
+		if is_instance_valid(house) and house.ownership_type == "Player" and not house.is_rental:
+			player_house = house
+			break
+	if not player_house:
+		return {"status": "rejected", "message": "Marriage requires a personal home. Please buy or place a personal house first!"}
+		
 	# Success! Monogamy and Retaliatory Jealousy checks
 	GameState.is_married = true
 	GameState.spouse_npc_id = npc_id
+	
+	# Teleport spouse to player's house and update spawn_position
+	for npc in get_tree().get_nodes_in_group("NPCs"):
+		if is_instance_valid(npc) and npc.get("quest_npc_id") == npc_id:
+			npc.global_position = player_house.global_position
+			if "spawn_position" in npc:
+				npc.spawn_position = player_house.global_position
+			break
 	
 	# Any other NPC in Dating range (>= 60) instantly plummets to -80 (Enemy) and sets retaliation
 	var relation_npcs = get_tree().get_nodes_in_group("RelationNPCs")

@@ -128,6 +128,13 @@ var return_home_requested: bool = false
 
 var _economy_manager: Node = null
 
+func get_home_position() -> Vector2:
+	if GameState and quest_npc_id != "" and quest_npc_id == GameState.spouse_npc_id:
+		for house in get_tree().get_nodes_in_group("Houses"):
+			if is_instance_valid(house) and house.ownership_type == "Player" and not house.is_rental:
+				return house.global_position
+	return spawn_position
+
 func _ready() -> void:
 	spawn_position = global_position
 	target_position = global_position
@@ -745,7 +752,7 @@ func _process_search_choose(_delta: float) -> void:
 	if not profile or profile.shopping_queue.is_empty():
 		# Shopping complete, return home
 		return_home_requested = true
-		_generate_path(spawn_position)
+		_generate_path(get_home_position())
 		current_state = State.TRAVEL
 		return
 		
@@ -910,17 +917,18 @@ func _choose_new_wander_target() -> void:
 	var plazas = get_tree().get_nodes_in_group("Plazas")
 	
 	var nearby_walkables = []
+	var home_pos = get_home_position()
 	for road in roads:
-		if road.global_position.distance_to(spawn_position) < 300.0:
+		if road.global_position.distance_to(home_pos) < 300.0:
 			nearby_walkables.append(road)
 	for plaza in plazas:
-		if plaza.global_position.distance_to(spawn_position) < 300.0:
+		if plaza.global_position.distance_to(home_pos) < 300.0:
 			nearby_walkables.append(plaza)
 			
 	if nearby_walkables.is_empty():
 		var angle = randf() * TAU
 		var dist = randf() * 100.0
-		var fallback_pos = spawn_position + Vector2(cos(angle), sin(angle)) * dist
+		var fallback_pos = home_pos + Vector2(cos(angle), sin(angle)) * dist
 		_generate_path(fallback_pos)
 		return
 		

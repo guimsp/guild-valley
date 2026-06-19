@@ -1245,6 +1245,9 @@ func _populate_candidates_list(container: VBoxContainer) -> void:
 	if not _building.get("hireable_candidates"):
 		return
 		
+	if _building.has_method("ensure_spouse_candidate"):
+		_building.ensure_spouse_candidate()
+		
 	if _building.hireable_candidates.size() == 0:
 		_building._populate_candidates()
 		

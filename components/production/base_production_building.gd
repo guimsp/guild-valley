@@ -1317,6 +1317,30 @@ func _populate_candidates() -> void:
 			
 	for npc in local_unemployed:
 		hireable_candidates.append(npc)
+		
+	ensure_spouse_candidate()
+
+func ensure_spouse_candidate() -> void:
+	var spouse_id = ""
+	if owner_id == "Player" or ownership_type == "Player":
+		if GameState and GameState.is_married:
+			spouse_id = GameState.spouse_npc_id
+	elif owner_id == "Rival":
+		var rivals = get_tree().get_nodes_in_group("Rivals")
+		for r in rivals:
+			if is_instance_valid(r) and r.get("spouse_npc_id") != "":
+				spouse_id = r.spouse_npc_id
+				break
+				
+	if spouse_id != "":
+		var spouse_node = null
+		for npc in get_tree().get_nodes_in_group("NPCs"):
+			if is_instance_valid(npc) and npc.get("quest_npc_id") == spouse_id:
+				spouse_node = npc
+				break
+		if spouse_node and not spouse_node.get("is_hired"):
+			if not hireable_candidates.has(spouse_node):
+				hireable_candidates.append(spouse_node)
 
 func spawn_dynamic_npc_in_province(prov_name: String) -> CharacterBody2D:
 	var npc_scene = load("res://entities/npc/npc.tscn")

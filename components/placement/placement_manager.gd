@@ -77,6 +77,16 @@ func start_demolish_building(building: Node2D) -> void:
 		return
 	_hovered_workstation = building
 	
+	if _hovered_workstation.is_in_group("Houses") and not _hovered_workstation.is_rental and _hovered_workstation.ownership_type == "Player":
+		var personal_homes = 0
+		for h in get_tree().get_nodes_in_group("Houses"):
+			if is_instance_valid(h) and h.ownership_type == "Player" and not h.is_rental:
+				personal_homes += 1
+		if personal_homes <= 1:
+			_spawn_floating_text("Cannot demolish your last personal home!", _hovered_workstation.global_position)
+			_hovered_workstation = null
+			return
+			
 	var distance = _active_player.global_position.distance_to(_hovered_workstation.global_position) if _active_player else 0.0
 	if distance > 160.0:
 		_spawn_floating_text("Too far!", _hovered_workstation.global_position)
@@ -723,6 +733,15 @@ func _unhandled_input(event: InputEvent) -> void:
 				if distance > 160.0:
 					_spawn_floating_text("Too far!", _hovered_workstation.global_position)
 					return
+					
+				if _hovered_workstation.is_in_group("Houses") and not _hovered_workstation.is_rental and _hovered_workstation.ownership_type == "Player":
+					var personal_homes = 0
+					for h in get_tree().get_nodes_in_group("Houses"):
+						if is_instance_valid(h) and h.ownership_type == "Player" and not h.is_rental:
+							personal_homes += 1
+					if personal_homes <= 1:
+						_spawn_floating_text("Cannot demolish your last personal home!", _hovered_workstation.global_position)
+						return
 					
 				var db_item = _hovered_workstation.building_data
 				var refund = int(db_item.cost * 0.8) if db_item else 0
