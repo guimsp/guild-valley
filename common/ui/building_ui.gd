@@ -272,6 +272,10 @@ func _update_category_tabs() -> void:
 
 # 1. Main Data: storage grids, player inventory, and active employee production queue rows
 func _render_main_data_tab() -> void:
+	if _building.get("is_warehouse"):
+		_render_warehouse_main_data()
+		return
+		
 	# Left Column: Employee Task Delegation (Production Queue)
 	var queue_lbl = Label.new()
 	queue_lbl.text = "Employee Task Delegation"
@@ -3042,3 +3046,122 @@ func _open_employee_equipment_popup(emp_idx: int) -> void:
 	_slider_overlay.add_child(popup_panel)
 	_slider_overlay.show()
 	close_btn.grab_focus()
+
+func _render_warehouse_main_data() -> void:
+	# Left Column: Warehouse Logistics (Minimum Retained Stock)
+	var title_lbl = Label.new()
+	title_lbl.text = "Logistics: Min Retained Stock"
+	title_lbl.add_theme_font_size_override("font_size", 14)
+	left_column.add_child(title_lbl)
+	
+	var desc_lbl = Label.new()
+	desc_lbl.text = "Couriers will not pull items out if stock is at or below this value."
+	desc_lbl.add_theme_font_size_override("font_size", 10)
+	desc_lbl.modulate = Color(0.7, 0.75, 0.85, 0.8)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	left_column.add_child(desc_lbl)
+	
+	var threshold_scroll = ScrollContainer.new()
+	threshold_scroll.custom_minimum_size = Vector2(0, 320)
+	threshold_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	threshold_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left_column.add_child(threshold_scroll)
+	
+	var threshold_vbox = VBoxContainer.new()
+	threshold_vbox.add_theme_constant_override("separation", 8)
+	threshold_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	threshold_scroll.add_child(threshold_vbox)
+	
+	# Populate with items from EconomyManager database
+	var econ_mgr = get_node_or_null("/root/EconomyManager")
+	if econ_mgr:
+		var items = []
+		for id in econ_mgr.item_database:
+			var item = econ_mgr.item_database[id]
+			if item.is_tradable:
+				items.append(item)
+		items.sort_custom(func(a, b): return a.name < b.name)
+		
+		for item in items:
+			var row = HBoxContainer.new()
+			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			
+			if item.icon:
+				var rect = TextureRect.new()
+				rect.texture = item.icon
+				rect.custom_minimum_size = Vector2(24, 24)
+				rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				row.add_child(rect)
+				
+			var name_lbl = Label.new()
+			name_lbl.text = item.name
+			name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			name_lbl.add_theme_font_size_override("font_size", 12)
+			row.add_child(name_lbl)
+			
+			var val_edit = LineEdit.new()
+			val_edit.text = str(_building.min_retained_stock.get(item.id, 0))
+			val_edit.custom_minimum_size = Vector2(60, 24)
+			val_edit.add_theme_font_size_override("font_size", 12)
+			val_edit.alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+			row.add_child(val_edit)
+			
+			val_edit.text_submitted.connect(func(text: String):
+				var val = text.to_int()
+				if val < 0: val = 0
+				val_edit.text = str(val)
+				_building.min_retained_stock[item.id] = val
+			)
+			val_edit.focus_exited.connect(func():
+				var val = val_edit.text.to_int()
+				if val < 0: val = 0
+				val_edit.text = str(val)
+				_building.min_retained_stock[item.id] = val
+			)
+			
+			threshold_vbox.add_child(row)
+			
+	# Right Column: Warehouse Storage and Player Inventory
+	var right_scroll = ScrollContainer.new()
+	right_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	right_column.add_child(right_scroll)
+	
+	var right_vbox = VBoxContainer.new()
+	right_vbox.add_theme_constant_override("separation", 10)
+	right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_scroll.add_child(right_vbox)
+	
+	var target_b_inv = _building.inventory
+	if target_b_inv:
+		var w_storage_lbl = Label.new()
+		w_storage_lbl.text = "Warehouse Storage (%d Slots)" % target_b_inv.max_slots
+		w_storage_lbl.add_theme_font_size_override("font_size", 12)
+		right_vbox.add_child(w_storage_lbl)
+		
+		var w_storage_grid = GridContainer.new()
+		w_storage_grid.columns = 6
+		w_storage_grid.add_theme_constant_override("h_separation", 6)
+		w_storage_grid.add_theme_constant_override("v_separation", 6)
+		right_vbox.add_child(w_storage_grid)
+		
+		for i in range(target_b_inv.max_slots):
+			var slot_panel = _create_slot_panel("building", target_b_inv, i)
+			w_storage_grid.add_child(slot_panel)
+			
+	var p_inv_lbl = Label.new()
+	p_inv_lbl.text = "Player Inventory (%d Slots)" % GameState.player_inventory.max_slots if GameState.player_inventory else 24
+	p_inv_lbl.add_theme_font_size_override("font_size", 12)
+	right_vbox.add_child(p_inv_lbl)
+	
+	var p_inv_grid = GridContainer.new()
+	p_inv_grid.columns = 6
+	p_inv_grid.add_theme_constant_override("h_separation", 6)
+	p_inv_grid.add_theme_constant_override("v_separation", 6)
+	right_vbox.add_child(p_inv_grid)
+	
+	if GameState.player_inventory:
+		for i in range(GameState.player_inventory.max_slots):
+			var slot_panel = _create_slot_panel("player", GameState.player_inventory, i)
+			p_inv_grid.add_child(slot_panel)

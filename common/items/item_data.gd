@@ -1,6 +1,25 @@
 class_name ItemData
 extends Resource
 
+enum ItemCategory {
+	RAW_MATERIAL,
+	SEMI_ELABORATE,
+	FINISHED_PRODUCT,
+	EQUIPABLE,
+	CONSUMABLE
+}
+
+enum RarityTier {
+	COMMON,
+	LUXURY,
+	RARE
+}
+
+@export var item_category_override: int = -1
+@export var rarity_override: int = -1
+@export var target_stock_override: int = -1
+@export var price_elasticity_override: float = -1.0
+
 # Unique identifier for the item (e.g. "wheat", "iron_ore")
 @export var id: String = ""
 
@@ -65,3 +84,58 @@ extends Resource
 
 # User-facing description
 @export_multiline var description: String = ""
+
+func get_item_category() -> int:
+	if item_category_override != -1:
+		return item_category_override
+	match market_category:
+		"Raw Materials":
+			return ItemCategory.RAW_MATERIAL
+		"Semi-Elaborate":
+			return ItemCategory.SEMI_ELABORATE
+		"Finished Goods":
+			return ItemCategory.FINISHED_PRODUCT
+		"Consumables":
+			return ItemCategory.CONSUMABLE
+		"Equipment":
+			return ItemCategory.EQUIPABLE
+		"Skill Items":
+			return ItemCategory.EQUIPABLE
+		_:
+			return ItemCategory.RAW_MATERIAL
+
+func get_rarity_tier() -> int:
+	if rarity_override != -1:
+		return rarity_override
+	if is_luxury_product:
+		return RarityTier.LUXURY
+	if market_category == "Skill Items":
+		return RarityTier.RARE
+	return RarityTier.COMMON
+
+func get_target_stock() -> int:
+	if target_stock_override != -1:
+		return target_stock_override
+	match get_rarity_tier():
+		RarityTier.COMMON:
+			return 80
+		RarityTier.LUXURY:
+			return 35
+		RarityTier.RARE:
+			return 10
+		_:
+			return 80
+
+func get_price_elasticity() -> float:
+	if price_elasticity_override >= 0.0:
+		return price_elasticity_override
+	match get_rarity_tier():
+		RarityTier.COMMON:
+			return 0.5
+		RarityTier.LUXURY:
+			return 1.2
+		RarityTier.RARE:
+			return 3.0
+		_:
+			return 1.0
+

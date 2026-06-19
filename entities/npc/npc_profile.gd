@@ -19,28 +19,28 @@ func get_decision_weights() -> Dictionary:
 	match social_class:
 		SocialClass.PEASANT:
 			return {
-				"price": 0.70,
-				"attractiveness": 0.15,
-				"employee_skill": 0.05,
+				"price": 0.60,
+				"attractiveness": 0.20,
+				"employee_skill": 0.10,
 				"randomness": 0.10
 			}
 		SocialClass.CITIZEN:
 			return {
-				"price": 0.50,
-				"attractiveness": 0.30,
+				"price": 0.40,
+				"attractiveness": 0.40,
 				"employee_skill": 0.10,
 				"randomness": 0.10
 			}
 		SocialClass.NOBLE:
 			return {
-				"price": 0.15,
+				"price": 0.20,
 				"attractiveness": 0.50,
-				"employee_skill": 0.25,
+				"employee_skill": 0.20,
 				"randomness": 0.10
 			}
 	return {
-		"price": 0.50,
-		"attractiveness": 0.30,
+		"price": 0.40,
+		"attractiveness": 0.40,
 		"employee_skill": 0.10,
 		"randomness": 0.10
 	}

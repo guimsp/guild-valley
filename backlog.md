@@ -5,10 +5,11 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 ---
 
 ## 🎯 Current Task
-- **NPC & Opponent Economy AI (Buyers, Prices & Attractiveness)**
-  - Implement generic NPC logic where townspeople roam settlements with infinite money and act as buyers for player and rival services/products.
-  - Base purchasing decisions dynamically on Attractiveness, Prices, and randomness.
-  - Expand opponent logic so rivals compete horizontally on crafting, building, and workstation placement.
+- **Simulated Economy, Shop Selection Refinement & Market Balancing** [Completed]
+  - Refactored NPC shop selection utility weights and transaction limits.
+  - Implemented consolidated midnight balancing loops (caravans and background consumption).
+  - Created Warehouse building and minimum stock logistics gating.
+  - Spawned 4 Provincial Guild footprint stubs and custom interior layouts.
 
 ---
 
@@ -129,3 +130,10 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 - **Employee Mobility & Transfers**: Decoupled hired workers from static buildings, introducing global `transfer_to_building()` to re-home workers. Added "Transfer" button in the building worker management UI allowing inline workshop switching.
 - **Personal Houses Integration**: Placed interactive `CommercialRoutesConsole` items in all personal player houses (excluding rentals). Benches were removed from player houses and towns. Added HUD open/close integration and Esc key closing.
 - **Mega-Node Harvesting & Clean Up**: Migrated resource gathering to Mega-Nodes, enabling `F` interaction monitoring overlays and directional-independent access. Deleted legacy regular gathering node templates.
+
+### 📈 Simulated Economy, Shop Selection Refinement & Market Balancing
+- **NPC Shop Selection Refinement**: Implemented social class weights for Peasants, Citizens, and Nobles. NPCs buying from private player stalls have transaction caps limiting finished products to 1-2 units.
+- **24-Hour Consolidated Market Sync**: Designed nightly balancing loop executing Phase A (Simulated Background Guild Consumption) and Phase B (Merchant Caravan shortage/glut/disruption safety-valves) strictly at midnight.
+- **Player Warehouses**: Created a 48-slot player-purchasable Warehouse storage depot (placed next to houses under the General construction tab) with custom UI panels enabling minimum retained stock threshold locks that logistics couriers respect.
+- **Provincial Guild Hall Stubs**: Spawned Craftsman, Scholar, Tailor, and Patreon Guild footprints in overworld cities with a custom `900x600` baked navigation interior stub.
+

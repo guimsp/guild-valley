@@ -636,7 +636,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					if _active_player:
 						_active_player.unregister_interactable(_placement_moving_node)
 						
-					var groups = ["CraftingBenches", "MarketStall", "WheatFields", "CottonPlants", "OreMines", "Beds", "Banks", "Inns", "Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Houses", "nav_carve_obstacles"]
+					var groups = ["CraftingBenches", "MarketStall", "WheatFields", "CottonPlants", "OreMines", "Beds", "Banks", "Inns", "Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Houses", "Warehouses", "nav_carve_obstacles"]
 					for grp in groups:
 						if _placement_moving_node.is_in_group(grp):
 							_placement_moving_node.remove_from_group(grp)
@@ -739,7 +739,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if _active_player:
 					_active_player.unregister_interactable(_hovered_workstation)
 					
-				var groups = ["CraftingBenches", "MarketStall", "WheatFields", "CottonPlants", "OreMines", "Beds", "Banks", "Inns", "Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Houses", "nav_carve_obstacles"]
+				var groups = ["CraftingBenches", "MarketStall", "WheatFields", "CottonPlants", "OreMines", "Beds", "Banks", "Inns", "Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Houses", "Warehouses", "nav_carve_obstacles"]
 				for grp in groups:
 					if _hovered_workstation.is_in_group(grp):
 						_hovered_workstation.remove_from_group(grp)
@@ -893,7 +893,7 @@ func _is_position_clear(pos: Vector2, shape: Shape2D) -> bool:
 func _process_workstation_hover() -> void:
 	var global_mouse = get_parent().get_global_mouse_position()
 	var found_workstation: Node2D = null
-	var groups = ["CraftingBenches", "MarketStall", "WheatFields", "CottonPlants", "OreMines", "Beds", "Banks", "Inns", "Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Houses"]
+	var groups = ["CraftingBenches", "MarketStall", "WheatFields", "CottonPlants", "OreMines", "Beds", "Banks", "Inns", "Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Houses", "Warehouses"]
 	for grp in groups:
 		var nodes = get_tree().get_nodes_in_group(grp)
 		for node in nodes:

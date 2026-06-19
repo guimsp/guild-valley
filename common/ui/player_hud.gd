@@ -122,7 +122,7 @@ func _ready() -> void:
 		if all_tab:
 			build_tab_container.remove_child(all_tab)
 			all_tab.queue_free()
-		build_tab_container.set_tab_title(0, "Personal Home")
+		build_tab_container.set_tab_title(0, "General")
 		build_tab_container.set_tab_title(1, "Business")
 		while build_tab_container.get_tab_count() > 2:
 			var tab_to_remove = build_tab_container.get_tab_control(2)
@@ -917,21 +917,33 @@ func _populate_personal_home_tab() -> void:
 		patreon_list.remove_child(child)
 		child.queue_free()
 		
-	var home_items = []
+	var general_items = []
 	for item in GameState.build_database:
-		if item.family == "personal_home":
+		if item.family == "personal_home" or item.type == "renting" or item.family == "warehouse":
 			if not _filter_only_buildable or _is_building_buildable(item):
-				home_items.append(item)
+				general_items.append(item)
 			
-	home_items.sort_custom(func(a, b):
-		return a.building_level < b.building_level
+	general_items.sort_custom(func(a, b):
+		var score_a = 0
+		if a.family == "personal_home": score_a = 1
+		elif a.type == "renting": score_a = 2
+		elif a.family == "warehouse": score_a = 3
+		
+		var score_b = 0
+		if b.family == "personal_home": score_b = 1
+		elif b.type == "renting": score_b = 2
+		elif b.family == "warehouse": score_b = 3
+		
+		if score_a != score_b:
+			return score_a < score_b
+		return a.cost < b.cost
 	)
 	
 	var col_cards = []
-	for i in range(home_items.size()):
+	for i in range(general_items.size()):
 		if i > 0:
 			patreon_list.add_child(_create_vertical_connector())
-		var card = _create_premium_card(home_items[i], true)
+		var card = _create_premium_card(general_items[i], true)
 		card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		patreon_list.add_child(card)
 		col_cards.append(card)

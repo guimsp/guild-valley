@@ -348,6 +348,20 @@ custom_name = "City Council"
 [node name="QuestBoard" parent="ValleyCity" instance=ExtResource("23_quest_board")]
 position = Vector2(0, 150)
 
+[node name="CraftsmanGuild" parent="ValleyCity" instance=ExtResource("16_house")]
+position = Vector2(-150, 150)
+ownership_type = "NPC"
+owner_id = "Guild"
+is_buyable = false
+custom_name = "Craftsman Guild"
+
+[node name="ScholarGuild" parent="ValleyCity" instance=ExtResource("16_house")]
+position = Vector2(150, 150)
+ownership_type = "NPC"
+owner_id = "Guild"
+is_buyable = false
+custom_name = "Scholar Guild"
+
 [node name="PublicHall" parent="OakhavenCity" instance=ExtResource("16_house")]
 position = Vector2(350, 0)
 ownership_type = "Public"
@@ -362,6 +376,20 @@ custom_name = "City Council"
 
 [node name="QuestBoard" parent="OakhavenCity" instance=ExtResource("23_quest_board")]
 position = Vector2(0, 150)
+
+[node name="TailorGuild" parent="OakhavenCity" instance=ExtResource("16_house")]
+position = Vector2(-150, 150)
+ownership_type = "NPC"
+owner_id = "Guild"
+is_buyable = false
+custom_name = "Tailor Guild"
+
+[node name="PatreonGuild" parent="OakhavenCity" instance=ExtResource("16_house")]
+position = Vector2(150, 150)
+ownership_type = "NPC"
+owner_id = "Guild"
+is_buyable = false
+custom_name = "Patreon Guild"
 
 [node name="CityPlaza" type="Area2D" parent="ValleyCity"]
 script = ExtResource("21_plaza_gd")

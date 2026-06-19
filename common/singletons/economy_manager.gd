@@ -13,6 +13,9 @@ var show_debug_emotes: bool = true
 func _ready() -> void:
 	# Load all items on launch
 	_load_item_database()
+	if GameState:
+		if not GameState.time_changed.is_connected(_on_time_changed):
+			GameState.time_changed.connect(_on_time_changed)
 
 func _physics_process(_delta: float) -> void:
 	# Stagger shop queries: process a maximum of 5 requests per frame
@@ -86,6 +89,10 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 		# Check settlement match
 		var stall_settlement = GameState.get_nearest_settlement(stall)
 		if stall_settlement != npc_settlement:
+			continue
+			
+		# Exclude Warehouses from ambient retail shopping queries
+		if stall.is_in_group("Warehouses") or (stall.get("parent_building") != null and stall.parent_building.is_in_group("Warehouses")):
 			continue
 			
 		# Check if shop stocks the exact item ID (personal/private shops must have real stock)
@@ -258,3 +265,98 @@ func _save_empty_decision(npc: CharacterBody2D, item_id: String) -> void:
 		npc.decision_history.push_front(decision_breakdown.duplicate(true))
 		if npc.decision_history.size() > 2:
 			npc.decision_history.resize(2)
+
+var shortage_days: Dictionary = {} # key: String -> int
+
+func _on_time_changed(hours: int, minutes: int, days: int) -> void:
+	if hours == 0 and minutes == 0:
+		# Consolidated nightly balancing cycle
+		# Phase A: Simulated Background Guild Consumption
+		_process_background_guild_consumption()
+		# Phase B: Merchant Caravan Safety-Valve
+		_process_merchant_caravan_balancing()
+
+func _process_background_guild_consumption() -> void:
+	var stalls = get_tree().get_nodes_in_group("MarketStall")
+	for stall in stalls:
+		if not is_instance_valid(stall) or stall.ownership_type != "Public" or not stall.inventory:
+			continue
+		for item_id in item_database:
+			var item = item_database[item_id]
+			# Category: 0 = RAW_MATERIAL, 1 = SEMI_ELABORATE
+			if item.get_item_category() == 0 or item.get_item_category() == 1:
+				var current_amount = stall.inventory.get_item_amount(item_id)
+				if current_amount > 1:
+					var pct = randf_range(0.10, 0.25)
+					var deduction = int(current_amount * pct)
+					if deduction >= current_amount:
+						deduction = current_amount - 1
+					if deduction > 0:
+						stall.inventory.remove_item(item_id, deduction)
+
+func _process_merchant_caravan_balancing() -> void:
+	var stalls = get_tree().get_nodes_in_group("MarketStall")
+	var public_stalls = []
+	for stall in stalls:
+		if is_instance_valid(stall) and stall.ownership_type == "Public" and stall.inventory:
+			public_stalls.append(stall)
+			
+	if public_stalls.is_empty():
+		return
+		
+	# Process shortage and glut for each public stall
+	for stall in public_stalls:
+		var stall_key = String(stall.get_path())
+		for item_id in item_database:
+			var item = item_database[item_id]
+			if not item.is_tradable:
+				continue
+				
+			var target = stall.target_stock.get(item, item.get_target_stock())
+			var current_stock = stall.inventory.get_item_amount(item_id)
+			
+			# 1. Shortage Intervention
+			if current_stock < target * 0.25:
+				var key = stall_key + ":" + item_id
+				var consecutive = shortage_days.get(key, 0) + 1
+				shortage_days[key] = consecutive
+				if consecutive >= 2:
+					var mid_amount = int(target * 0.5)
+					var needed = mid_amount - current_stock
+					if needed > 0:
+						stall.inventory.add_item(item, needed)
+						print("[EconomyManager] Caravan shortage intervention: added %d %s to %s" % [needed, item_id, stall.name])
+					shortage_days[key] = 0
+			else:
+				var key = stall_key + ":" + item_id
+				shortage_days[key] = 0
+				
+			# 2. Glut Intervention
+			if current_stock > target * 1.5:
+				var excess = current_stock - target
+				var to_remove = int(excess * 0.5)
+				if to_remove > 0:
+					stall.inventory.remove_item(item_id, to_remove)
+					print("[EconomyManager] Caravan glut intervention: removed %d %s from %s" % [to_remove, item_id, stall.name])
+					
+	# 3. Market Disruption (Random Oversupply)
+	if randf() < 0.20:
+		var commodities = []
+		for item_id in item_database:
+			var item = item_database[item_id]
+			var cat = item.get_item_category()
+			if cat == 0 or cat == 1:
+				commodities.append(item)
+		if not commodities.is_empty():
+			commodities.shuffle()
+			var dump_count = randi_range(1, min(3, commodities.size()))
+			for i in range(dump_count):
+				var item = commodities[i]
+				var target = public_stalls[0].target_stock.get(item, item.get_target_stock())
+				var dump_amount = randi_range(int(target * 0.5), int(target * 1.0))
+				if dump_amount > 0:
+					for stall in public_stalls:
+						stall.inventory.add_item(item, dump_amount)
+					print("[EconomyManager] Caravan Market Disruption: dumped %d units of %s into public markets!" % [dump_amount, item.id])
+					if GameState and GameState.has_method("spawn_ui_floating_text"):
+						GameState.spawn_ui_floating_text("Caravan Disruption: Oversupply of %s!" % item.name)

@@ -836,7 +836,12 @@ func _process_transact(_delta: float) -> void:
 		if profile and profile.demand_profiles.has(target_item_id):
 			wanted_amount = profile.demand_profiles[target_item_id].get("accumulation", 1)
 			
-		var buy_amount = min(wanted_amount, available_stock)
+		var buy_limit = 999
+		if npc_type == NPCType.TYPE_CONSUMER and target_stall.ownership_type != "Public":
+			if item_data.get_item_category() == 2: # Finished Product
+				buy_limit = randi_range(1, 2)
+				
+		var buy_amount = min(wanted_amount, min(available_stock, buy_limit))
 		var price = target_stall.get_buy_price(item_data)
 		var total_cost = price * buy_amount
 		
@@ -1153,6 +1158,8 @@ func _process_commercial_route(delta: float) -> void:
 						var item_res = econ_mgr.item_database.get(active_commercial_route.target_item_id) if econ_mgr else null
 						if item_res:
 							var avail = storage.get_item_amount(item_res.id)
+							if hired_by_building.has_method("get_available_item_amount"):
+								avail = hired_by_building.get_available_item_amount(item_res.id)
 							var to_load = min(active_commercial_route.target_amount, avail)
 							var max_limit = item_res.max_stack if "max_stack" in item_res else 20
 							to_load = min(to_load, max_limit)
@@ -1356,6 +1363,8 @@ func _process_internal_trade_route(delta: float) -> void:
 					# Buying from market
 					var free_space = cargo_inventory.get_free_space_for_item(item_res)
 					var avail = storage.get_item_amount(stop.item_id)
+					if is_instance_valid(stop.target_building) and stop.target_building.has_method("get_available_item_amount"):
+						avail = stop.target_building.get_available_item_amount(stop.item_id)
 					if free_space <= 0 or avail <= 0:
 						_advance_to_next_stop()
 						return
@@ -1426,6 +1435,8 @@ func _process_internal_trade_route(delta: float) -> void:
 				# Non-market: traditional sequential fast trade
 				if stop.action_type == "LOAD":
 					var avail = storage.get_item_amount(stop.item_id)
+					if is_instance_valid(stop.target_building) and stop.target_building.has_method("get_available_item_amount"):
+						avail = stop.target_building.get_available_item_amount(stop.item_id)
 					var to_load = min(stop.target_quantity, avail)
 					if to_load > 0:
 						var free_space = cargo_inventory.get_free_space_for_item(item_res)

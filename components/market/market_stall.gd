@@ -185,9 +185,10 @@ func _populate_default_stock() -> void:
 
 func get_single_buy_price(item: ItemData, temp_stock: int) -> int:
 	var base_val: int = item.base_value
-	var target: int = target_stock.get(item, 10)
+	var target: int = target_stock.get(item, item.get_target_stock())
 	if target <= 0: target = 10
-	var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
+	var elasticity = item.get_price_elasticity()
+	var multiplier: float = 1.0 + (float(target - temp_stock) / target) * (sensitivity * elasticity)
 	multiplier = clamp(multiplier, 0.2, 3.0)
 	
 	var price = 0.0
@@ -221,12 +222,13 @@ func get_sell_price(item: ItemData) -> int:
 		
 	var base_val: int = item.base_value
 	var current_stock: int = inventory.get_item_amount(item.id)
-	var target: int = target_stock.get(item, 10)
+	var target: int = target_stock.get(item, item.get_target_stock())
 	
 	if target <= 0:
 		target = 10
 		
-	var multiplier: float = 1.0 + (float(target - current_stock) / target) * sensitivity
+	var elasticity = item.get_price_elasticity()
+	var multiplier: float = 1.0 + (float(target - current_stock) / target) * (sensitivity * elasticity)
 	multiplier = clamp(multiplier, 0.2, 3.0)
 	
 	# Sell price is slightly lower than value (10% trade spread)
@@ -320,8 +322,9 @@ func sell_item(item: ItemData, amount: int) -> bool:
 	var total_revenue: int = 0
 	var temp_stock: int = current_stock
 	for i in range(amount):
-		var target: int = target_stock.get(item, 10)
-		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
+		var target: int = target_stock.get(item, item.get_target_stock())
+		var elasticity = item.get_price_elasticity()
+		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * (sensitivity * elasticity)
 		multiplier = clamp(multiplier, 0.2, 3.0)
 		total_revenue += int(item.base_value * multiplier * 0.9)
 		temp_stock += 1
@@ -338,8 +341,9 @@ func sell_item(item: ItemData, amount: int) -> bool:
 		total_revenue = 0
 		temp_stock = current_stock
 		for i in range(accepted):
-			var target: int = target_stock.get(item, 10)
-			var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
+			var target: int = target_stock.get(item, item.get_target_stock())
+			var elasticity = item.get_price_elasticity()
+			var multiplier: float = 1.0 + (float(target - temp_stock) / target) * (sensitivity * elasticity)
 			multiplier = clamp(multiplier, 0.2, 3.0)
 			total_revenue += int(item.base_value * multiplier * 0.9)
 			temp_stock += 1

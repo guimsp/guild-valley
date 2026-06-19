@@ -11,7 +11,7 @@ extends Resource
 @export var cost: int = 0
 @export var time: float = 3.0
 @export var scene_path: String = ""
-@export_enum("home", "renting", "production", "gathering") var type: String = "production"
+@export_enum("home", "renting", "production", "gathering", "warehouse") var type: String = "production"
 @export_enum("outside", "inside", "any") var env: String = "outside"
 @export_enum("city", "town", "any") var allowed_settlement: String = "any"
 @export var attractiveness: int = 10
