@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_m6hs0"]
+
+[resource]
+script = ExtResource("1_m6hs0")
+id = "tailor_loom_t3"
+name = "Textile Factory"
+family = "tailor_loom_t3"
+career = "tailor"
+tier = 3
+level = 5
+cost = 1600
+time = 24.0
+scene_path = "res://components/production/loom.tscn"
+description = "T3 Production: Mass cloth weaving factory."

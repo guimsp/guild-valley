@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_distillery"]
+
+[resource]
+script = ExtResource("1_distillery")
+id = "patreon_distillery_l1"
+name = "Distillery"
+family = "patreon_distillery"
+career = "patreon"
+tier = 3
+level = 7
+cost = 1000
+time = 15.0
+scene_path = "res://components/production/distillery.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "A facility containing vats to ferment wines and distill liquors."

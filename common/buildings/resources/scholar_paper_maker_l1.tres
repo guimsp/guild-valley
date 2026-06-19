@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_16nqs"]
+
+[resource]
+script = ExtResource("1_16nqs")
+id = "scholar_paper_maker_l1"
+name = "Paper Maker"
+family = "scholar_paper_maker"
+career = "scholar"
+cost = 150
+time = 5.0
+scene_path = "res://components/production/paper_maker.tscn"
+description = "A workshop to press and dry raw cotton fibers into paper sheets."

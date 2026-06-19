@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://b7f6mo05k2537"]
+
+[ext_resource type="Script" path="res://components/buildings/commercial_routes_console.gd" id="1_console"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_console"]
+radius = 24.0
+
+[node name="CommercialRoutesConsole" type="Area2D"]
+script = ExtResource("1_console")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_console")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -20.0
+offset_top = -12.0
+offset_right = 20.0
+offset_bottom = 12.0
+color = Color(0.1, 0.45, 0.6, 1)

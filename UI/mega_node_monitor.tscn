@@ -1,0 +1,112 @@
+[gd_scene format=3 uid="uid://be4ew5fx424ia"]
+
+[ext_resource type="Script" path="res://UI/mega_node_monitor.gd" id="1_mega_node_monitor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.1, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.6, 0.86, 0.7)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+content_margin_left = 20
+content_margin_right = 20
+content_margin_top = 20
+content_margin_bottom = 20
+
+[node name="MegaNodeMonitor" type="PanelContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 380)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -190.0
+offset_right = 260.0
+offset_bottom = 190.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+script = ExtResource("1_mega_node_monitor")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 18
+text = "Wilderness Node Monitor"
+
+[node name="Details" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ResourceLbl" type="Label" parent="VBox/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Resource: Wheat"
+
+[node name="OccupancyLbl" type="Label" parent="VBox/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Occupancy: 0/5"
+
+[node name="FeeLbl" type="Label" parent="VBox/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Permit Fee: 50 Gold"
+
+[node name="CongestionLbl" type="Label" parent="VBox/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Efficiency: 100%"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SlotsContainer" type="VBoxContainer" parent="VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Footer" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="GatherSelfBtn" type="Button" parent="VBox/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+focus_mode = 2
+text = "Gather Personally"
+
+[node name="CloseButton" type="Button" parent="VBox/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+focus_mode = 2
+text = "Close"

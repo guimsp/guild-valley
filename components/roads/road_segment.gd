@@ -16,6 +16,7 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		body_entered.connect(_on_body_entered)
 		body_exited.connect(_on_body_exited)
+		call_deferred("_setup_navigation_region")
 	_update_size()
 
 func _update_size() -> void:
@@ -45,3 +46,33 @@ func _on_body_exited(body: Node2D) -> void:
 		if body.active_roads_count <= 0:
 			body.active_roads_count = 0
 			body.speed_multiplier = 1.0
+
+func _setup_navigation_region() -> void:
+	var region = NavigationRegion2D.new()
+	region.name = "RoadNavRegion"
+	add_child(region)
+	
+	var poly = NavigationPolygon.new()
+	poly.parsed_geometry_type = NavigationPolygon.PARSED_GEOMETRY_STATIC_COLLIDERS
+	poly.source_geometry_mode = NavigationPolygon.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+	poly.source_geometry_group_name = "nav_carve_obstacles"
+	poly.agent_radius = 16.0
+	
+	var half_size = size / 2.0
+	var vertices = PackedVector2Array([
+		Vector2(-half_size.x, -half_size.y),
+		Vector2(half_size.x, -half_size.y),
+		Vector2(half_size.x, half_size.y),
+		Vector2(-half_size.x, half_size.y)
+	])
+	poly.add_outline(vertices)
+	poly.make_polygons_from_outlines()
+	region.navigation_polygon = poly
+	region.enabled = true
+	
+	NavigationServer2D.region_set_enter_cost(region.get_rid(), 0.5)
+	NavigationServer2D.region_set_travel_cost(region.get_rid(), 0.5)
+	
+	# Wait one frame to bake so that world geometry is loaded
+	await get_tree().physics_frame
+	region.bake_navigation_polygon(true)

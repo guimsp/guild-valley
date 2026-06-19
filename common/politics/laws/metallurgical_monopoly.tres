@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LawResource" format=3]
+
+[ext_resource type="Script" path="res://common/politics/law_resource.gd" id="1_law"]
+
+[resource]
+script = ExtResource("1_law")
+id = "metallurgical_monopoly"
+name = "The Metallurgical Monopoly Decree"
+description = "Forces raw processing inside city walls by making smelting ore outside city walls illegal."
+category = "Prohibition"
+influence_cost = 250
+value_type = "smelting_monopoly"
+effect_value = 1.0

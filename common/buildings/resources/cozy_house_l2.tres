@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_mel2j"]
+
+[resource]
+script = ExtResource("1_mel2j")
+id = "cozy_house_l2"
+name = "Comfortable House"
+family = "personal_home"
+building_level = 2
+cost = 500
+time = 8.0
+scene_path = "res://components/buildings/house.tscn"
+type = "home"
+description = "Level 2 Personal Home: More space and storage room."

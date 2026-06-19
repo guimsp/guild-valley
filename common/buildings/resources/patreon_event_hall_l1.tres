@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_event_hall"]
+
+[resource]
+script = ExtResource("1_event_hall")
+id = "patreon_event_hall_l1"
+name = "Event Hall"
+family = "patreon_event_hall"
+career = "patreon"
+tier = 3
+level = 8
+cost = 2000
+time = 25.0
+scene_path = "res://components/production/event_hall.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "A grand venue to host noble and royal banquets for massive gold payouts. Reduces province taxes."

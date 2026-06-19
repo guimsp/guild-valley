@@ -9,27 +9,17 @@ extends Area2D
 
 @export var base_cost: int = 50
 @export var is_occupied: bool = false:
-	get:
-		if is_occupied and not is_instance_valid(occupied_node):
-			is_occupied = false
-			occupied_node = null
-		return is_occupied
 	set(val):
-		is_occupied = val
-		queue_redraw()
+		if is_occupied != val:
+			is_occupied = val
+			_update_barrier_state()
+			queue_redraw()
 
 @export var occupied_node: Node2D = null:
-	get:
-		if occupied_node and not is_instance_valid(occupied_node):
-			occupied_node = null
-			is_occupied = false
-		return occupied_node
 	set(val):
-		occupied_node = val
-		if val:
-			is_occupied = true
-		else:
-			is_occupied = false
+		if occupied_node != val:
+			occupied_node = val
+			is_occupied = val != null
 
 var calculated_cost: int = 50
 var nearest_settlement: Node2D = null
@@ -52,10 +42,33 @@ func _ready() -> void:
 	_update_size()
 	
 	if not Engine.is_editor_hint():
+		# Add a StaticBody2D child that acts as a physical block for NPCs and opponents
+		var static_body = StaticBody2D.new()
+		static_body.name = "NPCBarrier"
+		static_body.collision_layer = 4 # Layer 3 (bit 2 = value 4)
+		static_body.collision_mask = 0 # No mask needed for the barrier itself
+		
+		var col = CollisionShape2D.new()
+		col.name = "CollisionShape2D"
+		var shape = RectangleShape2D.new()
+		shape.size = lot_size
+		col.shape = shape
+		static_body.add_to_group("nav_carve_obstacles")
+		static_body.add_child(col)
+		add_child(static_body)
+
 		# Wait one frame to let settlements load before locating the nearest one
 		await get_tree().process_frame
 		_find_nearest_settlement()
 		calculate_lot_cost()
+		_update_barrier_state()
+
+func _process(_delta: float) -> void:
+	if not Engine.is_editor_hint():
+		if is_occupied and not is_instance_valid(occupied_node):
+			occupied_node = null
+			is_occupied = false
+
 
 func _update_size() -> void:
 	queue_redraw()
@@ -114,6 +127,13 @@ func calculate_lot_cost() -> int:
 		
 	calculated_cost = cost
 	return cost
+
+func _update_barrier_state() -> void:
+	if Engine.is_editor_hint():
+		return
+	var barrier = get_node_or_null("NPCBarrier/CollisionShape2D")
+	if barrier:
+		barrier.disabled = is_occupied
 
 func _draw() -> void:
 	var rect = Rect2(-lot_size / 2.0, lot_size)

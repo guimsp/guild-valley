@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "sweet_berry_cake"
+name = "Sweet Berry Cake"
+base_value = 24
+min_price = 4
+max_price = 240
+weight = 0.6
+category = "Food"
+market_category = "Finished Goods"
+item_type = "Consumable"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "A moist cake topped with sweet forest berries."

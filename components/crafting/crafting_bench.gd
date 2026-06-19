@@ -1,6 +1,7 @@
 class_name CraftingBench
 extends StaticBody2D
 
+@export var building_data: BuildingData = null
 @export var bench_name: String = "Crafting Bench"
 
 @export_enum("Public", "Player", "Rented", "NPC") var ownership_type: String = "Public"
@@ -18,7 +19,10 @@ extends StaticBody2D
 @onready var interaction_area: Area2D = $InteractionArea
 
 func _ready() -> void:
+	if not building_data:
+		building_data = GameState.get_building_data_for_node(self)
 	add_to_group("CraftingBenches")
+	add_to_group("nav_carve_obstacles")
 	GameState.add_text_tag(self, "Bench")
 	# Load default recipes if none are assigned
 	if recipes.is_empty():
@@ -46,8 +50,14 @@ func _on_interaction_body_exited(body: Node2D) -> void:
 func get_interaction_text() -> String:
 	return "Craft"
 
-# Called when player interacts (presses E)
 func interact(player: CharacterBody2D) -> void:
 	var hud = get_tree().get_first_node_in_group("PlayerHUD")
+	if not hud:
+		hud = get_tree().get_first_node_in_group("game_hud")
+		
 	if hud:
-		hud.open_crafting(self)
+		var parent_b = get_parent().get("parent_building")
+		if parent_b and parent_b.ownership_type == "Player" and hud.has_method("open_building_ui"):
+			hud.open_building_ui(parent_b)
+		else:
+			hud.open_crafting(self)

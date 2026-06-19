@@ -1,0 +1,467 @@
+[gd_scene format=3 uid="uid://c2mainmenu1"]
+
+[ext_resource type="Script" path="res://UI/main_menu.gd" id="1_main_menu"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.08, 0.08, 0.11, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.24, 0.6, 0.86, 0.7)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
+content_margin_left = 32
+content_margin_right = 32
+content_margin_top = 32
+content_margin_bottom = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.14, 0.14, 0.19, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.38, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12
+content_margin_right = 12
+content_margin_top = 12
+content_margin_bottom = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_selected"]
+bg_color = Color(0.16, 0.22, 0.28, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.6, 0.86, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12
+content_margin_right = 12
+content_margin_top = 12
+content_margin_bottom = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+bg_color = Color(0.18, 0.18, 0.24, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.35, 0.45, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.24, 0.26, 0.36, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.24, 0.6, 0.86, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
+bg_color = Color(0.12, 0.12, 0.18, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.24, 0.6, 0.86, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 8
+content_margin_bottom = 8
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.07, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WindowPanel" type="PanelContainer" parent="CenterContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(680, 480)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="Screen_Title" type="VBoxContainer" parent="CenterContainer/WindowPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="GameTitle" type="Label" parent="CenterContainer/WindowPanel/Screen_Title"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 36
+text = "GUILD VALLEY"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterContainer/WindowPanel/Screen_Title"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "A medieval economic and production strategy game"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/WindowPanel/Screen_Title"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="CenterContainer/WindowPanel/Screen_Title"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Start New Game"
+
+[node name="LoadButton" type="Button" parent="CenterContainer/WindowPanel/Screen_Title"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Load Saved Game"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/WindowPanel/Screen_Title"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Quit to Desktop"
+
+[node name="Screen_Settings" type="VBoxContainer" parent="CenterContainer/WindowPanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="SettingsTitle" type="Label" parent="CenterContainer/WindowPanel/Screen_Settings"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 22
+text = "GAME SETTINGS"
+horizontal_alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="CenterContainer/WindowPanel/Screen_Settings"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 16
+columns = 2
+
+[node name="MapLabel" type="Label" parent="CenterContainer/WindowPanel/Screen_Settings/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Select Map:"
+
+[node name="MapOptionButton" type="OptionButton" parent="CenterContainer/WindowPanel/Screen_Settings/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+
+[node name="AILabel" type="Label" parent="CenterContainer/WindowPanel/Screen_Settings/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Opponent AI Active:"
+
+[node name="AICheckBox" type="CheckBox" parent="CenterContainer/WindowPanel/Screen_Settings/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Enable Rival Family Competition"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Settings"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="SettingsBackButton" type="Button" parent="CenterContainer/WindowPanel/Screen_Settings/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Back"
+
+[node name="SettingsNextButton" type="Button" parent="CenterContainer/WindowPanel/Screen_Settings/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Next"
+
+[node name="Screen_Creator" type="VBoxContainer" parent="CenterContainer/WindowPanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="CreatorTitle" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 22
+text = "CHARACTER CREATION"
+horizontal_alignment = 1
+
+[node name="NameHBox" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/NameHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Character Name:"
+
+[node name="NameInput" type="LineEdit" parent="CenterContainer/WindowPanel/Screen_Creator/NameHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 36)
+layout_mode = 2
+placeholder_text = "Enter name..."
+max_length = 16
+
+[node name="CareerSectionLabel" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Select Starting Career:"
+horizontal_alignment = 1
+
+[node name="CareerCardsHBox" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Card_Patreon" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 180)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Patreon"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Patreon/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.65, 0.44, 1)
+theme_override_font_sizes/font_size = 12
+text = "Patreon"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Patreon/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Runs mills and bakeries. Focuses on food production, inn hospitality, and real estate."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Patreon/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Wheat & Eggs"
+horizontal_alignment = 1
+
+[node name="Card_Craftsman" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 180)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Craftsman"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Craftsman/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.38, 0.24, 1)
+theme_override_font_sizes/font_size = 12
+text = "Craftsman"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Craftsman/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Mines ores, smelts iron ingots, and crafts custom metalwork tools and forge materials."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Craftsman/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Ore & Sunflower"
+horizontal_alignment = 1
+
+[node name="Card_Tailor" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 180)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Tailor"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Tailor/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.44, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "Tailor"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Tailor/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Harvests cotton and wool. Weaves premium fabrics and styles garments at sewing tables."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Tailor/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Cotton & Sunflower"
+horizontal_alignment = 1
+
+[node name="Card_Scholar" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 180)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Scholar"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Scholar/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "Scholar"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Scholar/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Creates paper, prints books, and manages money loans and banking. Earns high influence."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Scholar/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Paper & Cotton"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="CreatorBackButton" type="Button" parent="CenterContainer/WindowPanel/Screen_Creator/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Back"
+
+[node name="CreatorLaunchButton" type="Button" parent="CenterContainer/WindowPanel/Screen_Creator/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Launch Game"

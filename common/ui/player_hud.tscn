@@ -123,18 +123,35 @@ size_flags_horizontal = 3
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="FarmerVBox" type="VBoxContainer" parent="HUDControl/TopBar/HBox/Careers"]
+[node name="PatreonVBox" type="VBoxContainer" parent="HUDControl/TopBar/HBox/Careers"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 alignment = 1
 
-[node name="FarmerLevelLabel" type="Label" parent="HUDControl/TopBar/HBox/Careers/FarmerVBox"]
+[node name="PatreonLevelLabel" type="Label" parent="HUDControl/TopBar/HBox/Careers/PatreonVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
-text = "Farmer Lv. 1"
+text = "Patreon Lv. 1"
 
-[node name="FarmerXPBar" type="ProgressBar" parent="HUDControl/TopBar/HBox/Careers/FarmerVBox"]
+[node name="PatreonXPBar" type="ProgressBar" parent="HUDControl/TopBar/HBox/Careers/PatreonVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 6)
+layout_mode = 2
+show_percentage = false
+
+[node name="ScholarVBox" type="VBoxContainer" parent="HUDControl/TopBar/HBox/Careers"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+alignment = 1
+
+[node name="ScholarLevelLabel" type="Label" parent="HUDControl/TopBar/HBox/Careers/ScholarVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Scholar Lv. 1"
+
+[node name="ScholarXPBar" type="ProgressBar" parent="HUDControl/TopBar/HBox/Careers/ScholarVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 6)
 layout_mode = 2
@@ -288,140 +305,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Farmer" type="MarginContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="FarmerVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="ProgressVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="FarmerProgressLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox/ProgressVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "0 / 100 XP"
-horizontal_alignment = 2
-
-[node name="FarmerProgressBar" type="ProgressBar" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox/ProgressVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-show_percentage = false
-
-[node name="Label" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Crafting Recipes"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="FarmerRecipeList" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Farmer/FarmerVBox/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 6
-
-[node name="Craftsman" type="MarginContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer"]
-visible = false
-layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="CraftsmanVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="ProgressVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="CraftsmanProgressLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox/ProgressVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "0 / 100 XP"
-horizontal_alignment = 2
-
-[node name="CraftsmanProgressBar" type="ProgressBar" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox/ProgressVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-show_percentage = false
-
-[node name="Label" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Crafting Recipes"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="CraftsmanRecipeList" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Craftsman/CraftsmanVBox/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 6
-
-[node name="Tailor" type="MarginContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer"]
-visible = false
-layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="TailorVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="ProgressVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="TailorProgressLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox/ProgressVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "0 / 100 XP"
-horizontal_alignment = 2
-
-[node name="TailorProgressBar" type="ProgressBar" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox/ProgressVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-show_percentage = false
-
-[node name="Label" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Crafting Recipes"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="TailorRecipeList" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/RightColumn/CareerTabContainer/Tailor/TailorVBox/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 6
-
 [node name="CloseButtonHBox" type="HBoxContainer" parent="HUDControl/InventoryPanel/MainLayout"]
 layout_mode = 2
 alignment = 1
@@ -503,7 +386,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="Farmer" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
+[node name="Patreon" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
 visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 8
@@ -511,10 +394,27 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Farmer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Patreon"]
 layout_mode = 2
 
-[node name="FarmerList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Farmer/ScrollContainer"]
+[node name="PatreonList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Patreon/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Scholar" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Scholar"]
+layout_mode = 2
+
+[node name="ScholarList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Scholar/ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://components/production/bank.gd" id="1_bank"]
 
@@ -20,6 +20,9 @@ radius = 32.0
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint"]
 size = Vector2(96, 80)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stall"]
+size = Vector2(80, 48)
+
 [node name="Bank" type="StaticBody2D"]
 y_sort_enabled = true
 script = ExtResource("1_bank")
@@ -40,11 +43,11 @@ position = Vector2(40, 8)
 shape = SubResource("RectangleShape2D_sides")
 
 [node name="ColSouthWest" type="CollisionShape2D" parent="."]
-position = Vector2(-36, 40)
+position = Vector2(-36, 32)
 shape = SubResource("RectangleShape2D_south")
 
 [node name="ColSouthEast" type="CollisionShape2D" parent="."]
-position = Vector2(36, 40)
+position = Vector2(36, 32)
 shape = SubResource("RectangleShape2D_south")
 
 [node name="Interior" type="Node2D" parent="."]
@@ -103,3 +106,24 @@ offset_right = 48.0
 offset_bottom = 40.0
 mouse_filter = 2
 color = Color(0.15, 0.32, 0.22, 1)
+
+[node name="ColStall" type="CollisionShape2D" parent="."]
+position = Vector2(8, 16)
+shape = SubResource("RectangleShape2D_stall")
+
+[node name="StallCounter" type="ColorRect" parent="."]
+offset_left = -32.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 40.0
+color = Color(0.5, 0.35, 0.24, 1)
+
+[node name="StallRoof" type="ColorRect" parent="StallCounter"]
+layout_mode = 0
+offset_top = -8.0
+offset_right = 80.0
+offset_bottom = 4.0
+color = Color(0.24, 0.65, 0.44, 1)
+
+[node name="EntranceMarker" type="Marker2D" parent="."]
+position = Vector2(8, 52)

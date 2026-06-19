@@ -1,16 +1,16 @@
 [gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
-[ext_resource type="Resource" path="res://common/items/instances/wheat.tres" id="2_wheat"]
-[ext_resource type="Resource" path="res://common/items/instances/flour.tres" id="3_flour"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/wheat.tres" id="2_wheat"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flour.tres" id="3_flour"]
 
 [resource]
 script = ExtResource("1_script")
-recipe_name = "Grind Wheat to Flour"
-required_career = "farmer"
+recipe_name = "Grind Wheat"
+required_career = "patreon"
 required_level = 1
 inputs = {
-ExtResource("2_wheat"): 3
+ExtResource("2_wheat"): 1
 }
 output_item = ExtResource("3_flour")
 output_amount = 1

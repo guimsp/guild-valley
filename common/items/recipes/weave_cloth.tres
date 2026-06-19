@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
-[ext_resource type="Resource" path="res://common/items/instances/cotton.tres" id="2_cotton"]
-[ext_resource type="Resource" path="res://common/items/instances/cloth.tres" id="3_cloth"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/cotton.tres" id="2_cotton"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/cloth.tres" id="3_cloth"]
 
 [resource]
 script = ExtResource("1_script")

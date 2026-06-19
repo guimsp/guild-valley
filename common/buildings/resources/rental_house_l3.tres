@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_3xbwt"]
+
+[resource]
+script = ExtResource("1_3xbwt")
+id = "rental_house_l3"
+name = "Manor Rental"
+family = "rental_house"
+building_level = 3
+cost = 1000
+time = 12.0
+scene_path = "res://components/buildings/house.tscn"
+type = "renting"
+description = "Level 3 Rental House: High-class residency with supreme yield."

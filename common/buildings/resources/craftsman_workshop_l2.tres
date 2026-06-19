@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_l0a6k"]
+
+[resource]
+script = ExtResource("1_l0a6k")
+id = "craftsman_workshop_l2"
+name = "Alloy Factory"
+family = "craftsman_workshop"
+building_level = 2
+career = "craftsman"
+tier = 3
+level = 6
+cost = 1600
+time = 20.0
+scene_path = "res://components/production/smelter.tscn"
+description = "Automated line for chemical processes."

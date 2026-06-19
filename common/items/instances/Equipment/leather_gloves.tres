@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "leather_gloves"
+name = "Leather Gloves"
+base_value = 35
+weight = 0.5
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Gloves"
+armor_stat = 2
+speed_bonus = 0.05

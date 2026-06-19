@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/barley_and_hops.tres" id="2_grains"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/sugar.tres" id="3_sugar"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/premium_flask.tres" id="4_flask"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/smugglers_moonshine.tres" id="5_moonshine"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Distill Smuggler's Moonshine"
+required_career = "patreon"
+required_level = 7
+inputs = {
+ExtResource("2_grains"): 1,
+ExtResource("3_sugar"): 1,
+ExtResource("4_flask"): 1
+}
+output_item = ExtResource("5_moonshine")
+output_amount = 1
+xp_reward = 45

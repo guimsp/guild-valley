@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LawResource" format=3]
+
+[ext_resource type="Script" path="res://common/politics/law_resource.gd" id="1_law"]
+
+[resource]
+script = ExtResource("1_law")
+id = "hospitality_excise_tax"
+name = "The Hospitality Excise Tax"
+description = "Adds a +40% operational tax surcharge exclusively to Service and Entertainment type buildings (Taverns, Inns)."
+category = "Numerical"
+influence_cost = 160
+value_type = "hospitality_tax"
+effect_value = 0.4

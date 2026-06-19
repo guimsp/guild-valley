@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_mnmhb"]
+
+[resource]
+script = ExtResource("1_mnmhb")
+id = "craftsman_forge_l3"
+name = "Foundry"
+family = "craftsman_blacksmith"
+building_level = 3
+career = "craftsman"
+tier = 2
+level = 5
+cost = 1600
+time = 15.0
+scene_path = "res://components/production/smelter.tscn"
+description = "Highly secure and fire-proof automated foundry."

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flour.tres" id="2_flour"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/egg.tres" id="3_egg"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/sugar.tres" id="4_sugar"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/milk.tres" id="5_milk"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/gilded_cream_cake.tres" id="6_cake"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Bake Gilded Cream Cake"
+required_career = "patreon"
+required_level = 8
+inputs = {
+ExtResource("2_flour"): 1,
+ExtResource("3_egg"): 1,
+ExtResource("4_sugar"): 1,
+ExtResource("5_milk"): 1
+}
+output_item = ExtResource("6_cake")
+output_amount = 1
+xp_reward = 50

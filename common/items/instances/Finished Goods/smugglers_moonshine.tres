@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "smugglers_moonshine"
+name = "Smuggler's Moonshine"
+base_value = 65
+min_price = 10
+max_price = 650
+weight = 0.5
+category = "Food"
+market_category = "Finished Goods"
+item_type = "Consumable"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "Strong illicit liquor brewed with farmstead grains and sugar."

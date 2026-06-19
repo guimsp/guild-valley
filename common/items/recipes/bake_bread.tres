@@ -1,17 +1,19 @@
-[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
-[ext_resource type="Resource" path="res://common/items/instances/flour.tres" id="2_flour"]
-[ext_resource type="Resource" path="res://common/items/instances/bread.tres" id="3_bread"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flour.tres" id="2_flour"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/water.tres" id="3_water"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/bread.tres" id="4_bread"]
 
 [resource]
 script = ExtResource("1_script")
 recipe_name = "Bake Bread"
-required_career = "farmer"
-required_level = 2
+required_career = "patreon"
+required_level = 1
 inputs = {
-ExtResource("2_flour"): 2
+ExtResource("2_flour"): 1,
+ExtResource("3_water"): 1
 }
-output_item = ExtResource("3_bread")
+output_item = ExtResource("4_bread")
 output_amount = 1
-xp_reward = 25
+xp_reward = 15

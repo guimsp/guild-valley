@@ -1,0 +1,67 @@
+@tool
+class_name Plaza
+extends Area2D
+
+@export var size: Vector2 = Vector2(128, 128):
+	set(val):
+		size = val
+		_update_size()
+
+@export var plaza_color: Color = Color(0.38, 0.38, 0.40, 0.4) # Slate gray fill with transparency
+
+func _ready() -> void:
+	z_index = -1
+	y_sort_enabled = false
+	add_to_group("Plazas")
+	if not Engine.is_editor_hint():
+		call_deferred("_setup_navigation_region")
+	_update_size()
+
+func _update_size() -> void:
+	queue_redraw()
+	var col = get_node_or_null("CollisionShape2D")
+	if col and col.shape is RectangleShape2D:
+		col.shape.size = size
+	elif not col:
+		col = CollisionShape2D.new()
+		col.name = "CollisionShape2D"
+		var shape = RectangleShape2D.new()
+		shape.size = size
+		col.shape = shape
+		add_child(col)
+
+func _draw() -> void:
+	# Draw slate-gray area
+	draw_rect(Rect2(-size / 2.0, size), plaza_color)
+	# Draw light border outline
+	draw_rect(Rect2(-size / 2.0, size), Color(0.48, 0.48, 0.50, 0.7), false, 2.0)
+
+func _setup_navigation_region() -> void:
+	var region = NavigationRegion2D.new()
+	region.name = "PlazaNavRegion"
+	add_child(region)
+	
+	var poly = NavigationPolygon.new()
+	poly.parsed_geometry_type = NavigationPolygon.PARSED_GEOMETRY_STATIC_COLLIDERS
+	poly.source_geometry_mode = NavigationPolygon.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+	poly.source_geometry_group_name = "nav_carve_obstacles"
+	poly.agent_radius = 16.0
+	
+	var half_size = size / 2.0
+	var vertices = PackedVector2Array([
+		Vector2(-half_size.x, -half_size.y),
+		Vector2(half_size.x, -half_size.y),
+		Vector2(half_size.x, half_size.y),
+		Vector2(-half_size.x, half_size.y)
+	])
+	poly.add_outline(vertices)
+	poly.make_polygons_from_outlines()
+	region.navigation_polygon = poly
+	region.enabled = true
+	
+	NavigationServer2D.region_set_enter_cost(region.get_rid(), 0.5)
+	NavigationServer2D.region_set_travel_cost(region.get_rid(), 0.5)
+	
+	# Wait one frame to bake so that world geometry is loaded
+	await get_tree().physics_frame
+	region.bake_navigation_polygon(true)

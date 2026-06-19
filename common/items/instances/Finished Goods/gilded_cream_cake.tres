@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "gilded_cream_cake"
+name = "Gilded Cream Cake"
+base_value = 45
+min_price = 8
+max_price = 450
+weight = 0.8
+category = "Food"
+market_category = "Finished Goods"
+item_type = "Consumable"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+is_luxury_product = true
+description = "An exquisite cream cake topped with sugar glaze, fit for nobility."

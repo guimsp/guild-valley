@@ -1,0 +1,1085 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://UI/game_hud.gd" id="1_game_hud"]
+[ext_resource type="PackedScene" path="res://common/ui/market_ui.tscn" id="2_market_ui"]
+[ext_resource type="PackedScene" path="res://common/ui/crafting_ui.tscn" id="3_crafting_ui"]
+[ext_resource type="Script" path="res://UI/map_graphics.gd" id="4_map_graphics"]
+[ext_resource type="Script" path="res://UI/minimap_radar.gd" id="5_minimap_radar"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_blue"]
+bg_color = Color(0.1, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.6, 0.86, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 16
+content_margin_bottom = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_gold"]
+bg_color = Color(0.1, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.73, 0.23, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 16
+content_margin_bottom = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_green"]
+bg_color = Color(0.1, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.65, 0.44, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 16
+content_margin_bottom = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_red"]
+bg_color = Color(0.1, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.86, 0.24, 0.24, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 16
+content_margin_bottom = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shortcut_btn"]
+bg_color = Color(0.14, 0.14, 0.18, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.3, 0.38, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 10
+content_margin_right = 10
+content_margin_top = 6
+content_margin_bottom = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompt"]
+bg_color = Color(0.08, 0.08, 0.12, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.6, 0.86, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16
+content_margin_right = 16
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_minimap"]
+bg_color = Color(0.06, 0.06, 0.08, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.24, 0.6, 0.86, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_bg"]
+bg_color = Color(0.15, 0.13, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.5, 0.2, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="GameHUD" type="CanvasLayer"]
+process_mode = 3
+layer = 10
+script = ExtResource("1_game_hud")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MarginContainer_TopLeft" type="MarginContainer" parent="Control"]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 416.0
+offset_bottom = 116.0
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/MarginContainer_TopLeft"]
+layout_mode = 2
+theme_override_constants/separation = 8
+mouse_filter = 2
+
+[node name="VBoxContainer_Resources" type="VBoxContainer" parent="Control/MarginContainer_TopLeft/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+mouse_filter = 2
+
+[node name="PlayerTitleLabel" type="Label" parent="Control/MarginContainer_TopLeft/VBoxContainer/VBoxContainer_Resources"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "Player - Apprentice"
+
+[node name="GoldLabel" type="Label" parent="Control/MarginContainer_TopLeft/VBoxContainer/VBoxContainer_Resources"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "1000 Gold"
+
+[node name="InfluenceLabel" type="Label" parent="Control/MarginContainer_TopLeft/VBoxContainer/VBoxContainer_Resources"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
+text = "Influence: 150 / 300 (Permanent)"
+
+[node name="TimeLabel" type="Label" parent="Control/MarginContainer_TopLeft/VBoxContainer/VBoxContainer_Resources"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
+text = "Day 1 - 06:00 AM"
+
+[node name="MarginContainer_TopRight" type="MarginContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -620.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 200.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="HBoxContainer_TopRightMain" type="HBoxContainer" parent="Control/MarginContainer_TopRight"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 2
+mouse_filter = 2
+
+[node name="VBoxContainer_Hotkeys" type="VBoxContainer" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain"]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+
+[node name="HBoxContainer_Hotkeys" type="HBoxContainer" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+mouse_filter = 2
+
+[node name="Button_F1" type="Button" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys/HBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shortcut_btn")
+text = "F1: Char"
+
+[node name="Button_F2" type="Button" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys/HBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shortcut_btn")
+text = "F2: Inv"
+
+[node name="Button_F3" type="Button" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys/HBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shortcut_btn")
+text = "F3: Build"
+
+[node name="Button_F4" type="Button" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys/HBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shortcut_btn")
+text = "F4: Ledg"
+
+[node name="Button_F5" type="Button" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys/HBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shortcut_btn")
+text = "F5: Rival"
+
+[node name="Button_F6" type="Button" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys/HBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shortcut_btn")
+text = "F6: Title"
+
+[node name="Button_F10" type="Button" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Hotkeys/HBoxContainer_Hotkeys"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shortcut_btn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shortcut_btn")
+text = "F10: Menu"
+
+[node name="VBoxContainer_Minimap" type="VBoxContainer" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain"]
+layout_mode = 2
+theme_override_constants/separation = 6
+mouse_filter = 2
+
+[node name="TextureRect_MinimapPlaceholder" type="PanelContainer" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Minimap"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_minimap")
+
+[node name="MinimapRadar" type="Control" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Minimap/TextureRect_MinimapPlaceholder"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("5_minimap_radar")
+
+[node name="LocationLabel" type="Label" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Minimap"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 0.9)
+theme_override_font_sizes/font_size = 9
+text = "Valley Province - No Man's Land"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="LabelKey" type="Label" parent="Control/MarginContainer_TopRight/HBoxContainer_TopRightMain/VBoxContainer_Minimap"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 0.8)
+theme_override_font_sizes/font_size = 8
+text = "[M] Global Map"
+horizontal_alignment = 1
+
+[node name="Control_Windows" type="Control" parent="Control"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CharacterScreen_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 440)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/CharacterScreen_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/CharacterScreen_Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/Control_Windows/CharacterScreen_Window/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "Character Careers & Milestones (F1)"
+
+
+[node name="CareerTabContainer" type="TabContainer" parent="Control/Control_Windows/CharacterScreen_Window/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/CharacterScreen_Window/VBox" groups=["HUDCloseButtons"]]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+
+[node name="Inventory_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(740, 440)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -370.0
+offset_top = -220.0
+offset_right = 370.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/Inventory_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/Inventory_Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/Control_Windows/Inventory_Window/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "Inventory & Equipment"
+
+[node name="ContentHBox" type="HBoxContainer" parent="Control/Control_Windows/Inventory_Window/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventoryGrid" type="GridContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 5
+
+[node name="EquipmentPanel" type="PanelContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+
+[node name="EquipVBox" type="VBoxContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EquipTitle" type="Label" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 13
+text = "Player Equipment"
+horizontal_alignment = 1
+
+[node name="StatsPanel" type="PanelContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/StatsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="StatsVBox" type="VBoxContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/StatsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="ArmorLabel" type="Label" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/StatsPanel/Margin/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Armor: 0"
+
+[node name="AttackLabel" type="Label" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/StatsPanel/Margin/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Attack: 0"
+
+[node name="SpeedLabel" type="Label" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/StatsPanel/Margin/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Speed Bonus: +0%"
+
+[node name="CapacityLabel" type="Label" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/StatsPanel/Margin/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Capacity Bonus: +0 slots"
+
+[node name="EquipGrid" type="GridContainer" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="HeadSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Head: Empty"
+
+[node name="BodySlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Body: Empty"
+
+[node name="GlovesSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Gloves: Empty"
+
+[node name="WeaponSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Weapon: Empty"
+
+[node name="ToolSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Tool: Empty"
+
+[node name="BagSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Bag: Empty"
+
+[node name="NecklaceSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Necklace: Empty"
+
+[node name="RingSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Ring: Empty"
+
+[node name="TransSlot" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox/ContentHBox/EquipmentPanel/EquipVBox/EquipGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Trans: Empty"
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/Inventory_Window/VBox" groups=["HUDCloseButtons"]]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+
+[node name="BuildMenu_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 440)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_green")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/BuildMenu_Window"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox"]
+layout_mode = 2
+
+[node name="BuildTitle" type="Label" parent="Control/Control_Windows/BuildMenu_Window/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.65, 0.44, 1)
+theme_override_font_sizes/font_size = 16
+text = "Construction Menu (F3)"
+
+
+[node name="BuildTabContainer" type="TabContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 0
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/BuildMenu_Window/VBox" groups=["HUDCloseButtons"]]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+
+[node name="Personal Home" type="MarginContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Personal Home"]
+layout_mode = 2
+
+[node name="HomeTabList" type="VBoxContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Personal Home/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Business" type="MarginContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Business"]
+layout_mode = 2
+
+[node name="BusinessTabList" type="VBoxContainer" parent="Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Business/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="BusinessList_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 440)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/BusinessList_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/BusinessList_Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/Control_Windows/BusinessList_Window/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "Business & Real Estate Ledger (F4)"
+
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Control_Windows/BusinessList_Window/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/BusinessList_Window/VBox" groups=["HUDCloseButtons"]]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+
+[node name="BusinessScrollList" type="VBoxContainer" parent="Control/Control_Windows/BusinessList_Window/VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="OpponentsList_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 440)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_red")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/OpponentsList_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/OpponentsList_Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/Control_Windows/OpponentsList_Window/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.86, 0.24, 0.24, 1)
+theme_override_font_sizes/font_size = 16
+text = "Opponents & Rivals Standing (F5)"
+
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Control_Windows/OpponentsList_Window/VBox"]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/OpponentsList_Window/VBox" groups=["HUDCloseButtons"]]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+size_flags_vertical = 3
+
+[node name="OpponentsScrollList" type="VBoxContainer" parent="Control/Control_Windows/OpponentsList_Window/VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="PauseMenu_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(280, 260)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -130.0
+offset_right = 140.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_gold")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/PauseMenu_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Title" type="Label" parent="Control/Control_Windows/PauseMenu_Window/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 18
+text = "Game Paused (F10)"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="Control/Control_Windows/PauseMenu_Window/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Resume"
+
+[node name="SaveButton" type="Button" parent="Control/Control_Windows/PauseMenu_Window/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Save Game"
+
+[node name="LoadButton" type="Button" parent="Control/Control_Windows/PauseMenu_Window/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Load Game"
+
+[node name="QuitButton" type="Button" parent="Control/Control_Windows/PauseMenu_Window/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Quit to Desktop"
+
+[node name="GlobalMap_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(1050, 580)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -525.0
+offset_top = -290.0
+offset_right = 525.0
+offset_bottom = 290.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_gold")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/GlobalMap_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/GlobalMap_Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/Control_Windows/GlobalMap_Window/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 16
+text = "Province Map (M)"
+
+
+[node name="MapContainer" type="PanelContainer" parent="Control/Control_Windows/GlobalMap_Window/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_map_bg")
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/GlobalMap_Window/VBox" groups=["HUDCloseButtons"]]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+
+[node name="MapGraphics" type="Control" parent="Control/Control_Windows/GlobalMap_Window/VBox/MapContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("4_map_graphics")
+
+[node name="LegendLabel" type="Label" parent="Control/Control_Windows/GlobalMap_Window/VBox/MapContainer/MapGraphics"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -32.0
+offset_right = 216.0
+offset_bottom = -16.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 10
+text = "Legend: Province Region Map Overlay"
+
+[node name="TitleUpgrade_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(640, 440)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/TitleUpgrade_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/TitleUpgrade_Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.65, 0.44, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 15
+text = "Player Title Progression (F6)"
+
+[node name="ContentHBox" type="HBoxContainer" parent="Control/Control_Windows/TitleUpgrade_Window/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="TitleScroll" type="ScrollContainer" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="TitlesList" type="VBoxContainer" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox/TitleScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="VSeparator" type="VSeparator" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox"]
+layout_mode = 2
+
+[node name="DetailsVBox" type="VBoxContainer" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="SelectedTitleName" type="Label" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox/DetailsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
+theme_override_font_sizes/font_size = 16
+text = "Apprentice"
+
+[node name="SelectedTitleDesc" type="Label" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox/DetailsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 11
+text = "Details and benefits..."
+autowrap_mode = 3
+
+[node name="TitleUpgradeCostLabel" type="Label" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox/DetailsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "Requirements: 100 Gold, 10 Influence"
+autowrap_mode = 3
+
+[node name="UpgradeTitleButton" type="Button" parent="Control/Control_Windows/TitleUpgrade_Window/VBox/ContentHBox/DetailsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 12
+text = "Upgrade Title"
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/TitleUpgrade_Window/VBox" groups=["HUDCloseButtons"]]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+
+[node name="InfluenceBroker_Window" type="PanelContainer" parent="Control/Control_Windows"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(400, 260)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -130.0
+offset_right = 200.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_gold")
+
+[node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/InfluenceBroker_Window"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Control/Control_Windows/InfluenceBroker_Window/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Control/Control_Windows/InfluenceBroker_Window/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 15
+text = "Influence Broker"
+horizontal_alignment = 1
+
+[node name="ContentVBox" type="VBoxContainer" parent="Control/Control_Windows/InfluenceBroker_Window/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="Spacer" type="Control" parent="Control/Control_Windows/InfluenceBroker_Window/VBox/ContentVBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="Control/Control_Windows/InfluenceBroker_Window/VBox/ContentVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 12
+text = "Exchange Gold to purchase civic Influence.
+Rate: 100 Gold -> 10 Influence"
+horizontal_alignment = 1
+
+[node name="BrokerGoldLabel" type="Label" parent="Control/Control_Windows/InfluenceBroker_Window/VBox/ContentVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
+theme_override_font_sizes/font_size = 11
+text = "Current Gold: 1000 G"
+horizontal_alignment = 1
+
+[node name="BrokerInfluenceLabel" type="Label" parent="Control/Control_Windows/InfluenceBroker_Window/VBox/ContentVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "Current Influence: 150"
+horizontal_alignment = 1
+
+[node name="ExchangeButton" type="Button" parent="Control/Control_Windows/InfluenceBroker_Window/VBox/ContentVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 12
+text = "Buy 10 Influence (100 Gold)"
+
+[node name="CloseButton" type="Button" parent="Control/Control_Windows/InfluenceBroker_Window/VBox" groups=["HUDCloseButtons"]]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"
+
+[node name="InteractPrompt" type="PanelContainer" parent="Control"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(240, 36)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -80.0
+offset_right = 120.0
+offset_bottom = -44.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_prompt")
+
+[node name="InteractLabel" type="Label" parent="Control/InteractPrompt"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 13
+text = "Press [F] to Interact"
+horizontal_alignment = 1
+
+[node name="MarketUI" parent="Control" instance=ExtResource("2_market_ui")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="CraftingUI" parent="Control" instance=ExtResource("3_crafting_ui")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1

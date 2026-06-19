@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_farmstead"]
+
+[resource]
+script = ExtResource("1_farmstead")
+id = "patreon_farmstead_l1"
+name = "Farmstead"
+family = "patreon_farmstead"
+career = "patreon"
+tier = 2
+level = 4
+cost = 600
+time = 12.0
+scene_path = "res://components/production/farmstead.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "A homestead to grow barley/hops and cure pork."

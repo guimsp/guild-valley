@@ -40,7 +40,8 @@ func _teleport() -> void:
 		push_warning("[TeleportTrigger] Trigger collided but no transition parameters set!")
 
 func get_interaction_text() -> String:
-	return "Locked" if ownership_type == "NPC" else "Enter"
+	return "Locked. Opponent property." if ownership_type == "NPC" else "Enter"
+
 
 func interact(_player: CharacterBody2D) -> void:
 	if ownership_type != "NPC":

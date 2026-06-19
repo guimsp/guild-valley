@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LawResource" format=3]
+
+[ext_resource type="Script" path="res://common/politics/law_resource.gd" id="1_law"]
+
+[resource]
+script = ExtResource("1_law")
+id = "noble_game_preservation"
+name = "The Noble Game Preservation Edict"
+description = "Declares the hunting of deer and wildlife at overworld hunting nodes to be illegal."
+category = "Prohibition"
+influence_cost = 220
+value_type = "hunting_ban"
+effect_value = 1.0

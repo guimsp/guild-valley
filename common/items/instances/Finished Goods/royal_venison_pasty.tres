@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "royal_venison_pasty"
+name = "Royal Venison Pasty"
+base_value = 55
+min_price = 10
+max_price = 550
+weight = 0.8
+category = "Food"
+market_category = "Finished Goods"
+item_type = "Consumable"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "A hearty meat pie filled with venison and baked in pastry crust."

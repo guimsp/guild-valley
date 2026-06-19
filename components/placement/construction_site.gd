@@ -1,9 +1,13 @@
 extends StaticBody2D
 
 # Configured dynamically when spawned
+var building_data: BuildingData = null
 var target_scene_path: String = ""
 var build_time: float = 3.0
 var building_name: String = ""
+var is_rental: bool = false
+var builder_ownership_type: String = "Player"
+var builder_owner_id: String = "Player"
 
 var _elapsed_time: float = 0.0
 
@@ -62,9 +66,17 @@ func _finish_building() -> void:
 			real_node.global_position = global_position
 			
 			if "ownership_type" in real_node:
-				real_node.ownership_type = "Player"
+				real_node.ownership_type = builder_ownership_type
 			if "owner_id" in real_node:
-				real_node.owner_id = "Player"
+				real_node.owner_id = builder_owner_id
+			if "is_rental" in real_node:
+				real_node.is_rental = is_rental
+			if "custom_name" in real_node:
+				real_node.custom_name = building_name
+			if "building_data" in real_node:
+				real_node.building_data = building_data
+			if real_node.has_method("_update_door_state"):
+				real_node._update_door_state()
 				
 			get_parent().add_child(real_node)
 			
@@ -79,4 +91,13 @@ func _finish_building() -> void:
 			if hud and hud.has_method("_spawn_floating_text"):
 				hud._spawn_floating_text("Completed!", global_position)
 				
+	# Re-bake all navigation regions dynamically to carve out the new building
+	if GameState.has_method("rebake_all_navigation_regions"):
+		GameState.rebake_all_navigation_regions()
+	else:
+		await get_tree().physics_frame
+		var global_nav = get_tree().get_first_node_in_group("GlobalNavRegion") as NavigationRegion2D
+		if global_nav:
+			global_nav.bake_navigation_polygon(true)
+		
 	queue_free()

@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://entities/npc/influence_broker.gd" id="1_broker"]
+[ext_resource type="Texture2D" path="res://entities/player/sprites/rotations/south.png" id="2_sprite"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_broker_phys"]
+size = Vector2(32, 16)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 45.0
+
+[node name="InfluenceBroker" type="StaticBody2D"]
+y_sort_enabled = true
+script = ExtResource("1_broker")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_broker_phys")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0.85, 0, 1)
+position = Vector2(0, -40)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_sprite")
+
+[node name="InteractionArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+shape = SubResource("CircleShape2D_interact")

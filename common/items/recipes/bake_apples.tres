@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/apple.tres" id="2_apple"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/baked_apples.tres" id="3_baked_apples"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Bake Sweet Apples"
+required_career = "patreon"
+required_level = 1
+inputs = {
+ExtResource("2_apple"): 2
+}
+output_item = ExtResource("3_baked_apples")
+output_amount = 1
+xp_reward = 14

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_hhito"]
+
+[resource]
+script = ExtResource("1_hhito")
+id = "tailor_loom_t2"
+name = "Spinning Jenny"
+family = "tailor_loom_t2"
+career = "tailor"
+tier = 2
+level = 3
+cost = 550
+time = 11.0
+scene_path = "res://components/production/loom.tscn"
+description = "T2 Production: Spins thread automatically."

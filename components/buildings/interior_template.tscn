@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://cx60mo05k2536"]
+
+[ext_resource type="Script" path="res://components/buildings/interior_template.gd" id="1_interior"]
+[ext_resource type="Script" path="res://components/teleport/teleport_trigger.gd" id="2_teleport"]
+[ext_resource type="PackedScene" path="res://components/crafting/crafting_bench.tscn" id="3_bench"]
+[ext_resource type="PackedScene" path="res://components/market/market_stall.tscn" id="4_chest"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
+size = Vector2(320, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
+size = Vector2(16, 240)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(48, 16)
+
+[node name="InteriorTemplate" type="Node2D"]
+script = ExtResource("1_interior")
+
+[node name="Floor" type="ColorRect" parent="."]
+offset_left = -150.0
+offset_top = -100.0
+offset_right = 150.0
+offset_bottom = 100.0
+color = Color(0.24, 0.16, 0.12, 1)
+
+[node name="Walls" type="Node2D" parent="."]
+
+[node name="NorthWall" type="StaticBody2D" parent="Walls"]
+position = Vector2(0, -108)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/NorthWall"]
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="SouthWall" type="StaticBody2D" parent="Walls"]
+position = Vector2(0, 108)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/SouthWall"]
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="WestWall" type="StaticBody2D" parent="Walls"]
+position = Vector2(-158, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WestWall"]
+shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="EastWall" type="StaticBody2D" parent="Walls"]
+position = Vector2(158, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/EastWall"]
+shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="ExitDoor" type="Area2D" parent="."]
+position = Vector2(0, 96)
+script = ExtResource("2_teleport")
+is_local_teleport = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitDoor"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="ColorRect" type="ColorRect" parent="ExitDoor"]
+offset_left = -24.0
+offset_top = -8.0
+offset_right = 24.0
+offset_bottom = 8.0
+color = Color(0.18, 0.62, 0.9, 0.6)
+
+[node name="CraftingBench" parent="." instance=ExtResource("3_bench")]
+position = Vector2(-80, -30)
+
+[node name="StorageChest" parent="." instance=ExtResource("4_chest")]
+position = Vector2(80, -30)
+market_name = "Storage Chest"
+is_buyable = false
+is_rentable = false

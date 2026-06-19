@@ -1,0 +1,102 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://components/production/paper_maker.gd" id="1_paper_maker"]
+[ext_resource type="PackedScene" path="res://components/crafting/crafting_bench.tscn" id="2_bench"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_north"]
+size = Vector2(96, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sides"]
+size = Vector2(16, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_south"]
+size = Vector2(24, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fade"]
+size = Vector2(80, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_footprint"]
+size = Vector2(96, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stall"]
+size = Vector2(80, 48)
+
+[node name="PaperMaker" type="StaticBody2D"]
+y_sort_enabled = true
+script = ExtResource("1_paper_maker")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_footprint")
+
+[node name="ColNorth" type="CollisionShape2D" parent="."]
+position = Vector2(0, -32)
+shape = SubResource("RectangleShape2D_north")
+
+[node name="ColWest" type="CollisionShape2D" parent="."]
+position = Vector2(-40, 8)
+shape = SubResource("RectangleShape2D_sides")
+
+[node name="ColEast" type="CollisionShape2D" parent="."]
+position = Vector2(40, 8)
+shape = SubResource("RectangleShape2D_sides")
+
+[node name="ColSouthWest" type="CollisionShape2D" parent="."]
+position = Vector2(-36, 32)
+shape = SubResource("RectangleShape2D_south")
+
+[node name="ColSouthEast" type="CollisionShape2D" parent="."]
+position = Vector2(36, 32)
+shape = SubResource("RectangleShape2D_south")
+
+[node name="Interior" type="Node2D" parent="."]
+
+[node name="Floor" type="ColorRect" parent="Interior"]
+offset_left = -48.0
+offset_top = -40.0
+offset_right = 48.0
+offset_bottom = 40.0
+color = Color(0.35, 0.35, 0.32, 1)
+
+[node name="CraftingBench" parent="." instance=ExtResource("2_bench")]
+position = Vector2(0, -16)
+
+[node name="FadeTrigger" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FadeTrigger"]
+position = Vector2(0, 8)
+shape = SubResource("RectangleShape2D_fade")
+
+[node name="Exterior" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Roof" type="ColorRect" parent="Exterior"]
+layout_mode = 0
+offset_left = -48.0
+offset_top = -40.0
+offset_right = 48.0
+offset_bottom = 40.0
+mouse_filter = 2
+color = Color(0.85, 0.85, 0.8, 1)
+
+[node name="ColStall" type="CollisionShape2D" parent="."]
+position = Vector2(8, 16)
+shape = SubResource("RectangleShape2D_stall")
+
+[node name="StallCounter" type="ColorRect" parent="."]
+offset_left = -32.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 40.0
+color = Color(0.5, 0.35, 0.24, 1)
+
+[node name="StallRoof" type="ColorRect" parent="StallCounter"]
+layout_mode = 0
+offset_top = -8.0
+offset_right = 80.0
+offset_bottom = 4.0
+color = Color(0.24, 0.65, 0.44, 1)
+
+[node name="EntranceMarker" type="Marker2D" parent="."]
+position = Vector2(8, 52)

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_46xss"]
+
+[resource]
+script = ExtResource("1_46xss")
+id = "cozy_house_l4"
+name = "Grand Estate"
+family = "personal_home"
+building_level = 4
+cost = 2000
+time = 16.0
+scene_path = "res://components/buildings/house.tscn"
+type = "home"
+description = "Level 4 Personal Home: A massive, premium mansion."

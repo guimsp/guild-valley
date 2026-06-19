@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_1731u"]
+
+[resource]
+script = ExtResource("1_1731u")
+id = "tailor_loom_l1"
+name = "Loom & Table"
+family = "tailor_loom"
+career = "tailor"
+cost = 130
+time = 5.5
+scene_path = "res://components/production/loom.tscn"
+description = "Walk-in workshop containing a weaving loom."

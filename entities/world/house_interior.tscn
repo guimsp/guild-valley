@@ -2,9 +2,12 @@
 
 [ext_resource type="PackedScene" uid="uid://boybayv3srswx" path="res://entities/player/player.tscn" id="1_player"]
 [ext_resource type="Script" uid="uid://60mo05k25351" path="res://components/teleport/teleport_trigger.gd" id="2_teleport"]
-[ext_resource type="PackedScene" path="res://common/ui/player_hud.tscn" id="3_hud"]
-[ext_resource type="PackedScene" path="res://components/crafting/crafting_bench.tscn" id="4_crafting_bench"]
+[ext_resource type="PackedScene" path="res://UI/game_hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://components/sleep/bed.tscn" id="5_bed"]
+[ext_resource type="Script" path="res://components/buildings/commercial_routes_console.gd" id="6_console"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_console"]
+radius = 24.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(320, 16)
@@ -71,8 +74,21 @@ metadata/_edit_use_anchors_ = true
 
 [node name="PlayerHUD" parent="." unique_id=534888013 instance=ExtResource("3_hud")]
 
-[node name="CraftingBench" parent="." unique_id=2074700505 instance=ExtResource("4_crafting_bench")]
-position = Vector2(150, 140)
 
 [node name="Bed" parent="." unique_id=206945284 instance=ExtResource("5_bed")]
 position = Vector2(330, 140)
+
+[node name="CommercialRoutesConsole" type="Area2D" parent="." unique_id=2074700600]
+position = Vector2(250, 140)
+script = ExtResource("6_console")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CommercialRoutesConsole" unique_id=2074700601]
+shape = SubResource("CircleShape2D_console")
+
+[node name="ColorRect" type="ColorRect" parent="CommercialRoutesConsole" unique_id=2074700602]
+offset_left = -20.0
+offset_top = -12.0
+offset_right = 20.0
+offset_bottom = 12.0
+color = Color(0.1, 0.45, 0.6, 1)
+

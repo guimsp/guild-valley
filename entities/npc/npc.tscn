@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://entities/npc/npc_ai_controller.gd" id="2_npc"]
+[ext_resource type="Script" path="res://entities/npc/npc_navigation_motor.gd" id="3_motor"]
+
+[node name="NPC" instance=ExtResource("1_player")]
+script = ExtResource("2_npc")
+speed = 50.0
+
+[node name="AnimatedSprite2D" parent="." index="1"]
+modulate = Color(0.6, 0.8, 1.0, 1)
+
+[node name="Camera2D" parent="." index="2"]
+enabled = false
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." index="3"]
+path_desired_distance = 16.0
+target_desired_distance = 16.0
+path_metadata_flags = 7
+
+[node name="NPCNavigationMotor" type="Node" parent="." index="4"]
+script = ExtResource("3_motor")

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_grand_distillery"]
+
+[resource]
+script = ExtResource("1_grand_distillery")
+id = "patreon_distillery_l2"
+name = "Grand Distillery"
+family = "patreon_distillery"
+building_level = 2
+career = "patreon"
+tier = 3
+level = 8
+cost = 2500
+time = 30.0
+scene_path = "res://components/production/distillery.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "An advanced distillery with premium aging equipment to brew fine aged schnapps."

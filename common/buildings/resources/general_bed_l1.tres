@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_w76ks"]
+
+[resource]
+script = ExtResource("1_w76ks")
+id = "general_bed_l1"
+name = "Comfortable Bed"
+family = "general_bed"
+cost = 80
+scene_path = "res://components/sleep/bed.tscn"
+env = "inside"
+description = "A bed to sleep in and advance to the next day."

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/wheat.tres" id="2_wheat"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/animal_feed.tres" id="3_feed"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Grind Animal Feed"
+required_career = "patreon"
+required_level = 1
+inputs = {
+ExtResource("2_wheat"): 1
+}
+output_item = ExtResource("3_feed")
+output_amount = 1
+xp_reward = 8

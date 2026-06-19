@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_bakery_l3"]
+
+[resource]
+script = ExtResource("1_bakery_l3")
+id = "patreon_bakery_l3"
+name = "Bakery"
+family = "patreon_bakery"
+building_level = 3
+career = "patreon"
+tier = 1
+level = 3
+cost = 1200
+time = 20.0
+scene_path = "res://components/production/bakery.tscn"
+type = "production"
+description = "A large bakery to bake gilded cream cakes and royal venison pasties."

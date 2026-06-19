@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LawResource" format=3]
+
+[ext_resource type="Script" path="res://common/politics/law_resource.gd" id="1_law"]
+
+[resource]
+script = ExtResource("1_law")
+id = "martial_carriage_ban"
+name = "The Martial Carriage Ban"
+description = "Bans carrying high-tier weapons on public roads, stripping couriers of guard escorts and reducing speed."
+category = "Prohibition"
+influence_cost = 200
+value_type = "weapon_carriage_ban"
+effect_value = 1.0

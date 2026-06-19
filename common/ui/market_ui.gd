@@ -7,33 +7,100 @@ extends PanelContainer
 @onready var close_button: Button = %CloseButton
 @onready var bottom_close_button: Button = %BottomCloseButton
 
-var _current_stall: MarketStall = null
+var _current_stall: CollisionObject2D = null
 
 # Standard wheat/flour/bread resources to trade
 var _items: Array[ItemData] = []
+var _grid_container: GridContainer = null
+var _slider_overlay: ColorRect = null
+var _last_traded_item_id: String = ""
+var _last_traded_mode: String = ""
+var _last_focused_trigger_button: Button = null
+
+const CATEGORIES = ["Raw Materials", "Semi-Elaborate", "Finished Goods", "Consumables", "Equipment", "Skill Items"]
+var _active_category_idx: int = 0
+var _category_tab_container: HBoxContainer = null
+
+func _load_items_recursively(dir_path: String) -> void:
+	var dir = DirAccess.open(dir_path)
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if dir.current_is_dir():
+				if file_name != "." and file_name != "..":
+					_load_items_recursively(dir_path + file_name + "/")
+			else:
+				var clean_name = file_name
+				if clean_name.ends_with(".remap"):
+					clean_name = clean_name.replace(".remap", "")
+				if clean_name.ends_with(".tres"):
+					var item = load(dir_path + clean_name)
+					if item and item is ItemData:
+						_items.append(item)
+			file_name = dir.get_next()
+		dir.list_dir_end()
 
 func _ready() -> void:
-	# Load standard item resources
-	_items.append(load("res://common/items/instances/wheat.tres"))
-	_items.append(load("res://common/items/instances/flour.tres"))
-	_items.append(load("res://common/items/instances/bread.tres"))
-	_items.append(load("res://common/items/instances/cotton.tres"))
-	_items.append(load("res://common/items/instances/cloth.tres"))
-	_items.append(load("res://common/items/instances/iron_ore.tres"))
-	_items.append(load("res://common/items/instances/iron_ingot.tres"))
+	# Load all item resources dynamically from subfolders recursively
+	_load_items_recursively("res://common/items/instances/")
 	
 	if close_button:
 		close_button.pressed.connect(close)
 		_setup_button_hover(close_button)
+		close_button.focus_mode = Control.FOCUS_NONE
 		
 	if bottom_close_button:
 		bottom_close_button.pressed.connect(close)
 		_setup_button_hover(bottom_close_button)
+		bottom_close_button.focus_mode = Control.FOCUS_ALL
 
-func open(stall: MarketStall) -> void:
+	# Dynamic UI Restructuring:
+	# Hide PlayerColumn and make MarketColumn occupy full width
+	var player_col = $MarginContainer/VBoxContainer/Columns/PlayerColumn
+	if player_col:
+		player_col.hide()
+	
+	var market_col = $MarginContainer/VBoxContainer/Columns/MarketColumn
+	if market_col:
+		market_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var market_col_label = market_col.get_child(0)
+		if market_col_label is Label:
+			market_col_label.text = "Market Stall Goods"
+			
+		# Create the Category Tabs HBox Container
+		_category_tab_container = HBoxContainer.new()
+		_category_tab_container.name = "CategoryTabs"
+		_category_tab_container.add_theme_constant_override("separation", 6)
+		_category_tab_container.alignment = BoxContainer.ALIGNMENT_CENTER
+		# Insert it as the second child, after the label and before the ScrollContainer
+		market_col.add_child(_category_tab_container)
+		market_col.move_child(_category_tab_container, 1)
+			
+	# Instantiating the new 3-column GridContainer inside the ScrollContainer
+	if market_list:
+		_grid_container = GridContainer.new()
+		_grid_container.columns = 3
+		_grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_grid_container.add_theme_constant_override("h_separation", 16)
+		_grid_container.add_theme_constant_override("v_separation", 16)
+		market_list.add_child(_grid_container)
+
+	# Create slider overlay backdrop
+	_slider_overlay = ColorRect.new()
+	_slider_overlay.color = Color(0.08, 0.08, 0.12, 0.65) # Dimming
+	_slider_overlay.anchors_preset = Control.PRESET_FULL_RECT
+	_slider_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_slider_overlay.hide()
+	add_child(_slider_overlay)
+
+func open(stall: CollisionObject2D) -> void:
 	_current_stall = stall
 	if market_name_label:
-		market_name_label.text = stall.market_name
+		if stall.ownership_type == "Player" or (stall.ownership_type == "Rented" and stall.owner_id == "Player"):
+			market_name_label.text = stall.market_name + " (Storefront)"
+		else:
+			market_name_label.text = stall.market_name
 	
 	# Connect to stall's inventory change signals to update in real-time
 	if stall.inventory:
@@ -54,6 +121,8 @@ func open(stall: MarketStall) -> void:
 	var tween = create_tween().set_parallel(true)
 	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "modulate:a", 1.0, 0.15)
+	
+	_focus_first_market_button()
 
 func close() -> void:
 	# Disconnect signals
@@ -71,9 +140,125 @@ func close() -> void:
 		hud.close_market()
 
 func _input(event: InputEvent) -> void:
-	if visible and event.is_action_pressed("ui_cancel"):
-		close()
+	if not visible:
+		return
+		
+	if event.is_action_pressed("ui_cancel"):
+		if _slider_overlay and _slider_overlay.visible:
+			_close_slider_popup()
+		else:
+			close()
 		get_viewport().set_input_as_handled()
+		return
+
+	var is_popup_visible = (_slider_overlay and _slider_overlay.visible)
+
+	# Handle slider navigation using A/D keys
+	if is_popup_visible and event.is_pressed() and not event.is_echo():
+		var slider = _find_slider_in_node(_slider_overlay)
+		if slider and is_instance_valid(slider):
+			if event.is_action_pressed("move_left") or (event is InputEventKey and event.keycode == KEY_A):
+				slider.value = max(slider.min_value, slider.value - 1)
+				get_viewport().set_input_as_handled()
+				return
+			elif event.is_action_pressed("move_right") or (event is InputEventKey and event.keycode == KEY_D):
+				slider.value = min(slider.max_value, slider.value + 1)
+				get_viewport().set_input_as_handled()
+				return
+
+	# Handle F / interact / ui_accept confirming focused buttons
+	if event.is_pressed() and not event.is_echo():
+		if event.is_action_pressed("interact") or (event is InputEventKey and event.keycode == KEY_F) or event.is_action_pressed("ui_accept"):
+			var focused = get_viewport().gui_get_focus_owner()
+			if focused and focused is Button and is_instance_valid(focused) and is_ancestor_of(focused):
+				focused.pressed.emit()
+				get_viewport().set_input_as_handled()
+				return
+			
+			# Fallback when slider/popup is active but HSlider is focused
+			if is_popup_visible:
+				var confirm_btn = _find_confirm_button_in_node(_slider_overlay)
+				if confirm_btn and is_instance_valid(confirm_btn):
+					confirm_btn.pressed.emit()
+					get_viewport().set_input_as_handled()
+					return
+
+	# Handle category tabs scrolling via Q/E
+	if not is_popup_visible and event.is_pressed() and not event.is_echo():
+		if event.is_action_pressed("ui_page_up") or (event is InputEventKey and event.keycode == KEY_Q):
+			_active_category_idx = (_active_category_idx - 1 + CATEGORIES.size()) % CATEGORIES.size()
+			refresh()
+			get_viewport().set_input_as_handled()
+			return
+		elif event.is_action_pressed("ui_page_down") or (event is InputEventKey and event.keycode == KEY_E):
+			_active_category_idx = (_active_category_idx + 1) % CATEGORIES.size()
+			refresh()
+			get_viewport().set_input_as_handled()
+			return
+
+func _find_slider_in_node(node: Node) -> HSlider:
+	if node is HSlider:
+		return node
+	for child in node.get_children():
+		var found = _find_slider_in_node(child)
+		if found:
+			return found
+	return null
+
+func _find_confirm_button_in_node(node: Node) -> Button:
+	if node is Button and node.text == "Confirm":
+		return node
+	for child in node.get_children():
+		var found = _find_confirm_button_in_node(child)
+		if found:
+			return found
+	return null
+
+func _update_category_tabs() -> void:
+	if not _category_tab_container:
+		return
+		
+	# Clear
+	for child in _category_tab_container.get_children():
+		_category_tab_container.remove_child(child)
+		child.queue_free()
+		
+	for i in range(CATEGORIES.size()):
+		var cat_name = CATEGORIES[i]
+		var tab_btn = Button.new()
+		tab_btn.text = cat_name
+		tab_btn.flat = true
+		tab_btn.focus_mode = Control.FOCUS_NONE # Key nav goes directly to items
+		tab_btn.add_theme_font_size_override("font_size", 11)
+		
+		var normal_style = StyleBoxFlat.new()
+		normal_style.content_margin_left = 10
+		normal_style.content_margin_right = 10
+		normal_style.content_margin_top = 4
+		normal_style.content_margin_bottom = 4
+		normal_style.set_corner_radius_all(4)
+		
+		if i == _active_category_idx:
+			normal_style.bg_color = Color(0.25, 0.25, 0.38, 0.9)
+			tab_btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+			tab_btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+		else:
+			normal_style.bg_color = Color(0.12, 0.12, 0.16, 0.5)
+			tab_btn.add_theme_color_override("font_color", Color(0.65, 0.65, 0.75))
+			tab_btn.add_theme_color_override("font_hover_color", Color(0.85, 0.85, 0.95))
+			
+		tab_btn.add_theme_stylebox_override("normal", normal_style)
+		tab_btn.add_theme_stylebox_override("hover", normal_style)
+		tab_btn.add_theme_stylebox_override("pressed", normal_style)
+		tab_btn.add_theme_stylebox_override("focus", normal_style)
+		
+		var idx = i
+		tab_btn.pressed.connect(func():
+			_active_category_idx = idx
+			refresh()
+		)
+		
+		_category_tab_container.add_child(tab_btn)
 
 func refresh() -> void:
 	if not _current_stall:
@@ -82,217 +267,749 @@ func refresh() -> void:
 	if player_gold_label:
 		player_gold_label.text = "Your Gold: %d Gold" % GameState.gold
 		
-	_refresh_market_list()
-	_refresh_player_list()
+	var display_items = []
+	var parent_b = _current_stall
+	if "parent_building" in _current_stall and _current_stall.parent_building != null:
+		parent_b = _current_stall.parent_building
+		
+	if parent_b:
+		var bench = parent_b.get_node_or_null("CraftingBench")
+		if bench and "recipes" in bench:
+			for recipe in bench.recipes:
+				if recipe and recipe.get("output_item") and not display_items.has(recipe.output_item):
+					display_items.append(recipe.output_item)
+					
+	if display_items.is_empty():
+		display_items = _items
+		
+	# Filter display_items by active category
+	var active_cat = CATEGORIES[_active_category_idx]
+	var filtered_items = []
+	for item in display_items:
+		if item.market_category == active_cat:
+			filtered_items.append(item)
+			
+	# Update tabs
+	_update_category_tabs()
+	
+	_refresh_trade_grid(filtered_items)
 
-func _refresh_market_list() -> void:
-	if not market_list:
+func _refresh_trade_grid(display_items: Array) -> void:
+	if not _grid_container:
 		return
 		
 	# Clear
-	for child in market_list.get_children():
+	for child in _grid_container.get_children():
+		_grid_container.remove_child(child)
 		child.queue_free()
 		
 	# Rebuild
-	for item in _items:
+	for item in display_items:
 		if not item:
 			continue
 			
-		var stock = _current_stall.inventory.get_item_amount(item.id)
-		var price = _current_stall.get_buy_price(item)
+		var stall_stock = _current_stall.inventory.get_item_amount(item.id)
+		var player_stock = GameState.player_inventory.get_item_amount(item.id)
 		
-		var row = PanelContainer.new()
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.18, 0.18, 0.24, 0.7)
-		style.set_border_width_all(1)
-		style.border_color = Color(0.3, 0.3, 0.38, 0.7)
-		style.set_corner_radius_all(4)
-		style.content_margin_left = 8
-		style.content_margin_right = 8
-		style.content_margin_top = 4
-		style.content_margin_bottom = 4
-		row.add_theme_stylebox_override("panel", style)
+		# Build a single focusable Button card
+		var card = Button.new()
+		card.name = "Card_" + item.id
+		card.custom_minimum_size = Vector2(175, 82)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
-		var hbox = HBoxContainer.new()
-		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(hbox)
+		# Theme override styles for card
+		var normal_style = StyleBoxFlat.new()
+		normal_style.bg_color = Color(0.14, 0.14, 0.18, 0.85)
+		normal_style.set_border_width_all(2)
+		normal_style.border_color = Color(0.22, 0.22, 0.32, 0.7)
+		normal_style.set_corner_radius_all(6)
+		normal_style.content_margin_left = 8
+		normal_style.content_margin_right = 8
+		normal_style.content_margin_top = 6
+		normal_style.content_margin_bottom = 6
 		
-		# Name & Stock
-		var info_vbox = VBoxContainer.new()
-		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_child(info_vbox)
+		var hover_style = normal_style.duplicate()
+		hover_style.bg_color = Color(0.18, 0.18, 0.24, 0.9)
+		hover_style.border_color = Color(0.4, 0.4, 0.65, 0.9)
 		
-		var name_label = Label.new()
-		name_label.text = item.name
-		name_label.add_theme_font_size_override("font_size", 14)
-		info_vbox.add_child(name_label)
+		var pressed_style = normal_style.duplicate()
+		pressed_style.bg_color = Color(0.1, 0.1, 0.13, 0.95)
+		pressed_style.border_color = Color(0.3, 0.3, 0.5, 0.8)
 		
-		var stock_label = Label.new()
-		stock_label.text = "Stock: %d" % stock
-		stock_label.add_theme_font_size_override("font_size", 11)
-		stock_label.modulate = Color(0.7, 0.7, 0.7)
-		info_vbox.add_child(stock_label)
+		var disabled_style = normal_style.duplicate()
+		disabled_style.bg_color = Color(0.08, 0.08, 0.1, 0.3)
+		disabled_style.border_color = Color(0.15, 0.15, 0.2, 0.2)
 		
-		# Price Label
-		var price_label = Label.new()
-		price_label.text = "%d Gold" % price
-		price_label.add_theme_font_size_override("font_size", 13)
-		price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		price_label.custom_minimum_size = Vector2(80, 0)
-		hbox.add_child(price_label)
+		card.add_theme_stylebox_override("normal", normal_style)
+		card.add_theme_stylebox_override("hover", hover_style)
+		card.add_theme_stylebox_override("pressed", pressed_style)
+		card.add_theme_stylebox_override("focus", hover_style)
+		card.add_theme_stylebox_override("disabled", disabled_style)
 		
-		# Action Buttons Container
-		var btn_hbox = HBoxContainer.new()
-		hbox.add_child(btn_hbox)
+		# Inner vbox with proper anchors to fill button and padding
+		var vbox = VBoxContainer.new()
+		vbox.add_theme_constant_override("separation", 2)
+		vbox.mouse_filter = Control.MOUSE_FILTER_PASS
+		vbox.anchor_left = 0.0
+		vbox.anchor_right = 1.0
+		vbox.anchor_top = 0.0
+		vbox.anchor_bottom = 1.0
+		vbox.offset_left = 12
+		vbox.offset_right = -12
+		vbox.offset_top = 8
+		vbox.offset_bottom = -8
+		card.add_child(vbox)
 		
-		# Buy 1 button
-		var buy1_btn = Button.new()
-		buy1_btn.text = "Buy 1"
-		buy1_btn.custom_minimum_size = Vector2(60, 32)
-		buy1_btn.disabled = (stock < 1 or GameState.gold < price)
-		buy1_btn.pressed.connect(func(): _on_buy_clicked(item, 1, row))
-		_setup_button_hover(buy1_btn)
-		btn_hbox.add_child(buy1_btn)
+		# Name
+		var name_lbl = Label.new()
+		name_lbl.text = item.name
+		name_lbl.add_theme_font_size_override("font_size", 12)
+		name_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
+		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+		vbox.add_child(name_lbl)
 		
-		# Buy 5 button
-		var buy5_btn = Button.new()
-		buy5_btn.text = "Buy 5"
-		buy5_btn.custom_minimum_size = Vector2(60, 32)
-		buy5_btn.disabled = (stock < 5 or GameState.gold < price * 5)
-		buy5_btn.pressed.connect(func(): _on_buy_clicked(item, 5, row))
-		_setup_button_hover(buy5_btn)
-		btn_hbox.add_child(buy5_btn)
+		# Stock
+		var stock_lbl = Label.new()
+		stock_lbl.text = "Stall: %d  |  Own: %d" % [stall_stock, player_stock]
+		stock_lbl.add_theme_font_size_override("font_size", 10)
+		stock_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.9))
+		stock_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+		vbox.add_child(stock_lbl)
 		
-		market_list.add_child(row)
+		# Price info
+		var price_lbl = Label.new()
+		price_lbl.add_theme_font_size_override("font_size", 10)
+		price_lbl.add_theme_color_override("font_color", Color(0.9, 0.75, 0.2))
+		price_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+		
+		var is_owner = (_current_stall.ownership_type == "Player" or (_current_stall.ownership_type == "Rented" and _current_stall.owner_id == "Player"))
+		if is_owner:
+			price_lbl.text = "Price: %d G" % _current_stall.get_custom_price(item)
+		else:
+			price_lbl.text = "Buy: %d G | Sell: %d G" % [_current_stall.get_buy_price(item), _current_stall.get_sell_price(item)]
+		vbox.add_child(price_lbl)
+		
+		# Enable clicking
+		card.disabled = not item.is_tradable
+		card.pressed.connect(func():
+			_open_transaction_prompt(item, card)
+		)
+		
+		_setup_button_hover(card)
+		_grid_container.add_child(card)
 
-func _refresh_player_list() -> void:
-	if not player_list:
-		return
+	_link_market_grid_focus()
+	
+	if _last_traded_item_id != "":
+		var target_card = _find_card_by_item_id(_last_traded_item_id)
+		if target_card and target_card is Button and not target_card.disabled and target_card.visible:
+			target_card.grab_focus()
+			_last_traded_item_id = ""
+			return
+		_last_traded_item_id = ""
 		
-	# Clear
-	for child in player_list.get_children():
+	_focus_first_market_button()
+
+func _get_player_inventory_space(item: ItemData) -> int:
+	if not GameState.player_inventory:
+		return 0
+	return GameState.player_inventory.get_free_space_for_item(item)
+
+func _get_stall_inventory_space(item: ItemData) -> int:
+	if not _current_stall or not _current_stall.inventory:
+		return 0
+	return _current_stall.inventory.get_free_space_for_item(item)
+
+func _calculate_max_affordable(item: ItemData) -> int:
+	if not _current_stall or not _current_stall.inventory:
+		return 0
+	var current_stock = _current_stall.inventory.get_item_amount(item.id)
+	var max_affordable = 0
+	var temp_stock = current_stock
+	var current_gold = GameState.gold
+	var accumulated_cost = 0
+	for i in range(current_stock):
+		var target = _current_stall.target_stock.get(item, 10)
+		var multiplier = 1.0 + (float(target - temp_stock) / target) * _current_stall.sensitivity
+		multiplier = clamp(multiplier, 0.2, 3.0)
+		var price = int(item.base_value * multiplier * 1.1)
+		if accumulated_cost + price <= current_gold:
+			accumulated_cost += price
+			max_affordable += 1
+			temp_stock -= 1
+		else:
+			break
+	return max_affordable
+
+func _open_transaction_prompt(item: ItemData, card_node: Control) -> void:
+	var focused = get_viewport().gui_get_focus_owner()
+	if focused is Button:
+		_last_focused_trigger_button = focused
+	else:
+		_last_focused_trigger_button = null
+		
+	# Clear overlay
+	for child in _slider_overlay.get_children():
 		child.queue_free()
 		
-	# Rebuild
-	for item in _items:
-		if not item:
-			continue
+	var popup_panel = PanelContainer.new()
+	popup_panel.custom_minimum_size = Vector2(300, 150)
+	
+	popup_panel.anchor_left = 0.5
+	popup_panel.anchor_right = 0.5
+	popup_panel.anchor_top = 0.5
+	popup_panel.anchor_bottom = 0.5
+	popup_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	popup_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	popup_panel.offset_left = -150
+	popup_panel.offset_right = 150
+	popup_panel.offset_top = -75
+	popup_panel.offset_bottom = 75
+	
+	var popup_style = StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.12, 0.12, 0.16, 0.98)
+	popup_style.set_border_width_all(2)
+	popup_style.border_color = Color(0.35, 0.35, 0.5, 0.9)
+	popup_style.set_corner_radius_all(10)
+	popup_style.content_margin_left = 16
+	popup_style.content_margin_right = 16
+	popup_style.content_margin_top = 16
+	popup_style.content_margin_bottom = 16
+	popup_panel.add_theme_stylebox_override("panel", popup_style)
+	
+	_slider_overlay.add_child(popup_panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	popup_panel.add_child(vbox)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = item.name
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 15)
+	title_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
+	vbox.add_child(title_lbl)
+	
+	var prompt_lbl = Label.new()
+	prompt_lbl.text = "Choose action:"
+	prompt_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	prompt_lbl.add_theme_font_size_override("font_size", 12)
+	prompt_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	vbox.add_child(prompt_lbl)
+	
+	var buttons_hbox = HBoxContainer.new()
+	buttons_hbox.add_theme_constant_override("separation", 12)
+	buttons_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(buttons_hbox)
+	
+	var is_owner = (_current_stall.ownership_type == "Player" or (_current_stall.ownership_type == "Rented" and _current_stall.owner_id == "Player"))
+	var stall_stock = _current_stall.inventory.get_item_amount(item.id)
+	var player_stock = GameState.player_inventory.get_item_amount(item.id)
+	var player_space = _get_player_inventory_space(item)
+	var stall_space = _get_stall_inventory_space(item)
+	
+	var first_focus_btn = null
+	
+	if is_owner:
+		var withdraw_btn = Button.new()
+		withdraw_btn.text = "Withdraw"
+		withdraw_btn.custom_minimum_size = Vector2(85, 30)
+		withdraw_btn.disabled = (stall_stock <= 0 or player_space <= 0)
+		withdraw_btn.pressed.connect(func():
+			var limit = min(stall_stock, player_space)
+			_open_quantity_slider(item, "withdraw", limit, card_node)
+		)
+		_setup_button_hover(withdraw_btn)
+		buttons_hbox.add_child(withdraw_btn)
+		if not withdraw_btn.disabled:
+			first_focus_btn = withdraw_btn
 			
-		var stock = GameState.player_inventory.get_item_amount(item.id)
-		var price = _current_stall.get_sell_price(item)
+		var deposit_btn = Button.new()
+		deposit_btn.text = "Deposit"
+		deposit_btn.custom_minimum_size = Vector2(85, 30)
+		deposit_btn.disabled = (player_stock <= 0 or stall_space <= 0)
+		deposit_btn.pressed.connect(func():
+			var limit = min(player_stock, stall_space)
+			_open_quantity_slider(item, "deposit", limit, card_node)
+		)
+		_setup_button_hover(deposit_btn)
+		buttons_hbox.add_child(deposit_btn)
+		if not deposit_btn.disabled and not first_focus_btn:
+			first_focus_btn = deposit_btn
+			
+		var price_btn = Button.new()
+		price_btn.text = "Set Price"
+		price_btn.custom_minimum_size = Vector2(85, 30)
+		price_btn.pressed.connect(func():
+			_open_price_adjuster_prompt(item, card_node)
+		)
+		_setup_button_hover(price_btn)
+		buttons_hbox.add_child(price_btn)
+		if not first_focus_btn:
+			first_focus_btn = price_btn
+			
+	else:
+		var buy_btn = Button.new()
+		buy_btn.text = "Buy..."
+		buy_btn.custom_minimum_size = Vector2(85, 30)
+		var max_afford = _calculate_max_affordable(item)
+		buy_btn.disabled = (stall_stock <= 0 or max_afford <= 0 or player_space <= 0)
+		buy_btn.pressed.connect(func():
+			var limit = min(stall_stock, min(max_afford, player_space))
+			_open_quantity_slider(item, "buy", limit, card_node)
+		)
+		_setup_button_hover(buy_btn)
+		buttons_hbox.add_child(buy_btn)
+		if not buy_btn.disabled:
+			first_focus_btn = buy_btn
+			
+		var sell_btn = Button.new()
+		sell_btn.text = "Sell..."
+		sell_btn.custom_minimum_size = Vector2(85, 30)
+		sell_btn.disabled = (player_stock <= 0 or stall_space <= 0)
+		sell_btn.pressed.connect(func():
+			var limit = min(player_stock, stall_space)
+			_open_quantity_slider(item, "sell", limit, card_node)
+		)
+		_setup_button_hover(sell_btn)
+		buttons_hbox.add_child(sell_btn)
+		if not sell_btn.disabled and not first_focus_btn:
+			first_focus_btn = sell_btn
+			
+	var cancel_btn = Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.custom_minimum_size = Vector2(85, 30)
+	cancel_btn.pressed.connect(_close_slider_popup)
+	_setup_button_hover(cancel_btn)
+	buttons_hbox.add_child(cancel_btn)
+	if not first_focus_btn:
+		first_focus_btn = cancel_btn
 		
-		var row = PanelContainer.new()
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.18, 0.18, 0.24, 0.7)
-		style.set_border_width_all(1)
-		style.border_color = Color(0.3, 0.3, 0.38, 0.7)
-		style.set_corner_radius_all(4)
-		style.content_margin_left = 8
-		style.content_margin_right = 8
-		style.content_margin_top = 4
-		style.content_margin_bottom = 4
-		row.add_theme_stylebox_override("panel", style)
+	# Wire focus neighbors within the dialog
+	var active_btns = []
+	for child in buttons_hbox.get_children():
+		if child is Button and not child.disabled and child.visible:
+			active_btns.append(child)
+			
+	for i in range(active_btns.size() - 1):
+		active_btns[i].focus_neighbor_right = active_btns[i+1].get_path()
+		active_btns[i+1].focus_neighbor_left = active_btns[i].get_path()
 		
-		var hbox = HBoxContainer.new()
-		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(hbox)
+	if not active_btns.is_empty():
+		active_btns[0].focus_neighbor_left = active_btns[0].get_path()
+		active_btns[-1].focus_neighbor_right = active_btns[-1].get_path()
 		
-		# Name & Count
-		var info_vbox = VBoxContainer.new()
-		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_child(info_vbox)
-		
-		var name_label = Label.new()
-		name_label.text = item.name
-		name_label.add_theme_font_size_override("font_size", 14)
-		info_vbox.add_child(name_label)
-		
-		var stock_label = Label.new()
-		stock_label.text = "Owned: %d" % stock
-		stock_label.add_theme_font_size_override("font_size", 11)
-		stock_label.modulate = Color(0.7, 0.7, 0.7)
-		info_vbox.add_child(stock_label)
-		
-		# Price Label
-		var price_label = Label.new()
-		price_label.text = "%d Gold" % price
-		price_label.add_theme_font_size_override("font_size", 13)
-		price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		price_label.custom_minimum_size = Vector2(80, 0)
-		hbox.add_child(price_label)
-		
-		# Action Buttons Container
-		var btn_hbox = HBoxContainer.new()
-		hbox.add_child(btn_hbox)
-		
-		# Sell 1 button
-		var sell1_btn = Button.new()
-		sell1_btn.text = "Sell 1"
-		sell1_btn.custom_minimum_size = Vector2(60, 32)
-		sell1_btn.disabled = (stock < 1)
-		sell1_btn.pressed.connect(func(): _on_sell_clicked(item, 1, row))
-		_setup_button_hover(sell1_btn)
-		btn_hbox.add_child(sell1_btn)
-		
-		# Sell All button
-		var sellall_btn = Button.new()
-		sellall_btn.text = "Sell All"
-		sellall_btn.custom_minimum_size = Vector2(60, 32)
-		sellall_btn.disabled = (stock < 1)
-		sellall_btn.pressed.connect(func(): _on_sell_clicked(item, stock, row))
-		_setup_button_hover(sellall_btn)
-		btn_hbox.add_child(sellall_btn)
-		
-		player_list.add_child(row)
+	_slider_overlay.show()
+	first_focus_btn.grab_focus()
 
-func _on_buy_clicked(item: ItemData, amount: int, row_node: Control) -> void:
+func _open_price_adjuster_prompt(item: ItemData, card_node: Control) -> void:
+	for child in _slider_overlay.get_children():
+		child.queue_free()
+		
+	var popup_panel = PanelContainer.new()
+	popup_panel.custom_minimum_size = Vector2(300, 160)
+	
+	popup_panel.anchor_left = 0.5
+	popup_panel.anchor_right = 0.5
+	popup_panel.anchor_top = 0.5
+	popup_panel.anchor_bottom = 0.5
+	popup_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	popup_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	popup_panel.offset_left = -150
+	popup_panel.offset_right = 150
+	popup_panel.offset_top = -80
+	popup_panel.offset_bottom = 80
+	
+	var popup_style = StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.12, 0.12, 0.16, 0.98)
+	popup_style.set_border_width_all(2)
+	popup_style.border_color = Color(0.35, 0.35, 0.5, 0.9)
+	popup_style.set_corner_radius_all(10)
+	popup_style.content_margin_left = 16
+	popup_style.content_margin_right = 16
+	popup_style.content_margin_top = 16
+	popup_style.content_margin_bottom = 16
+	popup_panel.add_theme_stylebox_override("panel", popup_style)
+	
+	_slider_overlay.add_child(popup_panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	popup_panel.add_child(vbox)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = "Set Price for %s" % item.name
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(title_lbl)
+	
+	var adjust_hbox = HBoxContainer.new()
+	adjust_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	adjust_hbox.add_theme_constant_override("separation", 16)
+	vbox.add_child(adjust_hbox)
+	
+	var dec_btn = Button.new()
+	dec_btn.text = "-"
+	dec_btn.custom_minimum_size = Vector2(30, 30)
+	_setup_button_hover(dec_btn)
+	adjust_hbox.add_child(dec_btn)
+	
+	var price_lbl = Label.new()
+	var current_price = _current_stall.get_custom_price(item)
+	price_lbl.text = "%d Gold" % current_price
+	price_lbl.add_theme_font_size_override("font_size", 16)
+	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	price_lbl.custom_minimum_size = Vector2(80, 0)
+	adjust_hbox.add_child(price_lbl)
+	
+	var inc_btn = Button.new()
+	inc_btn.text = "+"
+	inc_btn.custom_minimum_size = Vector2(30, 30)
+	_setup_button_hover(inc_btn)
+	adjust_hbox.add_child(inc_btn)
+	
+	var price_state = { "val": current_price }
+	dec_btn.pressed.connect(func():
+		var min_p = item.min_price if "min_price" in item else 1
+		price_state.val = max(min_p, price_state.val - 1)
+		price_lbl.text = "%d Gold" % price_state.val
+	)
+	inc_btn.pressed.connect(func():
+		var max_p = item.max_price if "max_price" in item else 999
+		price_state.val = min(max_p, price_state.val + 1)
+		price_lbl.text = "%d Gold" % price_state.val
+	)
+	
+	var actions_hbox = HBoxContainer.new()
+	actions_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions_hbox.add_theme_constant_override("separation", 16)
+	vbox.add_child(actions_hbox)
+	
+	var cancel_btn = Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.custom_minimum_size = Vector2(80, 28)
+	cancel_btn.pressed.connect(_close_slider_popup)
+	_setup_button_hover(cancel_btn)
+	actions_hbox.add_child(cancel_btn)
+	
+	var confirm_btn = Button.new()
+	confirm_btn.text = "Confirm"
+	confirm_btn.custom_minimum_size = Vector2(80, 28)
+	confirm_btn.pressed.connect(func():
+		_current_stall.custom_prices[item.id] = price_state.val
+		_close_slider_popup()
+		refresh()
+	)
+	_setup_button_hover(confirm_btn)
+	actions_hbox.add_child(confirm_btn)
+	
+	dec_btn.focus_neighbor_right = inc_btn.get_path()
+	inc_btn.focus_neighbor_left = dec_btn.get_path()
+	inc_btn.focus_neighbor_bottom = confirm_btn.get_path()
+	dec_btn.focus_neighbor_bottom = cancel_btn.get_path()
+	
+	cancel_btn.focus_neighbor_top = dec_btn.get_path()
+	confirm_btn.focus_neighbor_top = inc_btn.get_path()
+	cancel_btn.focus_neighbor_right = confirm_btn.get_path()
+	confirm_btn.focus_neighbor_left = cancel_btn.get_path()
+	
+	_slider_overlay.show()
+	confirm_btn.grab_focus()
+
+func _open_quantity_slider(item: ItemData, mode: String, max_limit: int, card_node: Control) -> void:
+	if max_limit <= 0:
+		return
+		
+	# Remember focus trigger button
+	var focused = get_viewport().gui_get_focus_owner()
+	if focused is Button:
+		_last_focused_trigger_button = focused
+	else:
+		_last_focused_trigger_button = null
+		
+	# Clear overlay just in case
+	for child in _slider_overlay.get_children():
+		child.queue_free()
+		
+	var popup_panel = PanelContainer.new()
+	popup_panel.custom_minimum_size = Vector2(320, 200)
+	
+	popup_panel.anchor_left = 0.5
+	popup_panel.anchor_right = 0.5
+	popup_panel.anchor_top = 0.5
+	popup_panel.anchor_bottom = 0.5
+	popup_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	popup_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	popup_panel.offset_left = -160
+	popup_panel.offset_right = 160
+	popup_panel.offset_top = -100
+	popup_panel.offset_bottom = 100
+	
+	var popup_style = StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.12, 0.12, 0.16, 0.98)
+	popup_style.set_border_width_all(2)
+	popup_style.border_color = Color(0.35, 0.35, 0.5, 0.9)
+	popup_style.set_corner_radius_all(10)
+	popup_style.content_margin_left = 16
+	popup_style.content_margin_right = 16
+	popup_style.content_margin_top = 16
+	popup_style.content_margin_bottom = 16
+	popup_panel.add_theme_stylebox_override("panel", popup_style)
+	
+	_slider_overlay.add_child(popup_panel)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	popup_panel.add_child(vbox)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = "[%s] %s" % [mode.capitalize(), item.name]
+	title_lbl.add_theme_font_size_override("font_size", 16)
+	if mode == "buy" or mode == "deposit":
+		title_lbl.add_theme_color_override("font_color", Color(0.9, 0.75, 0.2)) # gold
+	else:
+		title_lbl.add_theme_color_override("font_color", Color(0.4, 0.85, 0.4)) # green
+	vbox.add_child(title_lbl)
+	
+	var prompt_lbl = Label.new()
+	prompt_lbl.text = "Select quantity (Max: %d):" % max_limit
+	prompt_lbl.add_theme_font_size_override("font_size", 12)
+	vbox.add_child(prompt_lbl)
+	
+	var slider = HSlider.new()
+	slider.min_value = 1
+	slider.max_value = max_limit
+	slider.step = 1
+	slider.value = 1
+	vbox.add_child(slider)
+	
+	var display_lbl = Label.new()
+	display_lbl.add_theme_font_size_override("font_size", 13)
+	vbox.add_child(display_lbl)
+	
+	var update_display = func(val: float):
+		var amount = int(val)
+		if mode == "buy":
+			var cost = _calculate_total_buy_cost(item, amount)
+			display_lbl.text = "Amount: %d\nTotal Cost: %d Gold" % [amount, cost]
+		elif mode == "sell":
+			var revenue = _calculate_total_sell_revenue(item, amount)
+			display_lbl.text = "Amount: %d\nTotal Revenue: %d Gold" % [amount, revenue]
+		else:
+			display_lbl.text = "Amount: %d" % amount
+			
+	slider.value_changed.connect(update_display)
+	update_display.call(slider.value)
+	
+	var buttons_hbox = HBoxContainer.new()
+	buttons_hbox.add_theme_constant_override("separation", 16)
+	buttons_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(buttons_hbox)
+	
+	var cancel_btn = Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.custom_minimum_size = Vector2(85, 30)
+	cancel_btn.pressed.connect(_close_slider_popup)
+	_setup_button_hover(cancel_btn)
+	buttons_hbox.add_child(cancel_btn)
+	
+	var confirm_btn = Button.new()
+	confirm_btn.text = "Confirm"
+	confirm_btn.custom_minimum_size = Vector2(85, 30)
+	confirm_btn.pressed.connect(func(): _on_slider_confirmed(item, mode, int(slider.value), card_node))
+	_setup_button_hover(confirm_btn)
+	buttons_hbox.add_child(confirm_btn)
+	
+	_slider_overlay.show()
+	confirm_btn.grab_focus()
+
+func _on_slider_confirmed(item: ItemData, mode: String, amount: int, card_node: Control) -> void:
+	_last_traded_item_id = item.id
+	_last_traded_mode = mode
+	_close_slider_popup()
 	if not _current_stall:
 		return
 		
-	var success = _current_stall.buy_item(item, amount)
-	if success:
-		_animate_success(row_node)
-	else:
-		_animate_failure(row_node)
-
-func _on_sell_clicked(item: ItemData, amount: int, row_node: Control) -> void:
-	if not _current_stall:
-		return
+	var success = false
+	if mode == "buy" or mode == "withdraw":
+		success = _current_stall.buy_item(item, amount)
+	elif mode == "sell" or mode == "deposit":
+		success = _current_stall.sell_item(item, amount)
 		
-	var success = _current_stall.sell_item(item, amount)
 	if success:
-		_animate_success(row_node)
+		_animate_success(card_node)
 	else:
-		_animate_failure(row_node)
+		_animate_failure(card_node)
+		
+	refresh()
+
+func _close_slider_popup() -> void:
+	if _slider_overlay:
+		for child in _slider_overlay.get_children():
+			child.queue_free()
+		_slider_overlay.hide()
+		
+	if _last_focused_trigger_button and is_instance_valid(_last_focused_trigger_button) and _last_focused_trigger_button.is_inside_tree() and not _last_focused_trigger_button.disabled and _last_focused_trigger_button.visible:
+		_last_focused_trigger_button.grab_focus()
+	else:
+		_focus_first_market_button()
+
+func _calculate_total_buy_cost(item: ItemData, amount: int) -> int:
+	if not _current_stall:
+		return 0
+	var current_stock: int = _current_stall.inventory.get_item_amount(item.id)
+	var total_price: int = 0
+	var temp_stock: int = current_stock
+	for i in range(amount):
+		var target: int = _current_stall.target_stock.get(item, 10)
+		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * _current_stall.sensitivity
+		multiplier = clamp(multiplier, 0.2, 3.0)
+		total_price += int(item.base_value * multiplier * 1.1)
+		temp_stock -= 1
+	return total_price
+
+func _calculate_total_sell_revenue(item: ItemData, amount: int) -> int:
+	if not _current_stall:
+		return 0
+	var current_stock: int = _current_stall.inventory.get_item_amount(item.id)
+	var total_revenue: int = 0
+	var temp_stock: int = current_stock
+	for i in range(amount):
+		var target: int = _current_stall.target_stock.get(item, 10)
+		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * _current_stall.sensitivity
+		multiplier = clamp(multiplier, 0.2, 3.0)
+		total_revenue += int(item.base_value * multiplier * 0.9)
+		temp_stock += 1
+	return total_revenue
 
 func _animate_success(node: Control) -> void:
-	# Flash the row green briefly
 	var tween = create_tween()
 	tween.tween_property(node, "modulate", Color(0.4, 1.0, 0.4), 0.1)
 	tween.tween_property(node, "modulate", Color(1, 1, 1), 0.1)
 
 func _animate_failure(node: Control) -> void:
-	# Shake/Flash red
-	var orig_pos = node.position
 	var tween = create_tween()
 	tween.tween_property(node, "modulate", Color(1.0, 0.4, 0.4), 0.05)
-	# Simple shake
-	var target_x = node.position.x
-	tween.tween_property(node, "position:x", target_x - 5.0, 0.05)
-	tween.tween_property(node, "position:x", target_x + 5.0, 0.05)
-	tween.tween_property(node, "position:x", target_x - 5.0, 0.05)
-	tween.tween_property(node, "position:x", target_x, 0.05)
 	tween.tween_property(node, "modulate", Color(1, 1, 1), 0.1)
 
 func _setup_button_hover(button: Button) -> void:
-	# Add micro hover scaling animation
-	button.pivot_offset = button.custom_minimum_size / 2.0
+	var update_pivot = func():
+		button.pivot_offset = button.size / 2.0
+	update_pivot.call()
+	if not button.resized.is_connected(update_pivot):
+		button.resized.connect(update_pivot)
+		
 	button.mouse_entered.connect(func():
 		if not button.disabled:
 			var tween = create_tween()
-			tween.tween_property(button, "scale", Vector2(1.06, 1.06), 0.08)
+			tween.tween_property(button, "scale", Vector2(1.03, 1.03), 0.08)
 	)
 	button.mouse_exited.connect(func():
 		var tween = create_tween()
 		tween.tween_property(button, "scale", Vector2(1.0, 1.0), 0.08)
 	)
+	button.focus_entered.connect(func():
+		if not button.disabled:
+			var tween = create_tween()
+			tween.tween_property(button, "scale", Vector2(1.03, 1.03), 0.08)
+	)
+	button.focus_exited.connect(func():
+		var tween = create_tween()
+		tween.tween_property(button, "scale", Vector2(1.0, 1.0), 0.08)
+	)
+
+func _focus_first_market_button() -> void:
+	if not is_inside_tree():
+		return
+	await get_tree().process_frame
+	if _grid_container and _grid_container.get_child_count() > 0:
+		var first_card = _grid_container.get_child(0)
+		if is_instance_valid(first_card) and first_card is Button and not first_card.disabled and first_card.visible:
+			first_card.grab_focus()
+
+func _on_market_element_focused(element: Control, card: Control) -> void:
+	var scroll = _grid_container.get_parent()
+	if scroll is ScrollContainer:
+		_ensure_card_visible(card, scroll)
+
+func _ensure_card_visible(card: Control, main_scroll: ScrollContainer) -> void:
+	if not main_scroll or not is_instance_valid(main_scroll):
+		return
+	await card.get_tree().process_frame
+	if not is_instance_valid(card) or not is_instance_valid(main_scroll):
+		return
+		
+	var card_rect = card.get_global_rect()
+	var scroll_rect = main_scroll.get_global_rect()
+	var padding = 12.0
+	
+	if card_rect.position.y < scroll_rect.position.y + padding:
+		var diff = (scroll_rect.position.y + padding) - card_rect.position.y
+		main_scroll.scroll_vertical -= int(diff)
+	elif card_rect.end.y > scroll_rect.end.y - padding:
+		var diff = card_rect.end.y - (scroll_rect.end.y - padding)
+		main_scroll.scroll_vertical += int(diff)
+
+func _find_card_by_item_id(item_id: String) -> Control:
+	if _grid_container:
+		return _grid_container.get_node_or_null("Card_" + item_id)
+	return null
+
+func _link_market_grid_focus() -> void:
+	if not _grid_container:
+		return
+		
+	var card_count = _grid_container.get_child_count()
+	if card_count == 0:
+		return
+		
+	# Build a 2D grid of card buttons: rows of max 3 columns
+	var cols_count = _grid_container.columns
+	var rows = []
+	var current_row = []
+	for i in range(card_count):
+		var card = _grid_container.get_child(i)
+		if card is Button and not card.disabled and card.visible:
+			current_row.append(card)
+		if current_row.size() == cols_count or i == card_count - 1:
+			if not current_row.is_empty():
+				rows.append(current_row)
+				current_row = []
+				
+	if rows.is_empty():
+		return
+		
+	# Wire neighbors
+	for r in range(rows.size()):
+		for c in range(rows[r].size()):
+			var btn = rows[r][c]
+			
+			# Connect focus entered to scroll view helper
+			if not btn.focus_entered.is_connected(_on_market_element_focused.bind(btn, btn)):
+				btn.focus_entered.connect(_on_market_element_focused.bind(btn, btn))
+				
+			# Left:
+			if c > 0:
+				btn.focus_neighbor_left = rows[r][c - 1].get_path()
+			else:
+				btn.focus_neighbor_left = btn.get_path() # lock
+				
+			# Right:
+			if c < rows[r].size() - 1:
+				btn.focus_neighbor_right = rows[r][c + 1].get_path()
+			else:
+				btn.focus_neighbor_right = btn.get_path() # lock
+				
+			# Top:
+			if r > 0:
+				var target_c = min(c, rows[r - 1].size() - 1)
+				btn.focus_neighbor_top = rows[r - 1][target_c].get_path()
+			else:
+				btn.focus_neighbor_top = btn.get_path()
+					
+			# Bottom:
+			if r < rows.size() - 1:
+				var target_c = min(c, rows[r + 1].size() - 1)
+				btn.focus_neighbor_bottom = rows[r + 1][target_c].get_path()
+			else:
+				btn.focus_neighbor_bottom = btn.get_path()

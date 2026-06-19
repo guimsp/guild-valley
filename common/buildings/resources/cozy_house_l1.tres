@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_2kq30"]
+
+[resource]
+script = ExtResource("1_2kq30")
+id = "cozy_house_l1"
+name = "Cozy House"
+family = "personal_home"
+cost = 250
+time = 6.0
+scene_path = "res://components/buildings/house.tscn"
+type = "home"
+description = "Level 1 Personal Home: A cozy house to sleep and store items."

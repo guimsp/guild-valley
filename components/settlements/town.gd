@@ -12,6 +12,7 @@ signal town_ownership_changed(town: Town, old_province: String, new_province: St
 @export var is_growing: bool = true
 @export var ownership_province: String = "Neutral Province"
 @export var market_node_path: NodePath
+@export var security_level: float = 0.5
 
 var controlling_city: City = null
 
@@ -37,7 +38,8 @@ func _find_controlling_city() -> void:
 		print("[Town] %s belongs to the dominion of City: %s (Province: %s)" % [town_name, controlling_city.city_name, ownership_province])
 	else:
 		if not is_resource_node:
-			ownership_province = "Neutral Province"
+			if ownership_province == "Neutral Province" or ownership_province == "":
+				ownership_province = "Neutral Province"
 
 func change_ownership(new_province: String) -> void:
 	if not is_resource_node:

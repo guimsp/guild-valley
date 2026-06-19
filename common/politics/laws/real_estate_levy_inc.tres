@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LawResource" format=3]
+
+[ext_resource type="Script" path="res://common/politics/law_resource.gd" id="1_law"]
+
+[resource]
+script = ExtResource("1_law")
+id = "real_estate_levy_inc"
+name = "The Real Estate Levy (Increment)"
+description = "Increases property taxes on all residential housing plots by +30%."
+category = "Numerical"
+influence_cost = 150
+value_type = "real_estate_tax"
+effect_value = 0.3

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/paper.tres" id="2_paper"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/book.tres" id="3_book"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Print Book"
+required_career = "scholar"
+required_level = 2
+inputs = {
+ExtResource("2_paper"): 3
+}
+output_item = ExtResource("3_book")
+output_amount = 1
+xp_reward = 30

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "leather_backpack"
+name = "Leather Backpack"
+base_value = 45
+weight = 1.0
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Bag"
+capacity_bonus = 4

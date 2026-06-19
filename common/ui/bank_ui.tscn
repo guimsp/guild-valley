@@ -1,0 +1,145 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://common/ui/bank_ui.gd" id="1_bank_ui"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bank"]
+bg_color = Color(0.1, 0.12, 0.16, 0.95)
+border_color = Color(0.24, 0.52, 0.85, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 20
+content_margin_right = 20
+content_margin_top = 20
+content_margin_bottom = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 12
+
+[node name="BankUI" type="PanelContainer"]
+custom_minimum_size = Vector2(320, 240)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -120.0
+offset_right = 160.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bank")
+script = ExtResource("1_bank_ui")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="VBoxContainer"]
+modulate = Color(0.4, 0.75, 1, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Provincial Bank"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="VBoxContainer"]
+modulate = Color(0.6, 0.6, 0.6, 0.8)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Earns 5% daily interest overnight."
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="BalanceBox" type="GridContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="WalletLbl" type="Label" parent="VBoxContainer/BalanceBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Wallet:"
+
+[node name="WalletValue" type="Label" parent="VBoxContainer/BalanceBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+text = "0 G"
+
+[node name="BankLbl" type="Label" parent="VBoxContainer/BalanceBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Savings Balance:"
+
+[node name="BankValue" type="Label" parent="VBoxContainer/BalanceBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 12
+text = "0 G"
+
+[node name="InputHBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="AmountInput" type="LineEdit" parent="VBoxContainer/InputHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 30)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+placeholder_text = "Enter amount..."
+alignment = 1
+
+[node name="QuickHBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="DepositAllButton" type="Button" parent="VBoxContainer/QuickHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Deposit All"
+
+[node name="WithdrawAllButton" type="Button" parent="VBoxContainer/QuickHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Withdraw All"
+
+[node name="ActionHBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="DepositButton" type="Button" parent="VBoxContainer/ActionHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Deposit"
+
+[node name="WithdrawButton" type="Button" parent="VBoxContainer/ActionHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Withdraw"
+
+[node name="CloseButton" type="Button" parent="VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flour.tres" id="2_flour"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/oil.tres" id="3_oil"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/venison.tres" id="4_venison"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/royal_venison_pasty.tres" id="5_pasty"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Bake Royal Venison Pasty"
+required_career = "patreon"
+required_level = 9
+inputs = {
+ExtResource("2_flour"): 1,
+ExtResource("3_oil"): 1,
+ExtResource("4_venison"): 1
+}
+output_item = ExtResource("5_pasty")
+output_amount = 1
+xp_reward = 60

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_lfgi1"]
+
+[resource]
+script = ExtResource("1_lfgi1")
+id = "scholar_bank_l1"
+name = "Provincial Bank"
+family = "scholar_bank"
+career = "scholar"
+tier = 3
+level = 5
+cost = 500
+time = 10.0
+scene_path = "res://components/production/bank.tscn"
+allowed_settlement = "city"
+description = "Safely deposit gold and earn 5% daily interest."
+

@@ -2,9 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://boybayv3srswx" path="res://entities/player/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://components/teleport/teleport_trigger.gd" id="2_teleport"]
-[ext_resource type="PackedScene" path="res://common/ui/player_hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://UI/game_hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://components/market/market_stall.tscn" id="4_market_stall"]
-[ext_resource type="PackedScene" path="res://components/crafting/crafting_bench.tscn" id="5_crafting_bench"]
+[ext_resource type="PackedScene" path="res://components/buildings/commercial_routes_console.tscn" id="13_routes_console"]
 [ext_resource type="Script" path="res://components/time/time_cycle_modulate.gd" id="6_time_cycle"]
 [ext_resource type="PackedScene" path="res://entities/rival/ai_rival.tscn" id="7_ai_rival"]
 [ext_resource type="PackedScene" path="res://components/sleep/bed.tscn" id="8_bed"]
@@ -12,10 +12,13 @@
 [ext_resource type="Script" path="res://components/settlements/town.gd" id="10_town"]
 [ext_resource type="Script" path="res://components/roads/road_segment.gd" id="11_road_segment"]
 [ext_resource type="Script" path="res://components/placement/building_lot.gd" id="12_building_lot"]
-[ext_resource type="PackedScene" path="res://components/gathering/wheat_field_grid.tscn" id="13_wheat_grid"]
-[ext_resource type="PackedScene" path="res://components/gathering/cotton_patch_grid.tscn" id="14_cotton_grid"]
-[ext_resource type="PackedScene" path="res://components/gathering/ore_mine.tscn" id="15_ore_mine"]
 [ext_resource type="PackedScene" path="res://components/buildings/house.tscn" id="16_house"]
+[ext_resource type="Script" path="res://components/placement/placement_manager.gd" id="19_placement_manager"]
+[ext_resource type="Script" path="res://entities/world/world.gd" id="20_world_gd"]
+[ext_resource type="Script" path="res://components/roads/plaza.gd" id="21_plaza_gd"]
+[ext_resource type="Script" path="res://components/gathering/mega_node.gd" id="22_mega_node"]
+[ext_resource type="PackedScene" path="res://components/buildings/quest_board.tscn" id="23_quest_board"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(64, 64)
@@ -26,8 +29,16 @@ size = Vector2(32, 16)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_interior"]
 size = Vector2(320, 16)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_meganode"]
+radius = 120.0
+
 [node name="World" type="Node2D"]
 y_sort_enabled = true
+script = ExtResource("20_world_gd")
+
+
+[node name="PlacementManager" type="Node2D" parent="."]
+script = ExtResource("19_placement_manager")
 
 [node name="TimeCycleModulate" type="CanvasModulate" parent="."]
 script = ExtResource("6_time_cycle")
@@ -44,10 +55,24 @@ position = Vector2(2050, 500)
 y_sort_enabled = true
 position = Vector2(1550, 420)
 
+[node name="PlayerHouse2" type="StaticBody2D" parent="."]
+y_sort_enabled = true
+position = Vector2(6550, 420)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerHouse"]
 shape = SubResource("RectangleShape2D_wall")
 
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerHouse2"]
+shape = SubResource("RectangleShape2D_wall")
+
 [node name="ColorRect" type="ColorRect" parent="PlayerHouse"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.25, 0.25, 0.25, 1)
+
+[node name="ColorRect" type="ColorRect" parent="PlayerHouse2"]
 offset_left = -32.0
 offset_top = -32.0
 offset_right = 32.0
@@ -59,6 +84,14 @@ position = Vector2(1550, 460)
 script = ExtResource("2_teleport")
 is_local_teleport = true
 target_spawn_position = Vector2(3250, 3260)
+ownership_type = "Player"
+owner_id = "Player"
+
+[node name="HouseDoor2" type="Area2D" parent="."]
+position = Vector2(6550, 460)
+script = ExtResource("2_teleport")
+is_local_teleport = true
+target_spawn_position = Vector2(8250, 3260)
 ownership_type = "Player"
 owner_id = "Player"
 
@@ -76,10 +109,24 @@ color = Color(0.2, 0.6, 0.8, 0.8)
 y_sort_enabled = true
 position = Vector2(2050, 420)
 
+[node name="RivalHouse2" type="StaticBody2D" parent="."]
+y_sort_enabled = true
+position = Vector2(7050, 420)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RivalHouse"]
 shape = SubResource("RectangleShape2D_wall")
 
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RivalHouse2"]
+shape = SubResource("RectangleShape2D_wall")
+
 [node name="ColorRect" type="ColorRect" parent="RivalHouse"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.4, 0.2, 0.2, 1)
+
+[node name="ColorRect" type="ColorRect" parent="RivalHouse2"]
 offset_left = -32.0
 offset_top = -32.0
 offset_right = 32.0
@@ -91,6 +138,14 @@ position = Vector2(2050, 460)
 script = ExtResource("2_teleport")
 is_local_teleport = true
 target_spawn_position = Vector2(3250, 3260)
+ownership_type = "NPC"
+owner_id = "Rival"
+
+[node name="RivalHouseDoor2" type="Area2D" parent="."]
+position = Vector2(7050, 460)
+script = ExtResource("2_teleport")
+is_local_teleport = true
+target_spawn_position = Vector2(8250, 3260)
 ownership_type = "NPC"
 owner_id = "Rival"
 
@@ -109,10 +164,20 @@ script = ExtResource("11_road_segment")
 size = Vector2(1200, 64)
 position = Vector2(1200, 900)
 
+[node name="OakhavenHighway" type="Area2D" parent="."]
+script = ExtResource("11_road_segment")
+size = Vector2(1200, 64)
+position = Vector2(6200, 900)
+
 [node name="OutpostRoad" type="Area2D" parent="."]
 script = ExtResource("11_road_segment")
 size = Vector2(64, 500)
 position = Vector2(1200, 1150)
+
+[node name="OakhavenOutpostRoad" type="Area2D" parent="."]
+script = ExtResource("11_road_segment")
+size = Vector2(64, 500)
+position = Vector2(6200, 1150)
 
 [node name="ValleyCity" type="Node2D" parent="."]
 position = Vector2(600, 800)
@@ -120,9 +185,24 @@ script = ExtResource("9_city")
 city_name = "Valley City"
 radius_of_influence = 800.0
 prosperity = 80
+ownership_province = "Valley Province"
 market_node_path = NodePath("CityMarket")
 
+[node name="OakhavenCity" type="Node2D" parent="."]
+position = Vector2(5600, 800)
+script = ExtResource("9_city")
+city_name = "Oakhaven City"
+radius_of_influence = 800.0
+prosperity = 80
+market_node_path = NodePath("CityMarket")
+
+ownership_province = "Oakhaven Province"
 [node name="CityRoad" type="Area2D" parent="ValleyCity"]
+script = ExtResource("11_road_segment")
+size = Vector2(64, 600)
+position = Vector2(0, 100)
+
+[node name="CityRoad" type="Area2D" parent="OakhavenCity"]
 script = ExtResource("11_road_segment")
 size = Vector2(64, 600)
 position = Vector2(0, 100)
@@ -134,13 +214,26 @@ offset_right = 200.0
 offset_bottom = 350.0
 color = Color(0.45, 0.45, 0.48, 0.3)
 
+[node name="CityMarket" type="ColorRect" parent="OakhavenCity"]
+offset_left = -200.0
+offset_top = 200.0
+offset_right = 200.0
+offset_bottom = 350.0
+color = Color(0.45, 0.45, 0.48, 0.3)
+
 [node name="CityMarketStall" parent="ValleyCity/CityMarket" instance=ExtResource("4_market_stall")]
 position = Vector2(200, 75)
 
-[node name="CityCraftingBench" parent="ValleyCity" instance=ExtResource("5_crafting_bench")]
-position = Vector2(-120, -150)
+
+[node name="CityMarketStall" parent="OakhavenCity/CityMarket" instance=ExtResource("4_market_stall")]
+position = Vector2(200, 75)
+
 
 [node name="Lot_City_B1_L1" type="Area2D" parent="ValleyCity"]
+position = Vector2(-350, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B1_L1" type="Area2D" parent="OakhavenCity"]
 position = Vector2(-350, -200)
 script = ExtResource("12_building_lot")
 
@@ -148,7 +241,15 @@ script = ExtResource("12_building_lot")
 position = Vector2(-250, -200)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_City_B1_L2" type="Area2D" parent="OakhavenCity"]
+position = Vector2(-250, -200)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_City_B1_L3" type="Area2D" parent="ValleyCity"]
+position = Vector2(-150, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B1_L3" type="Area2D" parent="OakhavenCity"]
 position = Vector2(-150, -200)
 script = ExtResource("12_building_lot")
 
@@ -156,7 +257,15 @@ script = ExtResource("12_building_lot")
 position = Vector2(150, -200)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_City_B2_L1" type="Area2D" parent="OakhavenCity"]
+position = Vector2(150, -200)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_City_B2_L2" type="Area2D" parent="ValleyCity"]
+position = Vector2(250, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B2_L2" type="Area2D" parent="OakhavenCity"]
 position = Vector2(250, -200)
 script = ExtResource("12_building_lot")
 
@@ -164,7 +273,15 @@ script = ExtResource("12_building_lot")
 position = Vector2(350, -200)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_City_B2_L3" type="Area2D" parent="OakhavenCity"]
+position = Vector2(350, -200)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_City_B3_L1" type="Area2D" parent="ValleyCity"]
+position = Vector2(-350, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B3_L1" type="Area2D" parent="OakhavenCity"]
 position = Vector2(-350, 0)
 script = ExtResource("12_building_lot")
 
@@ -172,7 +289,15 @@ script = ExtResource("12_building_lot")
 position = Vector2(-250, 0)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_City_B3_L2" type="Area2D" parent="OakhavenCity"]
+position = Vector2(-250, 0)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_City_B3_L3" type="Area2D" parent="ValleyCity"]
+position = Vector2(-150, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_City_B3_L3" type="Area2D" parent="OakhavenCity"]
 position = Vector2(-150, 0)
 script = ExtResource("12_building_lot")
 
@@ -180,11 +305,29 @@ script = ExtResource("12_building_lot")
 position = Vector2(150, 0)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_City_B4_L1" type="Area2D" parent="OakhavenCity"]
+position = Vector2(150, 0)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_City_B4_L2" type="Area2D" parent="ValleyCity"]
 position = Vector2(250, 0)
 script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../CityCouncil")
+
+[node name="Lot_City_B4_L2" type="Area2D" parent="OakhavenCity"]
+position = Vector2(250, 0)
+script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../CityCouncil")
 
 [node name="Lot_City_B4_L3" type="Area2D" parent="ValleyCity"]
+position = Vector2(350, 0)
+script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../PublicHall")
+
+[node name="Lot_City_B4_L3" type="Area2D" parent="OakhavenCity"]
 position = Vector2(350, 0)
 script = ExtResource("12_building_lot")
 is_occupied = true
@@ -196,6 +339,44 @@ ownership_type = "Public"
 is_buyable = false
 custom_name = "Town Hall"
 
+[node name="CityCouncil" parent="ValleyCity" instance=ExtResource("16_house")]
+position = Vector2(250, 0)
+ownership_type = "Public"
+is_buyable = false
+custom_name = "City Council"
+
+[node name="QuestBoard" parent="ValleyCity" instance=ExtResource("23_quest_board")]
+position = Vector2(0, 150)
+
+[node name="PublicHall" parent="OakhavenCity" instance=ExtResource("16_house")]
+position = Vector2(350, 0)
+ownership_type = "Public"
+is_buyable = false
+custom_name = "Town Hall"
+
+[node name="CityCouncil" parent="OakhavenCity" instance=ExtResource("16_house")]
+position = Vector2(250, 0)
+ownership_type = "Public"
+is_buyable = false
+custom_name = "City Council"
+
+[node name="QuestBoard" parent="OakhavenCity" instance=ExtResource("23_quest_board")]
+position = Vector2(0, 150)
+
+[node name="CityPlaza" type="Area2D" parent="ValleyCity"]
+script = ExtResource("21_plaza_gd")
+size = Vector2(400, 150)
+position = Vector2(0, 275)
+
+
+
+[node name="CityPlaza" type="Area2D" parent="OakhavenCity"]
+script = ExtResource("21_plaza_gd")
+size = Vector2(400, 150)
+position = Vector2(0, 275)
+
+
+
 [node name="Mineville" type="Node2D" parent="."]
 position = Vector2(1800, 800)
 script = ExtResource("10_town")
@@ -204,12 +385,42 @@ prosperity = 30
 ownership_province = "Valley Province"
 market_node_path = NodePath("TownMarket")
 
+[node name="Oakville" type="Node2D" parent="."]
+position = Vector2(6800, 800)
+script = ExtResource("10_town")
+town_name = "Oakville"
+prosperity = 30
+ownership_province = "Oakhaven Province"
+market_node_path = NodePath("TownMarket")
+
 [node name="TownRoad" type="Area2D" parent="Mineville"]
 script = ExtResource("11_road_segment")
 size = Vector2(64, 600)
 position = Vector2(0, 100)
 
+[node name="TownRoad" type="Area2D" parent="Oakville"]
+script = ExtResource("11_road_segment")
+size = Vector2(64, 600)
+position = Vector2(0, 100)
+
+[node name="TownRoadLeft" type="Area2D" parent="Mineville"]
+script = ExtResource("11_road_segment")
+size = Vector2(400, 64)
+position = Vector2(-200, -136)
+
+[node name="TownRoadLeft" type="Area2D" parent="Oakville"]
+script = ExtResource("11_road_segment")
+size = Vector2(400, 64)
+position = Vector2(-200, -136)
+
 [node name="TownMarket" type="ColorRect" parent="Mineville"]
+offset_left = -150.0
+offset_top = 200.0
+offset_right = 150.0
+offset_bottom = 350.0
+color = Color(0.45, 0.45, 0.48, 0.3)
+
+[node name="TownMarket" type="ColorRect" parent="Oakville"]
 offset_left = -150.0
 offset_top = 200.0
 offset_right = 150.0
@@ -219,7 +430,14 @@ color = Color(0.45, 0.45, 0.48, 0.3)
 [node name="TownMarketStall" parent="Mineville/TownMarket" instance=ExtResource("4_market_stall")]
 position = Vector2(150, 75)
 
+[node name="TownMarketStall" parent="Oakville/TownMarket" instance=ExtResource("4_market_stall")]
+position = Vector2(150, 75)
+
 [node name="Lot_Town_B1_L1" type="Area2D" parent="Mineville"]
+position = Vector2(-350, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B1_L1" type="Area2D" parent="Oakville"]
 position = Vector2(-350, -200)
 script = ExtResource("12_building_lot")
 
@@ -227,7 +445,15 @@ script = ExtResource("12_building_lot")
 position = Vector2(-250, -200)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_Town_B1_L2" type="Area2D" parent="Oakville"]
+position = Vector2(-250, -200)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_Town_B1_L3" type="Area2D" parent="Mineville"]
+position = Vector2(-150, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B1_L3" type="Area2D" parent="Oakville"]
 position = Vector2(-150, -200)
 script = ExtResource("12_building_lot")
 
@@ -235,11 +461,23 @@ script = ExtResource("12_building_lot")
 position = Vector2(150, -200)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_Town_B2_L1" type="Area2D" parent="Oakville"]
+position = Vector2(150, -200)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_Town_B2_L2" type="Area2D" parent="Mineville"]
 position = Vector2(250, -200)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_Town_B2_L2" type="Area2D" parent="Oakville"]
+position = Vector2(250, -200)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_Town_B2_L3" type="Area2D" parent="Mineville"]
+position = Vector2(350, -200)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B2_L3" type="Area2D" parent="Oakville"]
 position = Vector2(350, -200)
 script = ExtResource("12_building_lot")
 
@@ -249,7 +487,20 @@ script = ExtResource("12_building_lot")
 is_occupied = true
 occupied_node = NodePath("../House_Mineville_1")
 
+[node name="Lot_Town_B3_L1" type="Area2D" parent="Oakville"]
+position = Vector2(-350, 0)
+script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../House_Oakville_1")
+
 [node name="House_Mineville_1" parent="Mineville" instance=ExtResource("16_house")]
+position = Vector2(-350, 0)
+is_rental = true
+ownership_type = "NPC"
+owner_id = ""
+custom_name = "Rental House"
+
+[node name="House_Mineville_1" parent="Oakville" instance=ExtResource("16_house")]
 position = Vector2(-350, 0)
 is_rental = true
 ownership_type = "NPC"
@@ -262,7 +513,20 @@ script = ExtResource("12_building_lot")
 is_occupied = true
 occupied_node = NodePath("../House_Mineville_2")
 
+[node name="Lot_Town_B3_L2" type="Area2D" parent="Oakville"]
+position = Vector2(-250, 0)
+script = ExtResource("12_building_lot")
+is_occupied = true
+occupied_node = NodePath("../House_Oakville_2")
+
 [node name="House_Mineville_2" parent="Mineville" instance=ExtResource("16_house")]
+position = Vector2(-250, 0)
+is_rental = true
+ownership_type = "NPC"
+owner_id = ""
+custom_name = "Rental House"
+
+[node name="House_Mineville_2" parent="Oakville" instance=ExtResource("16_house")]
 position = Vector2(-250, 0)
 is_rental = true
 ownership_type = "NPC"
@@ -273,7 +537,15 @@ custom_name = "Rental House"
 position = Vector2(-150, 0)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_Town_B3_L3" type="Area2D" parent="Oakville"]
+position = Vector2(-150, 0)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_Town_B4_L1" type="Area2D" parent="Mineville"]
+position = Vector2(150, 0)
+script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B4_L1" type="Area2D" parent="Oakville"]
 position = Vector2(150, 0)
 script = ExtResource("12_building_lot")
 
@@ -281,9 +553,35 @@ script = ExtResource("12_building_lot")
 position = Vector2(250, 0)
 script = ExtResource("12_building_lot")
 
+[node name="Lot_Town_B4_L2" type="Area2D" parent="Oakville"]
+position = Vector2(250, 0)
+script = ExtResource("12_building_lot")
+
 [node name="Lot_Town_B4_L3" type="Area2D" parent="Mineville"]
 position = Vector2(350, 0)
 script = ExtResource("12_building_lot")
+
+[node name="Lot_Town_B4_L3" type="Area2D" parent="Oakville"]
+position = Vector2(350, 0)
+script = ExtResource("12_building_lot")
+
+[node name="TownPlaza" type="Area2D" parent="Mineville"]
+script = ExtResource("21_plaza_gd")
+size = Vector2(300, 150)
+position = Vector2(0, 275)
+
+[node name="QuestBoard" parent="Mineville" instance=ExtResource("23_quest_board")]
+position = Vector2(0, 150)
+
+[node name="TownPlaza" type="Area2D" parent="Oakville"]
+script = ExtResource("21_plaza_gd")
+size = Vector2(300, 150)
+position = Vector2(0, 275)
+
+[node name="QuestBoard" parent="Oakville" instance=ExtResource("23_quest_board")]
+position = Vector2(0, 150)
+
+
 
 [node name="MineOutpost" type="Node2D" parent="."]
 position = Vector2(1200, 1400)
@@ -291,25 +589,42 @@ script = ExtResource("10_town")
 town_name = "Mine Outpost"
 is_resource_node = true
 prosperity = 15
-ownership_province = "Neutral Province"
+ownership_province = "Valley Province"
+security_level = 0.3
+
+[node name="WoodOutpost" type="Node2D" parent="."]
+position = Vector2(6200, 1400)
+script = ExtResource("10_town")
+town_name = "Wood Outpost"
+is_resource_node = true
+prosperity = 15
+ownership_province = "Oakhaven Province"
+security_level = 0.3
 
 [node name="OutpostInternalRoad" type="Area2D" parent="MineOutpost"]
 script = ExtResource("11_road_segment")
 size = Vector2(400, 64)
 position = Vector2(0, 0)
 
-[node name="WheatFieldGrid" parent="MineOutpost" instance=ExtResource("13_wheat_grid")]
-position = Vector2(-150, 0)
+[node name="QuestBoard" parent="MineOutpost" instance=ExtResource("23_quest_board")]
+position = Vector2(0, 50)
 
-[node name="CottonPatchGrid" parent="MineOutpost" instance=ExtResource("14_cotton_grid")]
-position = Vector2(150, 0)
+[node name="OutpostInternalRoad" type="Area2D" parent="WoodOutpost"]
+script = ExtResource("11_road_segment")
+size = Vector2(400, 64)
+position = Vector2(0, 0)
 
-[node name="OreMine" parent="MineOutpost" instance=ExtResource("15_ore_mine")]
-position = Vector2(0, 120)
+[node name="QuestBoard" parent="WoodOutpost" instance=ExtResource("23_quest_board")]
+position = Vector2(0, 50)
+
 
 [node name="HouseInterior" type="Node2D" parent="."]
 y_sort_enabled = true
 position = Vector2(3000, 3000)
+
+[node name="HouseInterior2" type="Node2D" parent="."]
+y_sort_enabled = true
+position = Vector2(8000, 3000)
 
 [node name="Floor" type="ColorRect" parent="HouseInterior"]
 offset_left = 100.0
@@ -318,32 +633,67 @@ offset_right = 400.0
 offset_bottom = 300.0
 color = Color(0.38, 0.24, 0.15, 1)
 
+[node name="Floor" type="ColorRect" parent="HouseInterior2"]
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 400.0
+offset_bottom = 300.0
+color = Color(0.38, 0.24, 0.15, 1)
+
 [node name="Walls" type="Node2D" parent="HouseInterior"]
+
+[node name="Walls" type="Node2D" parent="HouseInterior2"]
 
 [node name="StaticBody2D_North" type="StaticBody2D" parent="HouseInterior/Walls"]
 position = Vector2(250, 92)
 
+[node name="StaticBody2D_North" type="StaticBody2D" parent="HouseInterior2/Walls"]
+position = Vector2(5250, 92)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_North"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior2/Walls/StaticBody2D_North"]
 shape = SubResource("RectangleShape2D_wall_interior")
 
 [node name="StaticBody2D_South" type="StaticBody2D" parent="HouseInterior/Walls"]
 position = Vector2(250, 308)
 
+[node name="StaticBody2D_South" type="StaticBody2D" parent="HouseInterior2/Walls"]
+position = Vector2(5250, 308)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_South"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior2/Walls/StaticBody2D_South"]
 shape = SubResource("RectangleShape2D_wall_interior")
 
 [node name="StaticBody2D_West" type="StaticBody2D" parent="HouseInterior/Walls"]
 position = Vector2(92, 200)
 rotation = 1.5708
 
+[node name="StaticBody2D_West" type="StaticBody2D" parent="HouseInterior2/Walls"]
+position = Vector2(5092, 200)
+rotation = 1.5708
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_West"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior2/Walls/StaticBody2D_West"]
 shape = SubResource("RectangleShape2D_wall_interior")
 
 [node name="StaticBody2D_East" type="StaticBody2D" parent="HouseInterior/Walls"]
 position = Vector2(408, 200)
 rotation = 1.5708
 
+[node name="StaticBody2D_East" type="StaticBody2D" parent="HouseInterior2/Walls"]
+position = Vector2(5408, 200)
+rotation = 1.5708
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/Walls/StaticBody2D_East"]
+shape = SubResource("RectangleShape2D_wall_interior")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior2/Walls/StaticBody2D_East"]
 shape = SubResource("RectangleShape2D_wall_interior")
 
 [node name="DoorTrigger" type="Area2D" parent="HouseInterior"]
@@ -352,7 +702,16 @@ script = ExtResource("2_teleport")
 is_local_teleport = true
 target_spawn_position = Vector2(1550, 490)
 
+[node name="DoorTrigger" type="Area2D" parent="HouseInterior2"]
+position = Vector2(5250, 290)
+script = ExtResource("2_teleport")
+is_local_teleport = true
+target_spawn_position = Vector2(6550, 490)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior/DoorTrigger"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HouseInterior2/DoorTrigger"]
 shape = SubResource("RectangleShape2D_door")
 
 [node name="ColorRect" type="ColorRect" parent="HouseInterior/DoorTrigger"]
@@ -362,8 +721,81 @@ offset_right = 16.0
 offset_bottom = 8.0
 color = Color(0.2, 0.6, 0.8, 0.8)
 
-[node name="CraftingBench" parent="HouseInterior" instance=ExtResource("5_crafting_bench")]
+[node name="ColorRect" type="ColorRect" parent="HouseInterior2/DoorTrigger"]
+offset_left = -16.0
+offset_top = -8.0
+offset_right = 16.0
+offset_bottom = 8.0
+color = Color(0.2, 0.6, 0.8, 0.8)
+
+[node name="CommercialRoutesConsole" parent="HouseInterior" instance=ExtResource("13_routes_console")]
 position = Vector2(150, 140)
+
+[node name="CommercialRoutesConsole" parent="HouseInterior2" instance=ExtResource("13_routes_console")]
+position = Vector2(5150, 140)
 
 [node name="Bed" parent="HouseInterior" instance=ExtResource("8_bed")]
 position = Vector2(330, 140)
+
+[node name="Bed" parent="HouseInterior2" instance=ExtResource("8_bed")]
+position = Vector2(5330, 140)
+
+[node name="GreatForest" type="Area2D" parent="."]
+position = Vector2(200, 200)
+script = ExtResource("22_mega_node")
+node_name = "The Great Forest"
+resource_type_id = "wheat"
+base_fee = 50
+
+[node name="OakhavenForest" type="Area2D" parent="."]
+position = Vector2(5200, 200)
+script = ExtResource("22_mega_node")
+node_name = "Oakhaven Forest"
+resource_type_id = "wheat"
+base_fee = 50
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OakhavenForest"]
+shape = SubResource("CircleShape2D_meganode")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GreatForest"]
+shape = SubResource("CircleShape2D_meganode")
+
+[node name="DeepQuarry" type="Area2D" parent="."]
+position = Vector2(1800, 200)
+script = ExtResource("22_mega_node")
+node_name = "The Deep Quarry"
+resource_type_id = "iron_ore"
+base_fee = 50
+
+[node name="OakhavenQuarry" type="Area2D" parent="."]
+position = Vector2(6800, 200)
+script = ExtResource("22_mega_node")
+node_name = "Oakhaven Quarry"
+resource_type_id = "iron_ore"
+base_fee = 50
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OakhavenQuarry"]
+shape = SubResource("CircleShape2D_meganode")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepQuarry"]
+shape = SubResource("CircleShape2D_meganode")
+
+[node name="ImperialOutlands" type="Area2D" parent="."]
+position = Vector2(1000, 2200)
+script = ExtResource("22_mega_node")
+node_name = "The Imperial Outlands"
+resource_type_id = "cotton"
+base_fee = 50
+
+[node name="OakhavenOutlands" type="Area2D" parent="."]
+position = Vector2(6000, 2200)
+script = ExtResource("22_mega_node")
+node_name = "Oakhaven Outlands"
+resource_type_id = "cotton"
+base_fee = 50
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OakhavenOutlands"]
+shape = SubResource("CircleShape2D_meganode")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ImperialOutlands"]
+shape = SubResource("CircleShape2D_meganode")

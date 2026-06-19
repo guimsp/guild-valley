@@ -1,0 +1,153 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://UI/quest_board_ui.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_blue"]
+bg_color = Color(0.08, 0.12, 0.18, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.6, 0.86, 0.6)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 10
+
+[node name="QuestBoardUI" type="PanelContainer"]
+process_mode = 3
+custom_minimum_size = Vector2(640, 440)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+script = ExtResource("1_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.6, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "Quest Board - Valley Province"
+
+[node name="ContentHBox" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="LeftVBox" type="VBoxContainer" parent="VBox/ContentHBox"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TabHBox" type="HBoxContainer" parent="VBox/ContentHBox/LeftVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TabAvailable" type="Button" parent="VBox/ContentHBox/LeftVBox/TabHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Available"
+
+[node name="TabAccepted" type="Button" parent="VBox/ContentHBox/LeftVBox/TabHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Accepted"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/ContentHBox/LeftVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="QuestList" type="VBoxContainer" parent="VBox/ContentHBox/LeftVBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="VSeparator" type="VSeparator" parent="VBox/ContentHBox"]
+layout_mode = 2
+
+[node name="RightVBox" type="VBoxContainer" parent="VBox/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="DetailTitle" type="Label" parent="VBox/ContentHBox/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
+theme_override_font_sizes/font_size = 15
+text = "Deliver Iron Ore"
+
+[node name="DifficultyBadge" type="Label" parent="VBox/ContentHBox/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "[EASY]"
+
+[node name="DetailDesc" type="Label" parent="VBox/ContentHBox/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "Select a quest from the list to view its details."
+autowrap_mode = 3
+
+[node name="ObjectiveLabel" type="Label" parent="VBox/ContentHBox/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "Objective: Deliver 10 Iron Ore (0/10)"
+
+[node name="RewardLabel" type="Label" parent="VBox/ContentHBox/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
+theme_override_font_sizes/font_size = 11
+text = "Reward: 180 Gold"
+
+[node name="TimeLabel" type="Label" parent="VBox/ContentHBox/RightVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 0.7)
+theme_override_font_sizes/font_size = 11
+text = "Due Limit: 2 Days"
+
+[node name="ActionButton" type="Button" parent="VBox/ContentHBox/RightVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 12
+text = "Accept Quest"
+
+[node name="CloseButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Close"

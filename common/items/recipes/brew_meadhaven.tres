@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/barley_and_hops.tres" id="2_barley"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/honey.tres" id="3_honey"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/meadhaven.tres" id="4_mead"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Brew Meadhaven"
+required_career = "patreon"
+required_level = 6
+inputs = {
+ExtResource("2_barley"): 1,
+ExtResource("3_honey"): 1
+}
+output_item = ExtResource("4_mead")
+output_amount = 1
+xp_reward = 38

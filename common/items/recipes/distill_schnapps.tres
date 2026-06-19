@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/barley_and_hops.tres" id="2_grains"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/berries.tres" id="3_berries"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/aging_barrel.tres" id="4_barrel"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/fine_aged_schnapps.tres" id="5_schnapps"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Distill Fine Aged Schnapps"
+required_career = "patreon"
+required_level = 10
+inputs = {
+ExtResource("2_grains"): 1,
+ExtResource("3_berries"): 1,
+ExtResource("4_barrel"): 1
+}
+output_item = ExtResource("5_schnapps")
+output_amount = 1
+xp_reward = 80

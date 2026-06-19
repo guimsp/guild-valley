@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_gnvr3"]
+
+[resource]
+script = ExtResource("1_gnvr3")
+id = "patreon_mill_l1"
+name = "Flour Mill"
+family = "patreon_mill"
+career = "patreon"
+tier = 1
+level = 1
+cost = 120
+time = 5.0
+scene_path = "res://components/production/mill.tscn"
+type = "production"
+description = "Walk-in building with a mill station to grind wheat."

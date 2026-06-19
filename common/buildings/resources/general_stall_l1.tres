@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_wuc4a"]
+
+[resource]
+script = ExtResource("1_wuc4a")
+id = "general_stall_l1"
+name = "Market Stall"
+family = "general_stall"
+cost = 150
+time = 4.0
+scene_path = "res://components/market/market_stall.tscn"
+description = "A trade stall to buy and sell goods."

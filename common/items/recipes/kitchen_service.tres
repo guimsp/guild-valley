@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/savory_baked_eggs.tres" id="2_eggs"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/kitchen_service_ticket.tres" id="3_ticket"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Kitchen Service (Baked Eggs)"
+required_career = "patreon"
+required_level = 4
+inputs = {
+ExtResource("2_eggs"): 1
+}
+output_item = ExtResource("3_ticket")
+output_amount = 1
+xp_reward = 28

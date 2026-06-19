@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "gold_ring"
+name = "Gold Ring"
+base_value = 150
+weight = 0.05
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Ring"
+attack_stat = 3
+speed_bonus = 0.05

@@ -1,6 +1,8 @@
 class_name Bed
 extends StaticBody2D
 
+@export var building_data: BuildingData = null
+
 @onready var interaction_area: Area2D = $InteractionArea
 
 @export_enum("Public", "Player", "Rented", "NPC") var ownership_type: String = "Player"
@@ -13,6 +15,8 @@ extends StaticBody2D
 @export var is_rentable: bool = false
 
 func _ready() -> void:
+	if not building_data:
+		building_data = GameState.get_building_data_for_node(self)
 	add_to_group("Beds")
 	GameState.add_text_tag(self, "Bed")
 	# Connect interaction signals

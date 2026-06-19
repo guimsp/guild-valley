@@ -11,14 +11,23 @@ config_version=5
 [application]
 
 config/name="Guild Valley"
-run/main_scene="res://entities/world/world.tscn"
+run/main_scene="res://UI/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GameState="*res://common/singletons/game_state.gd"
+EconomyManager="*res://common/singletons/economy_manager.gd"
 TransitionScreen="*res://common/singletons/transition_screen.tscn"
+LogisticsManager="*res://common/singletons/logistics_manager.gd"
+QuestManager="*res://common/singletons/quest_manager.gd"
+PoliticsManager="*res://common/singletons/politics_manager.gd"
+
+
+[display]
+
+window/stretch/mode="canvas_items"
 
 [physics]
 

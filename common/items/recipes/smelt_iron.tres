@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
-[ext_resource type="Resource" path="res://common/items/instances/iron_ore.tres" id="2_iron_ore"]
-[ext_resource type="Resource" path="res://common/items/instances/iron_ingot.tres" id="3_iron_ingot"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/iron_ore.tres" id="2_iron_ore"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/iron_ingot.tres" id="3_iron_ingot"]
 
 [resource]
 script = ExtResource("1_script")

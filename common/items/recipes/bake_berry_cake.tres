@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flour.tres" id="2_flour"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/egg.tres" id="3_egg"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/berries.tres" id="4_berries"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/sweet_berry_cake.tres" id="5_cake"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Bake Sweet Berry Cake"
+required_career = "patreon"
+required_level = 3
+inputs = {
+ExtResource("2_flour"): 1,
+ExtResource("3_egg"): 1,
+ExtResource("4_berries"): 1
+}
+output_item = ExtResource("5_cake")
+output_amount = 1
+xp_reward = 28

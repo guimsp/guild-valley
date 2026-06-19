@@ -44,15 +44,15 @@ position = Vector2(40, 8)
 shape = SubResource("RectangleShape2D_sides")
 
 [node name="ColSouthWest" type="CollisionShape2D" parent="."]
-position = Vector2(-36, 40)
+position = Vector2(-36, 32)
 shape = SubResource("RectangleShape2D_south")
 
 [node name="ColSouthEast" type="CollisionShape2D" parent="."]
-position = Vector2(36, 40)
+position = Vector2(36, 32)
 shape = SubResource("RectangleShape2D_south")
 
 [node name="ColDoor" type="CollisionShape2D" parent="."]
-position = Vector2(0, 40)
+position = Vector2(0, 32)
 shape = SubResource("RectangleShape2D_door")
 
 [node name="Interior" type="Node2D" parent="."]

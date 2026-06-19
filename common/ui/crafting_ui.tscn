@@ -53,13 +53,6 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
 text = "Crafting Station"
 
-[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/TitleBar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "X"
-
 [node name="Columns" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3

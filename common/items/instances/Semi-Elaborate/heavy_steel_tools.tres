@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "heavy_steel_tools"
+name = "Heavy Steel Tools"
+base_value = 80
+weight = 1.5
+category = "Material"
+market_category = "Semi-Elaborate"
+item_type = "Raw Material"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "Heavy-duty steel tools for woodworking and carpentry."
