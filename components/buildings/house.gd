@@ -27,6 +27,15 @@ var instanced_interior: Node2D = null
 var inventory: Node = null
 
 func _ready() -> void:
+	if custom_name.contains("Guild"):
+		ownership_type = "Public"
+		is_buyable = false
+		owner_id = "Guild"
+		
+	var local_interior = get_node_or_null("Interior")
+	if local_interior:
+		local_interior.queue_free()
+		
 	if not building_data:
 		building_data = GameState.get_building_data_for_node(self)
 	add_to_group("Houses")

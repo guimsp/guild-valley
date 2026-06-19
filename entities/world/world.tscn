@@ -350,14 +350,14 @@ position = Vector2(0, 150)
 
 [node name="CraftsmanGuild" parent="ValleyCity" instance=ExtResource("16_house")]
 position = Vector2(-150, 150)
-ownership_type = "NPC"
+ownership_type = "Public"
 owner_id = "Guild"
 is_buyable = false
 custom_name = "Craftsman Guild"
 
 [node name="ScholarGuild" parent="ValleyCity" instance=ExtResource("16_house")]
 position = Vector2(150, 150)
-ownership_type = "NPC"
+ownership_type = "Public"
 owner_id = "Guild"
 is_buyable = false
 custom_name = "Scholar Guild"
@@ -379,14 +379,14 @@ position = Vector2(0, 150)
 
 [node name="TailorGuild" parent="OakhavenCity" instance=ExtResource("16_house")]
 position = Vector2(-150, 150)
-ownership_type = "NPC"
+ownership_type = "Public"
 owner_id = "Guild"
 is_buyable = false
 custom_name = "Tailor Guild"
 
 [node name="PatreonGuild" parent="OakhavenCity" instance=ExtResource("16_house")]
 position = Vector2(150, 150)
-ownership_type = "NPC"
+ownership_type = "Public"
 owner_id = "Guild"
 is_buyable = false
 custom_name = "Patreon Guild"
