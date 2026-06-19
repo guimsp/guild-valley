@@ -693,6 +693,24 @@ func _input(event: InputEvent) -> void:
 					build_tab_container.current_tab = new_tab
 					get_viewport().set_input_as_handled()
 				return
+			
+			var key = event.keycode
+			if key == KEY_W or key == KEY_S or key == KEY_A or key == KEY_D:
+				var focused = get_viewport().gui_get_focus_owner()
+				if focused and is_instance_valid(focused) and is_ancestor_of(focused):
+					var neighbor_path = NodePath()
+					match key:
+						KEY_W: neighbor_path = focused.focus_neighbor_top
+						KEY_S: neighbor_path = focused.focus_neighbor_bottom
+						KEY_A: neighbor_path = focused.focus_neighbor_left
+						KEY_D: neighbor_path = focused.focus_neighbor_right
+					
+					if neighbor_path and neighbor_path != NodePath(""):
+						var neighbor = focused.get_node_or_null(neighbor_path)
+						if neighbor and neighbor is Control:
+							neighbor.grab_focus()
+							get_viewport().set_input_as_handled()
+							return
 
 	# Handle F / interact / ui_accept confirming focused buttons/cards inside HUD
 	if event.is_pressed() and not event.is_echo():
@@ -772,10 +790,9 @@ func _is_building_buildable(building: BuildingData) -> bool:
 	if career != "":
 		player_lvl = GameState.career_levels.get(career, 1)
 	var is_level_locked = player_lvl < req_lvl
-	var is_gold_locked = GameState.gold < building.cost
 	var is_locked_placeholder = building.scene_path == ""
 	var is_title_locked = building.tier > GameState.title_level
-	return not is_level_locked and not is_gold_locked and not is_locked_placeholder and not is_title_locked
+	return not is_level_locked and not is_locked_placeholder and not is_title_locked
 
 func _update_build_menu_title() -> void:
 	if not build_panel:
@@ -1335,16 +1352,15 @@ func _ensure_card_visible(card: Control, main_scroll: ScrollContainer) -> void:
 	var scroll_rect = main_scroll.get_global_rect()
 	var padding = 12.0
 	
-	if main_scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED:
-		# Horizontal scroll follow
+	if main_scroll.horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
 		if card_rect.position.x < scroll_rect.position.x + padding:
 			var diff = (scroll_rect.position.x + padding) - card_rect.position.x
 			main_scroll.scroll_horizontal -= int(diff)
 		elif card_rect.end.x > scroll_rect.end.x - padding:
 			var diff = card_rect.end.x - (scroll_rect.end.x - padding)
 			main_scroll.scroll_horizontal += int(diff)
-	else:
-		# Vertical scroll follow
+			
+	if main_scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
 		if card_rect.position.y < scroll_rect.position.y + padding:
 			var diff = (scroll_rect.position.y + padding) - card_rect.position.y
 			main_scroll.scroll_vertical -= int(diff)
@@ -1403,9 +1419,11 @@ func _link_tab_focus_neighbors(tab_sections: Array) -> void:
 					card.focus_entered.connect(_on_card_focused.bind(card))
 
 func _on_card_focused(card: Control) -> void:
-	var main_scroll = _find_main_scroll_container(card)
-	if main_scroll:
-		_ensure_card_visible(card, main_scroll)
+	var p = card.get_parent()
+	while p:
+		if p is ScrollContainer:
+			_ensure_card_visible(card, p)
+		p = p.get_parent()
 
 func _setup_button_hover(button: Button) -> void:
 	button.pivot_offset = button.size / 2.0
