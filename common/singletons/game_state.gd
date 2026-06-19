@@ -687,7 +687,7 @@ func save_game() -> void:
 					
 	var saved_nodes = {}
 	var buildings_data = []
-	var groups = ["Beds", "MarketStall", "CraftingBenches", "WheatFieldGrids", "CottonPatchGrids", "OreMines", "Mills", "Smelters", "Looms", "WheatFields", "CottonPlants", "Houses", "Banks", "Inns", "PaperMakers", "PrintingPresses", "Bakeries", "Taverns", "Farmsteads", "Distilleries", "EventHalls"]
+	var groups = ["Beds", "MarketStall", "CraftingBenches", "WheatFieldGrids", "CottonPatchGrids", "OreMines", "Mills", "Smelters", "Looms", "WheatFields", "CottonPlants", "Houses", "Banks", "Inns", "PaperMakers", "PrintingPresses", "Bakeries", "Taverns", "Farmsteads", "Distilleries", "EventHalls", "Warehouses"]
 	
 	for group_name in groups:
 		for node in get_tree().get_nodes_in_group(group_name):
@@ -841,6 +841,9 @@ func save_game() -> void:
 			if "improvements" in node:
 				data["improvements"] = node.improvements
 				
+			if "min_retained_stock" in node:
+				data["min_retained_stock"] = node.min_retained_stock
+				
 			buildings_data.append(data)
 			
 	var doors_data = []
@@ -934,7 +937,8 @@ func save_game() -> void:
 		"relationships": relationship_db,
 		"is_married": is_married,
 		"spouse_npc_id": spouse_npc_id,
-		"completed_relation_quests": completed_relation_quests
+		"completed_relation_quests": completed_relation_quests,
+		"shortage_days": get_node("/root/EconomyManager").shortage_days if has_node("/root/EconomyManager") else {}
 	}
 	
 	var file = FileAccess.open("user://savegame.json", FileAccess.WRITE)
@@ -1001,6 +1005,10 @@ func load_game() -> void:
 	spouse_npc_id = save_dict.get("spouse_npc_id", "")
 	completed_relation_quests = save_dict.get("completed_relation_quests", [])
 	
+	var econ_mgr = get_node_or_null("/root/EconomyManager")
+	if econ_mgr:
+		econ_mgr.shortage_days = save_dict.get("shortage_days", {})
+	
 	var player = get_tree().get_first_node_in_group("Player")
 	if player:
 		var pos_arr = p_data.get("position", [500.0, 300.0])
@@ -1031,7 +1039,7 @@ func load_game() -> void:
 		if is_instance_valid(npc):
 			npc.queue_free()
 			
-	var groups_to_clear = ["Beds", "MarketStall", "CraftingBenches", "WheatFieldGrids", "CottonPatchGrids", "OreMines", "Mills", "Smelters", "Looms", "WheatFields", "CottonPlants", "ConstructionSites", "Houses", "Banks", "Inns", "PaperMakers", "PrintingPresses", "Bakeries", "Taverns", "Farmsteads", "Distilleries", "EventHalls"]
+	var groups_to_clear = ["Beds", "MarketStall", "CraftingBenches", "WheatFieldGrids", "CottonPatchGrids", "OreMines", "Mills", "Smelters", "Looms", "WheatFields", "CottonPlants", "ConstructionSites", "Houses", "Banks", "Inns", "PaperMakers", "PrintingPresses", "Bakeries", "Taverns", "Farmsteads", "Distilleries", "EventHalls", "Warehouses"]
 	for group_name in groups_to_clear:
 		for node in get_tree().get_nodes_in_group(group_name):
 			if is_instance_valid(node):
@@ -1176,6 +1184,9 @@ func load_game() -> void:
 			})
 			if node.has_method("recalculate_building_parameters"):
 				node.recalculate_building_parameters()
+				
+		if "min_retained_stock" in node and b_data.has("min_retained_stock"):
+			node.min_retained_stock = b_data["min_retained_stock"]
 							
 	var doors_list = save_dict.get("doors", [])
 	for d_data in doors_list:

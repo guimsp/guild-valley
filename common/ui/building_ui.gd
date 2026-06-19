@@ -3107,17 +3107,31 @@ func _render_warehouse_main_data() -> void:
 			val_edit.alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
 			row.add_child(val_edit)
 			
-			val_edit.text_submitted.connect(func(text: String):
-				var val = text.to_int()
-				if val < 0: val = 0
+			var sanitize_func = func(text: String):
+				var val = 0
+				if text.is_valid_int():
+					val = max(0, text.to_int())
 				val_edit.text = str(val)
 				_building.min_retained_stock[item.id] = val
-			)
+				
+			val_edit.text_submitted.connect(sanitize_func)
 			val_edit.focus_exited.connect(func():
-				var val = val_edit.text.to_int()
-				if val < 0: val = 0
-				val_edit.text = str(val)
+				sanitize_func.call(val_edit.text)
+			)
+			val_edit.text_changed.connect(func(new_text: String):
+				var cleaned = ""
+				for i in range(new_text.length()):
+					var c = new_text[i]
+					if c >= '0' and c <= '9':
+						cleaned += c
+				var val = 0
+				if cleaned.is_valid_int():
+					val = max(0, cleaned.to_int())
 				_building.min_retained_stock[item.id] = val
+				if new_text != cleaned:
+					var old_caret = val_edit.caret_column
+					val_edit.text = cleaned
+					val_edit.caret_column = min(old_caret, cleaned.length())
 			)
 			
 			threshold_vbox.add_child(row)
