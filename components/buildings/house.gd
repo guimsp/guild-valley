@@ -3,6 +3,7 @@ extends StaticBody2D
 @export var building_data: BuildingData = null
 
 @export var is_rental: bool = false
+@export var is_guild: bool = false
 @export_enum("Public", "Player", "Rented", "NPC") var ownership_type: String = "Player"
 @export var owner_id: String = "Player"
 @export var buy_cost: int = 250
@@ -27,7 +28,7 @@ var instanced_interior: Node2D = null
 var inventory: Node = null
 
 func _ready() -> void:
-	if custom_name.contains("Guild"):
+	if is_guild:
 		ownership_type = "Public"
 		is_buyable = false
 		owner_id = "Guild"
@@ -67,7 +68,7 @@ func _ready() -> void:
 	var interior_path = "res://components/buildings/interior_template.tscn"
 	if custom_name == "City Council" or custom_name == "Lawhouse":
 		interior_path = "res://components/buildings/lawhouse_interior.tscn"
-	elif custom_name.contains("Guild"):
+	elif is_guild:
 		interior_path = "res://components/buildings/guild_hall_interior.tscn"
 		
 	var interior_scene = load(interior_path)
@@ -149,7 +150,7 @@ func _on_front_body_exited(body: Node2D) -> void:
 		body.unregister_interactable(self)
 
 func get_interaction_text() -> String:
-	if custom_name.contains("Guild"):
+	if is_guild:
 		return "Enter %s" % custom_name
 	if ownership_type == "NPC":
 		return "Buy House (%d G)" % (buy_cost * 3)
@@ -161,7 +162,7 @@ func get_interaction_text() -> String:
 	return "Enter"
 
 func interact(player: CharacterBody2D) -> void:
-	if ownership_type == "NPC" and not custom_name.contains("Guild"):
+	if ownership_type == "NPC" and not is_guild:
 		player.spawn_floating_text("Press [R] to buy this house!")
 	elif ownership_type == "Player" and is_rental and is_occupied:
 		player.spawn_floating_text("This rental house is occupied!")
