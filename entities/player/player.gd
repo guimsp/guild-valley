@@ -2,7 +2,7 @@ class_name Player
 extends CharacterBody2D
 
 # Movement speed exported to the inspector
-@export var speed: float = 150.0:
+@export var speed: float = 210.0:
 	get:
 		return GameState.player_speed if GameState else speed
 	set(value):

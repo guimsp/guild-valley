@@ -1,7 +1,7 @@
 class_name AIRival
 extends CharacterBody2D
 
-@export var speed: float = 80.0
+@export var speed: float = 112.0
 @export var gold: int = 1500
 @export var family_name: String = "Fugger Family"
 @export var standing: String = "Competitor"

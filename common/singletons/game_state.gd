@@ -17,7 +17,7 @@ var player_hp: float = 100.0
 var player_max_hp: float = 100.0
 var player_stamina: float = 100.0
 var player_max_stamina: float = 100.0
-var player_speed: float = 150.0
+var player_speed: float = 210.0
 
 var player_name: String = "Player"
 var rival_ai_active: bool = true:
@@ -241,7 +241,7 @@ func gain_profession_xp(career_id: String, amount: int) -> void:
 # Recalculate career passive stats
 func recalculate_career_stats() -> void:
 	# Reset player stats to default base values
-	player_speed = 150.0
+	player_speed = 210.0
 	player_max_stamina = 100.0
 	player_max_hp = 100.0
 	
@@ -249,7 +249,7 @@ func recalculate_career_stats() -> void:
 	
 	# Patreon Level 9: +20% Player Movement Speed and +25 Max Stamina
 	if patreon_lvl >= 9:
-		player_speed = 180.0
+		player_speed = 252.0
 		player_max_stamina = 125.0
 		
 	# Patreon Level 10: +25 Max HP

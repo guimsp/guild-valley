@@ -6,7 +6,7 @@
 
 [node name="AIRival" instance=ExtResource("1_player")]
 script = ExtResource("2_ai_rival")
-speed = 80.0
+speed = 112.0
 gold = 1500
 
 [node name="AnimatedSprite2D" parent="." index="1"]
