@@ -1199,7 +1199,7 @@ func _show_employee_selection_popup() -> void:
 		
 	employee_popup = PanelContainer.new()
 	employee_popup.name = "EmployeeSelectionPopup"
-	employee_popup.custom_minimum_size = Vector2(380, 320)
+	employee_popup.custom_minimum_size = Vector2(420, 360)
 	employee_popup.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	employee_popup.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
@@ -1225,7 +1225,7 @@ func _show_employee_selection_popup() -> void:
 	vbox.add_child(title_lbl)
 	
 	var scroll = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 180)
+	scroll.custom_minimum_size = Vector2(0, 220)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(scroll)
 	
@@ -1235,6 +1235,7 @@ func _show_employee_selection_popup() -> void:
 	scroll.add_child(emp_vbox)
 	
 	var emps_list = []
+	var hireable_list = []
 	var buildings = get_tree().get_nodes_in_group("production_buildings")
 	for b in buildings:
 		if is_instance_valid(b) and b.ownership_type == "Player":
@@ -1246,35 +1247,100 @@ func _show_employee_selection_popup() -> void:
 						"workshop": b
 					})
 					
-	var emp_buttons = []
-	for emp_data in emps_list:
-		var emp = emp_data["emp"]
-		var ws = emp_data["workshop"]
-		var ws_name = ws.custom_name if (ws.get("custom_name") != "" and "custom_name" in ws) else ws.name
-		ws_name = ws_name.replace("Interior_", "")
+			var max_emp = b.get("max_employees") if "max_employees" in b else 3
+			var current_emp_count = hired.size() if hired else 0
+			if current_emp_count < max_emp:
+				if b.has_method("ensure_spouse_candidate"):
+					b.ensure_spouse_candidate()
+				if b.has_method("_populate_candidates") and (not b.get("hireable_candidates") or b.hireable_candidates.size() == 0):
+					b._populate_candidates()
+					
+				var cands = b.get("hireable_candidates")
+				if cands:
+					for cand_idx in range(cands.size()):
+						var cand = cands[cand_idx]
+						if is_instance_valid(cand):
+							hireable_list.append({
+								"candidate": cand,
+								"cand_idx": cand_idx,
+								"workshop": b
+							})
+							
+	var focus_btn: Button = null
+	
+	# Section 1: Hired Employees
+	if not emps_list.is_empty():
+		var hired_header = Label.new()
+		hired_header.text = "Hired Employees"
+		hired_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hired_header.add_theme_font_size_override("font_size", 11)
+		hired_header.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0, 1))
+		emp_vbox.add_child(hired_header)
 		
-		var state_str = "Idle"
-		if emp.get("active_commercial_route") != null:
-			state_str = "On Route"
-		elif emp.get("active_recipe_path") != "":
-			state_str = "Crafting"
-		elif str(emp.get("active_gathering_node_path", "")) != "":
-			state_str = "Gathering"
+		for emp_data in emps_list:
+			var emp = emp_data["emp"]
+			var ws = emp_data["workshop"]
+			var ws_name = ws.custom_name if (ws.get("custom_name") != "" and "custom_name" in ws) else ws.name
+			ws_name = ws_name.replace("Interior_", "")
 			
-		var emp_btn = Button.new()
-		emp_btn.text = "%s (%s) - %s" % [emp.get("name", "Worker"), ws_name, state_str]
-		emp_btn.focus_mode = Control.FOCUS_ALL
-		_setup_button_effects(emp_btn)
-		emp_vbox.add_child(emp_btn)
-		emp_buttons.append(emp_btn)
+			var state_str = "Idle"
+			if emp.get("active_commercial_route") != null:
+				state_str = "On Route"
+			elif emp.get("active_recipe_path") != "":
+				state_str = "Crafting"
+			elif str(emp.get("active_gathering_node_path", "")) != "":
+				state_str = "Gathering"
+				
+			var emp_btn = Button.new()
+			emp_btn.text = "%s (%s) - %s" % [emp.get("name", "Worker"), ws_name, state_str]
+			emp_btn.focus_mode = Control.FOCUS_ALL
+			_setup_button_effects(emp_btn)
+			emp_vbox.add_child(emp_btn)
+			
+			emp_btn.pressed.connect(_assign_route_to_employee.bind(emp_data))
+			
+			if not focus_btn:
+				focus_btn = emp_btn
+				
+	# Section 2: Hireable Candidates
+	if not hireable_list.is_empty():
+		var cand_header = Label.new()
+		cand_header.text = "Hire & Assign Candidates"
+		cand_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cand_header.add_theme_font_size_override("font_size", 11)
+		cand_header.add_theme_color_override("font_color", Color(0.9, 0.7, 0.4, 1))
 		
-		emp_btn.pressed.connect(func():
-			_assign_route_to_employee(emp_data)
-		)
+		if not emps_list.is_empty():
+			var spacing = Control.new()
+			spacing.custom_minimum_size = Vector2(0, 8)
+			emp_vbox.add_child(spacing)
+			
+		emp_vbox.add_child(cand_header)
 		
-	if emp_buttons.is_empty():
+		for cand_data in hireable_list:
+			var cand = cand_data["candidate"]
+			var ws = cand_data["workshop"]
+			var ws_name = ws.custom_name if (ws.get("custom_name") != "" and "custom_name" in ws) else ws.name
+			ws_name = ws_name.replace("Interior_", "")
+			
+			var cand_name = cand.npc_name if "npc_name" in cand else cand.name
+			var cand_salary = cand.salary if "salary" in cand else 15
+			var cand_career = cand.career if "career" in cand else "patreon"
+			
+			var cand_btn = Button.new()
+			cand_btn.text = "Hire %s (%s) - %s (Sal: %dG/d)" % [cand_name, ws_name, cand_career.capitalize(), cand_salary]
+			cand_btn.focus_mode = Control.FOCUS_ALL
+			_setup_button_effects(cand_btn)
+			emp_vbox.add_child(cand_btn)
+			
+			cand_btn.pressed.connect(_hire_and_assign_candidate.bind(cand_data))
+			
+			if not focus_btn:
+				focus_btn = cand_btn
+				
+	if emps_list.is_empty() and hireable_list.is_empty():
 		var empty_lbl = Label.new()
-		empty_lbl.text = "No hired employees available.\nHire workers in workshops first!"
+		empty_lbl.text = "No hired employees or candidates available.\nBuild workshops first!"
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.add_theme_font_size_override("font_size", 12)
 		emp_vbox.add_child(empty_lbl)
@@ -1288,6 +1354,69 @@ func _show_employee_selection_popup() -> void:
 	cancel_btn.pressed.connect(func():
 		_close_employee_popup()
 	)
+	
+	if focus_btn:
+		focus_btn.grab_focus()
+	else:
+		cancel_btn.grab_focus()
+
+func _hire_and_assign_candidate(cand_data: Dictionary) -> void:
+	var cand = cand_data["candidate"]
+	var ws = cand_data["workshop"]
+	var cand_idx = cand_data["cand_idx"]
+	
+	if not is_instance_valid(cand) or not is_instance_valid(ws):
+		GameState.spawn_ui_floating_text("Invalid workshop or candidate!")
+		_close_employee_popup()
+		_show_employee_selection_popup()
+		return
+		
+	var cands = ws.get("hireable_candidates")
+	var hired = ws.get("hired_employees")
+	var max_emp = ws.get("max_employees") if "max_employees" in ws else 3
+	
+	if not cands or cand_idx >= cands.size() or cands[cand_idx] != cand:
+		cand_idx = cands.find(cand)
+		if cand_idx == -1:
+			GameState.spawn_ui_floating_text("Candidate is no longer available!")
+			_close_employee_popup()
+			_show_employee_selection_popup()
+			return
+			
+	if hired.size() >= max_emp:
+		GameState.spawn_ui_floating_text("Workshop is already full!")
+		_close_employee_popup()
+		_show_employee_selection_popup()
+		return
+		
+	cands.remove_at(cand_idx)
+	cand.go_to_workshop(ws)
+	
+	var emp_dict = {
+		"npc_ref": cand,
+		"name": cand.npc_name if "npc_name" in cand else cand.name,
+		"salary": cand.salary if "salary" in cand else 15,
+		"career": cand.career if "career" in cand else "patreon",
+		"levels": {
+			"patreon": cand.patreon_level if "patreon_level" in cand else 1,
+			"scholar": cand.scholar_level if "scholar_level" in cand else 1,
+			"craftsman": cand.craftsman_level if "craftsman_level" in cand else 1,
+			"tailor": cand.tailor_level if "tailor_level" in cand else 1
+		},
+		"active_recipe_path": "",
+		"craft_timer": 0.0,
+		"craft_total_time": 0.0,
+		"is_repeating": true,
+		"auto_gather_on_shortage": false,
+		"is_paused": false
+	}
+	hired.append(emp_dict)
+	
+	var emp_data = {
+		"emp": emp_dict,
+		"workshop": ws
+	}
+	_assign_route_to_employee(emp_data)
 
 func _assign_route_to_employee(emp_data: Dictionary) -> void:
 	_close_employee_popup()
