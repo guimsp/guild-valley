@@ -838,6 +838,7 @@ func _tick_player_crafting(delta: float) -> void:
 	if is_player_working_here and player_crafting_recipe_path != "":
 		var recipe = load(player_crafting_recipe_path)
 		if recipe and recipe.get("is_service") == true:
+			player_craft_timer += delta # Track elapsed time for service
 			var new_slots: Array[float] = []
 			for cooldown in player_service_slots:
 				var next_cd = cooldown - delta
@@ -845,11 +846,14 @@ func _tick_player_crafting(delta: float) -> void:
 					new_slots.append(next_cd)
 			player_service_slots = new_slots
 			
-			if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_cancel"):
+			# Prevent immediate propagation cancel on the starting frame
+			if player_craft_timer > 0.1 and (Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_cancel")):
 				stop_player_crafting()
 			return
 			
-		if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_cancel"):
+		# Prevent immediate propagation cancel on the starting frame
+		var elapsed = player_craft_total_time - player_craft_timer
+		if elapsed > 0.1 and (Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_cancel")):
 			recipe = load(player_crafting_recipe_path)
 			if recipe:
 				var target_b_storage = building_storage if building_storage else inventory
