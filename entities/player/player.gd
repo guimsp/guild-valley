@@ -179,6 +179,10 @@ func get_facing_interactables() -> Array:
 						facing.append(obj)
 						
 	facing.sort_custom(func(a, b):
+		var a_is_npc = a.is_in_group("NPCs")
+		var b_is_npc = b.is_in_group("NPCs")
+		if a_is_npc != b_is_npc:
+			return b_is_npc
 		return global_position.distance_to(a.global_position) < global_position.distance_to(b.global_position)
 	)
 	return facing
