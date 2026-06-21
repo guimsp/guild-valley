@@ -71,11 +71,6 @@ func _ready() -> void:
 	_spawn_hunting_ground("Imperial Hunting Grounds", Vector2(2500, 2200))
 	_spawn_hunting_ground("Oakhaven Hunting Grounds", Vector2(7500, 2200))
 
-	# Spawn Guard Patrols programmatically
-	_spawn_guard("Guard Captain Roger", Vector2(1600, 600), false)
-	_spawn_guard("Guard Walter", Vector2(2500, 1500), true)
-	_spawn_guard("Guard Captain Peter", Vector2(5500, 600), false)
-	_spawn_guard("Guard Edmund", Vector2(7000, 1500), true)
 
 	# Spawn Fountains near public markets
 	_spawn_fountains()
@@ -376,18 +371,6 @@ func _spawn_hunting_ground(node_name: String, pos: Vector2) -> void:
 	add_child(node)
 	print("[World] Programmatically spawned hunting ground: ", node_name, " at ", pos)
 
-func _spawn_guard(guard_name: String, start_pos: Vector2, is_roaming: bool) -> void:
-	var npc_scene = load("res://entities/npc/npc.tscn")
-	if not npc_scene:
-		return
-	var guard = npc_scene.instantiate()
-	var guard_script = load("res://entities/npc/guard_patrol.gd")
-	guard.set_script(guard_script)
-	guard.npc_name = guard_name
-	guard.is_roaming_guard = is_roaming
-	guard.global_position = start_pos
-	add_child(guard)
-	print("[World] Spawned Guard: ", guard_name, " at ", start_pos, " (roaming: ", is_roaming, ")")
 
 func _spawn_wheat_field(node_name: String, pos: Vector2) -> void:
 	var mega_script = load("res://components/gathering/mega_node.gd")

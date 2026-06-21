@@ -22,6 +22,19 @@ func setup_interior(parent_b: Node2D, exit_pos: Vector2) -> void:
 	_spawn_guild_master()
 	_spawn_office_nodes()
 
+func _get_guild_profession() -> String:
+	if parent_building and "custom_name" in parent_building:
+		var cn = parent_building.custom_name.to_lower()
+		if "craftsman" in cn:
+			return "craftsman"
+		elif "scholar" in cn:
+			return "scholar"
+		elif "tailor" in cn:
+			return "tailor"
+		elif "patreon" in cn:
+			return "patreon"
+	return "General"
+
 func _spawn_office_nodes() -> void:
 	var offices = [
 		{ "name": "Grand Chairman", "office": "Grand Chairman", "pos": Vector2(-200, 40), "color": Color(1.0, 0.85, 0.5) },
@@ -30,6 +43,7 @@ func _spawn_office_nodes() -> void:
 	]
 	
 	var npc_scene = load("res://entities/npc/npc.tscn")
+	var prof = _get_guild_profession()
 	for off in offices:
 		if npc_scene:
 			var npc = npc_scene.instantiate() as CharacterBody2D
@@ -41,6 +55,7 @@ func _spawn_office_nodes() -> void:
 			npc.is_quest_npc = false
 			npc.set_meta("is_guild_office_npc", true)
 			npc.set_meta("office_name", off.office)
+			npc.set_meta("guild_profession", prof)
 			
 			var sprite = npc.get_node_or_null("AnimatedSprite2D")
 			if sprite:
@@ -57,18 +72,7 @@ func _spawn_guild_master() -> void:
 		var gm = npc_scene.instantiate() as CharacterBody2D
 		gm.name = "GuildMaster"
 		
-		var prof = "General"
-		if parent_building and "custom_name" in parent_building:
-			var cn = parent_building.custom_name.to_lower()
-			if "craftsman" in cn:
-				prof = "craftsman"
-			elif "scholar" in cn:
-				prof = "scholar"
-			elif "tailor" in cn:
-				prof = "tailor"
-			elif "patreon" in cn:
-				prof = "patreon"
-				
+		var prof = _get_guild_profession()
 		gm.npc_name = prof.capitalize() + " Guild Master" if prof != "General" else "Guild Master"
 		gm.position = Vector2(0, -100)
 		gm.npc_type = NPCAIController.NPCType.TYPE_STATIC

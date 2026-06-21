@@ -3,6 +3,7 @@ extends NPCAIController
 @export var is_roaming_guard: bool = false
 
 func _ready() -> void:
+	npc_type = NPCType.TYPE_STATIC
 	super._ready()
 	scan_timer = 2.0
 	add_to_group("Guards")

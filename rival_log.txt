@@ -7513,3 +7513,8 @@
 [Day 2 - 08:21] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
 [Day 2 - 08:31] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
 [Day 2 - 08:31] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 06:01] Fugger Family: Schedule transitioned from work to morning
+[Day 1 - 06:01] Fugger Family: Schedule shifted away from work. Restored career behavior overrides.
+[Day 1 - 06:06] Fugger Family: Bought house House_Mineville_1 for 750 gold (remaining: 750)
+[Day 1 - 06:11] Fugger Family: Initiated construction of Flour Mill on vacant lot in Mineville (Total Cost: 306, remaining gold: 444)
+[Day 1 - 06:21] Fugger Family: Initiated construction of Bakery on vacant lot in Mineville (Total Cost: 353, remaining gold: 91)

@@ -899,8 +899,18 @@ func interact(player: CharacterBody2D) -> void:
 		GameState.show_npc_dialogue(self, npc_name, lines)
 
 func _interact_guild_master(player: CharacterBody2D) -> void:
-	var eligible = []
 	var target_prof = get_meta("guild_profession") if has_meta("guild_profession") else "General"
+	
+	if target_prof != "General" and GameState.career_levels.get(target_prof, 0) == 0:
+		var lines = [
+			"Welcome to the %s Guild Hall." % target_prof.capitalize(),
+			"I am the Guild Master, but I only deal with rank advancements for %ss." % target_prof.capitalize(),
+			"You do not belong to our guild. Please speak to your own Guild Master if you seek rank advancement."
+		]
+		GameState.show_npc_dialogue(self, npc_name, lines)
+		return
+
+	var eligible = []
 	
 	# Player
 	for cr in GameState.career_levels:
@@ -990,6 +1000,18 @@ func _interact_guild_master(player: CharacterBody2D) -> void:
 		)
 
 func _interact_guild_office_npc(player: CharacterBody2D) -> void:
+	var target_prof = get_meta("guild_profession") if has_meta("guild_profession") else "General"
+	
+	if target_prof != "General" and GameState.career_levels.get(target_prof, 0) == 0:
+		var office_name = get_meta("office_name") if has_meta("office_name") else "Office"
+		var lines = [
+			"Hello there. This is the office of the %s for the %s Guild." % [office_name, target_prof.capitalize()],
+			"I am afraid we only serve registered guild members here.",
+			"Since you are not a %s, I cannot help you." % target_prof.capitalize()
+		]
+		GameState.show_npc_dialogue(self, npc_name, lines)
+		return
+
 	var office_name = get_meta("office_name") if has_meta("office_name") else "Office"
 	var prov = GameState.get_province_of_node(self) if GameState else "Valley Province"
 	

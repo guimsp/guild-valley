@@ -24,7 +24,7 @@ func populate_candidates() -> void:
 	var local_unemployed = []
 	for npc in get_tree().get_nodes_in_group("NPCs"):
 		if is_instance_valid(npc) and not npc.get("is_hired") and npc.get("province") == province_name:
-			if npc.get("is_quest_npc") or npc.get("roams_interior_only") or npc.get("quest_npc_id") != "":
+			if npc.get("is_quest_npc") or npc.get("roams_interior_only") or npc.get("quest_npc_id") != "" or npc.is_in_group("Guards"):
 				continue
 			local_unemployed.append(npc)
 	while local_unemployed.size() < 3:

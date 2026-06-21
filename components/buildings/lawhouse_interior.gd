@@ -43,6 +43,29 @@ func setup_interior(parent_b: Node2D, exit_pos: Vector2) -> void:
 		npc.position = Vector2(0, -60) # Standing at the center-north near desk
 		add_child(npc)
 		print("[LawhouseInterior] Spawned %s at %s" % [npc.npc_name, str(npc.position)])
+		
+		# Spawn Guards on either side of the room
+		var guard_script = load("res://entities/npc/guard_patrol.gd")
+		var is_oakhaven = province == "Oakhaven Province" or "Oakhaven" in parent_building.name
+		
+		var g1 = npc_scene.instantiate()
+		g1.set_script(guard_script)
+		g1.is_loaded = true
+		g1.roams_interior_only = true
+		g1.is_roaming_guard = false
+		g1.npc_name = "Guard Captain Peter" if is_oakhaven else "Guard Captain Roger"
+		g1.position = Vector2(-160, -60)
+		add_child(g1)
+		
+		var g2 = npc_scene.instantiate()
+		g2.set_script(guard_script)
+		g2.is_loaded = true
+		g2.roams_interior_only = true
+		g2.is_roaming_guard = false
+		g2.npc_name = "Guard Edmund" if is_oakhaven else "Guard Walter"
+		g2.position = Vector2(160, -60)
+		add_child(g2)
+		print("[LawhouseInterior] Spawned guards: %s and %s" % [g1.npc_name, g2.npc_name])
 
 func _setup_interior_navigation() -> void:
 	if has_node("Walls"):
