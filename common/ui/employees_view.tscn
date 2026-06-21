@@ -1,0 +1,76 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://common/ui/employees_view.gd" id="1_view"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup"]
+bg_color = Color(0.1, 0.1, 0.14, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.52, 0.85, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16
+content_margin_top = 16
+content_margin_right = 16
+content_margin_bottom = 16
+
+[node name="EmployeesView" type="Control"]
+layout_mode = 2
+script = ExtResource("1_view")
+
+[node name="Columns" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="LeftColumn" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CandidatesLabel" type="Label" parent="Columns/LeftColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Available Candidates for Hire"
+
+[node name="CandidatesScroll" type="ScrollContainer" parent="Columns/LeftColumn"]
+custom_minimum_size = Vector2(0, 360)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CandidatesGrid" type="GridContainer" parent="Columns/LeftColumn/CandidatesScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="RightColumn" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="WorkforceLabel" type="Label" parent="Columns/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Active Workforce Profiles"
+
+[node name="WorkforceScroll" type="ScrollContainer" parent="Columns/RightColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="WorkforceList" type="VBoxContainer" parent="Columns/RightColumn/WorkforceScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "bronze_scythe"
+name = "Bronze Scythe"
+base_value = 60
+weight = 2.5
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Tool"
+gathering_multiplier_bonus = 0.0
+durability = 100
+max_durability = 100
+is_tool = true

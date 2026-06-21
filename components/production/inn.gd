@@ -111,7 +111,7 @@ func _process(delta: float) -> void:
 				var mult = 1.5 if building_level >= 2 else 1.0
 				var revenue = int(k_tickets * 60 * mult)
 				sbox.strongbox_gold += revenue
-				sbox.add_transaction("Kitchen Service", k_tickets, revenue, GameState.get_time_string(), "Guests")
+				sbox.add_transaction("Kitchen Service", k_tickets, revenue, TimeManager.get_time_string(), "Guests")
 				GameState.spawn_ui_floating_text("+%d Gold (Kitchen Service)" % revenue)
 				
 			# 2. Bathhouse Service
@@ -121,7 +121,7 @@ func _process(delta: float) -> void:
 				var mult = 2.0 if building_level >= 2 else 1.0
 				var revenue = int(b_tickets * 40 * mult)
 				sbox.strongbox_gold += revenue
-				sbox.add_transaction("Bathhouse Service", b_tickets, revenue, GameState.get_time_string(), "Guests")
+				sbox.add_transaction("Bathhouse Service", b_tickets, revenue, TimeManager.get_time_string(), "Guests")
 				GameState.spawn_ui_floating_text("+%d Gold (Bathhouse Service)" % revenue)
 				
 			# 3. Fine Dining (Berry Cake)
@@ -130,7 +130,7 @@ func _process(delta: float) -> void:
 				building_storage.remove_item("hotel_dining_ticket", d_tickets)
 				var revenue = int(d_tickets * 150)
 				sbox.strongbox_gold += revenue
-				sbox.add_transaction("Fine Dining (Berry)", d_tickets, revenue, GameState.get_time_string(), "Guests")
+				sbox.add_transaction("Fine Dining (Berry)", d_tickets, revenue, TimeManager.get_time_string(), "Guests")
 				GameState.spawn_ui_floating_text("+%d Gold (Hotel Fine Dining)" % revenue)
 				
 			# 4. Fine Dining (Gilded Cake)
@@ -139,5 +139,5 @@ func _process(delta: float) -> void:
 				building_storage.remove_item("hotel_dining_ticket_gilded", dg_tickets)
 				var revenue = int(dg_tickets * 250)
 				sbox.strongbox_gold += revenue
-				sbox.add_transaction("Fine Dining (Gilded)", dg_tickets, revenue, GameState.get_time_string(), "Guests")
+				sbox.add_transaction("Fine Dining (Gilded)", dg_tickets, revenue, TimeManager.get_time_string(), "Guests")
 				GameState.spawn_ui_floating_text("+%d Gold (Hotel Fine Dining)" % revenue)

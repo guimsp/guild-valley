@@ -80,6 +80,23 @@ func _finish_building() -> void:
 				
 			get_parent().add_child(real_node)
 			
+			# Spawn entry tools in the building's storage
+			var storage = real_node.get("building_storage")
+			if storage:
+				var tool_res_path = ""
+				var b_name_lower = building_name.to_lower()
+				if "mill" in b_name_lower or "flour" in b_name_lower:
+					tool_res_path = "res://common/items/instances/Equipment/bronze_scythe.tres"
+				elif "loom" in b_name_lower:
+					tool_res_path = "res://common/items/instances/Equipment/bronze_sickle.tres"
+				elif "smelter" in b_name_lower:
+					tool_res_path = "res://common/items/instances/Equipment/bronze_pickaxe.tres"
+				
+				if tool_res_path != "":
+					var tool_res = load(tool_res_path)
+					if tool_res:
+						storage.add_item(tool_res, 1)
+			
 			# Bind newly completed building to the lot it occupies
 			for lot in get_tree().get_nodes_in_group("BuildingLots"):
 				if lot.global_position.distance_to(global_position) < 5.0:
@@ -91,9 +108,15 @@ func _finish_building() -> void:
 			if hud and hud.has_method("_spawn_floating_text"):
 				hud._spawn_floating_text("Completed!", global_position)
 				
+			if builder_ownership_type == "Player" or builder_owner_id == "Player":
+				var career_id = "craftsman"
+				if building_data and building_data.career != "":
+					career_id = building_data.career
+				GameState.add_xp(career_id, 30)
+				
 	# Re-bake all navigation regions dynamically to carve out the new building
 	if GameState.has_method("rebake_all_navigation_regions"):
-		GameState.rebake_all_navigation_regions()
+		NavigationManager.rebake_all_navigation_regions()
 	else:
 		await get_tree().physics_frame
 		var global_nav = get_tree().get_first_node_in_group("GlobalNavRegion") as NavigationRegion2D

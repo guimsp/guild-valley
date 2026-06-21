@@ -12,7 +12,8 @@ extends StaticBody2D
 @export var owner_id: String = "Player"
 
 @export var custom_name: String = ""
-@export var building_level: int = 1
+@export var is_under_audit: bool = false
+var audit_timer: float = 0.0
 
 @export var attractiveness: int = 10:
 	set(val):
@@ -40,6 +41,10 @@ var instanced_interior: Node2D = null
 var custom_prices: Dictionary = {}
 var target_stock: Dictionary = {}
 
+# Component variables
+var upgrade_component: Node = null
+var staff_component: Node = null
+
 # HR / Candidates
 @export var base_max_employees: int = 1
 var max_employees: int:
@@ -56,8 +61,32 @@ var current_level: int:
 		if building_data:
 			building_data.building_level = val
 
-var is_upgrading: bool = false
-var upgrade_timer: float = 0.0
+@export var building_level: int = 1:
+	get:
+		return upgrade_component.building_level if upgrade_component else building_level
+	set(val):
+		if upgrade_component:
+			upgrade_component.building_level = val
+		else:
+			building_level = val
+
+var is_upgrading: bool = false:
+	get:
+		return upgrade_component.is_upgrading if upgrade_component else is_upgrading
+	set(val):
+		if upgrade_component:
+			upgrade_component.is_upgrading = val
+		else:
+			is_upgrading = val
+
+var upgrade_timer: float = 0.0:
+	get:
+		return upgrade_component.upgrade_timer if upgrade_component else upgrade_timer
+	set(val):
+		if upgrade_component:
+			upgrade_component.upgrade_timer = val
+		else:
+			upgrade_timer = val
 
 var improvements: Dictionary = {
 	"storage_vault": 0,      # Max level 3
@@ -68,7 +97,14 @@ var improvements: Dictionary = {
 	"ornate_facade": 0,      # Max level 3
 	"strongbox_vault": 0,    # Max level 3
 	"auto_gathering": 0      # Max level 1
-}
+}:
+	get:
+		return upgrade_component.improvements if upgrade_component else improvements
+	set(val):
+		if upgrade_component:
+			upgrade_component.improvements = val
+		else:
+			improvements = val
 
 # Level upgrade requirements database
 # Key: Next Level -> { "gold_cost": int, "time": float, "profession_level": int }
@@ -91,14 +127,30 @@ const IMPROVEMENT_DEFINITIONS: Dictionary = {
 
 var rogue_sabotage_penalty: float = 0.0
 
-var hired_employees: Array = []
-var hireable_candidates: Array = []
+var hired_employees: Array = []:
+	get:
+		return staff_component.hired_employees if staff_component else hired_employees
+	set(val):
+		if staff_component:
+			staff_component.hired_employees = val
+		else:
+			hired_employees = val
+
+var hireable_candidates: Array = []:
+	get:
+		return staff_component.hireable_candidates if staff_component else hireable_candidates
+	set(val):
+		if staff_component:
+			staff_component.hireable_candidates = val
+		else:
+			hireable_candidates = val
 
 # Player manual crafting variables
 var is_player_working_here: bool = false
 var player_crafting_recipe_path: String = ""
 var player_craft_timer: float = 0.0
 var player_craft_total_time: float = 0.0
+var player_service_slots: Array[float] = []
 
 
 # Core production stats (abandoned get/set metadata)
@@ -158,10 +210,12 @@ func interact(player: CharacterBody2D) -> void:
 				hud.open_market(self)
 
 func _populate_npc_stall_stock() -> void:
-	if ownership_type != "NPC":
+	if ownership_type != "NPC" or owner_id == "Rival":
 		return
 		
 	var bench = get_node_or_null("CraftingBench")
+	if not bench and is_instance_valid(instanced_interior):
+		bench = instanced_interior.get_node_or_null("CraftingBench")
 	if bench and "recipes" in bench:
 		for recipe in bench.recipes:
 			if recipe and recipe.output_item and inventory:
@@ -209,64 +263,14 @@ func _on_law_changed(prov: String, law_id: String, is_active: bool) -> void:
 			var node = get_node_or_null(node_path)
 			if is_instance_valid(node):
 				if law_id == "crown_forestry_protection" and node.resource_type_id == "standard_timber":
-					_cancel_employee_gathering(emp, "Forestry Protection Act")
+					if staff_component: staff_component.cancel_employee_gathering(emp, "Forestry Protection Act")
 				elif law_id == "noble_game_preservation" and node.resource_type_id == "venison":
-					_cancel_employee_gathering(emp, "Game Preservation Act")
+					if staff_component: staff_component.cancel_employee_gathering(emp, "Game Preservation Act")
 					
 	if law_id == "metallurgical_monopoly" and is_in_group("Smelters"):
 		var sett = GameState.get_nearest_settlement(self)
 		if sett and not sett.is_in_group("Cities"):
-			_cancel_all_smelting_recipes("Metallurgical Monopoly")
-
-func _cancel_employee_gathering(emp: Dictionary, law_reason: String) -> void:
-	emp["active_gathering_node_path"] = ""
-	emp["shift_status"] = "idle"
-	emp["is_paused"] = true
-	var worker = emp.get("shift_worker_ref")
-	if is_instance_valid(worker):
-		if worker.get("is_gathering"):
-			worker.set("is_gathering", false)
-			if is_instance_valid(worker.get("target_mega_node")):
-				worker.target_mega_node._on_body_exited(worker)
-		worker.set("worker_state", "idle_at_workshop")
-		var target_pos = get_interaction_position()
-		if worker.has_method("_generate_path"):
-			worker.call("_generate_path", target_pos)
-		emp["shift_worker_ref"] = null
-		
-	var npc = emp.get("npc_ref")
-	if is_instance_valid(npc):
-		npc.set("worker_state", "idle_at_workshop")
-		var target_pos = get_interaction_position()
-		if npc.has_method("_generate_path"):
-			npc.call("_generate_path", target_pos)
-			
-	var hud = get_tree().get_first_node_in_group("PlayerHUD")
-	if not hud:
-		hud = get_tree().get_first_node_in_group("game_hud")
-	if hud and hud.has_method("_spawn_floating_text"):
-		hud._spawn_floating_text("%s: On Strike! (%s)" % [emp.get("name", "Worker"), law_reason], global_position)
-
-func _cancel_all_smelting_recipes(law_reason: String) -> void:
-	for emp in hired_employees:
-		var recipe_path = emp.get("active_recipe_path", "")
-		if recipe_path != "":
-			emp["active_recipe_path"] = ""
-			emp["craft_timer"] = 0.0
-			emp["craft_total_time"] = 0.0
-			emp["is_paused"] = true
-			var worker = emp.get("npc_ref")
-			if is_instance_valid(worker):
-				worker.set("worker_state", "idle_at_workshop")
-				var target_pos = get_interaction_position()
-				if worker.has_method("_generate_path"):
-					worker.call("_generate_path", target_pos)
-					
-			var hud = get_tree().get_first_node_in_group("PlayerHUD")
-			if not hud:
-				hud = get_tree().get_first_node_in_group("game_hud")
-			if hud and hud.has_method("_spawn_floating_text"):
-				hud._spawn_floating_text("%s: Smelting Banned! (%s)" % [emp.get("name", "Worker"), law_reason], global_position)
+			if staff_component: staff_component.cancel_all_smelting_recipes("Metallurgical Monopoly")
 
 func get_single_buy_price(item: ItemData, temp_stock: int) -> int:
 	var base_val: int = item.base_value
@@ -309,6 +313,20 @@ func get_sell_price(item: ItemData) -> int:
 		target = 10
 		
 	var multiplier: float = 1.0 + (float(target - current_stock) / target) * sensitivity
+	multiplier = clamp(multiplier, 0.2, 3.0)
+	
+	return int(base_val * multiplier * 0.9)
+
+func get_single_sell_price(item: ItemData, temp_stock: int) -> int:
+	if custom_prices.has(item.id):
+		return int(custom_prices[item.id] * 0.8)
+		
+	var base_val: int = item.base_value
+	var target: int = target_stock.get(item, 10)
+	if target <= 0:
+		target = 10
+		
+	var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
 	multiplier = clamp(multiplier, 0.2, 3.0)
 	
 	return int(base_val * multiplier * 0.9)
@@ -383,10 +401,7 @@ func sell_item(item: ItemData, amount: int) -> bool:
 	var total_revenue: int = 0
 	var temp_stock: int = current_stock
 	for i in range(amount):
-		var target: int = target_stock.get(item, 10)
-		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
-		multiplier = clamp(multiplier, 0.2, 3.0)
-		total_revenue += int(item.base_value * multiplier * 0.9)
+		total_revenue += get_single_sell_price(item, temp_stock)
 		temp_stock += 1
 		
 	var remainder: int = inventory.add_item(item, amount)
@@ -398,10 +413,7 @@ func sell_item(item: ItemData, amount: int) -> bool:
 		total_revenue = 0
 		temp_stock = current_stock
 		for i in range(accepted):
-			var target: int = target_stock.get(item, 10)
-			var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
-			multiplier = clamp(multiplier, 0.2, 3.0)
-			total_revenue += int(item.base_value * multiplier * 0.9)
+			total_revenue += get_single_sell_price(item, temp_stock)
 			temp_stock += 1
 			
 		if ownership_type == "NPC" and owner_id == "Rival":
@@ -499,6 +511,36 @@ func _update_door_state() -> void:
 			instanced_interior.exit_door._update_door_state()
 
 func _ready_base() -> void:
+	var init_lvl = building_level
+	var init_employees = hired_employees
+	var init_candidates = hireable_candidates
+	var init_improvements = improvements
+	var init_upgrading = is_upgrading
+	var init_timer = upgrade_timer
+
+	# Instantiate components
+	var upgrade_comp_script = load("res://components/production/BuildingUpgradeComponent.gd")
+	if upgrade_comp_script:
+		upgrade_component = upgrade_comp_script.new()
+		upgrade_component.name = "BuildingUpgradeComponent"
+		add_child(upgrade_component)
+		upgrade_component.setup(self)
+
+	var staff_comp_script = load("res://components/production/BuildingStaffComponent.gd")
+	if staff_comp_script:
+		staff_component = staff_comp_script.new()
+		staff_component.name = "BuildingStaffComponent"
+		add_child(staff_component)
+		staff_component.setup(self)
+
+	# Push initial values to components
+	building_level = init_lvl
+	hired_employees = init_employees
+	hireable_candidates = init_candidates
+	improvements = init_improvements
+	is_upgrading = init_upgrading
+	upgrade_timer = init_timer
+
 	GameState.ensure_strongbox(self)
 	if not building_data:
 		building_data = GameState.get_building_data_for_node(self)
@@ -537,7 +579,8 @@ func _ready_base() -> void:
 		instanced_interior = interior_scene.instantiate() as Node2D
 		instanced_interior.name = "Interior_" + name + "_" + str(int(global_position.x))
 		instanced_interior.global_position = interior_position
-		get_tree().current_scene.call_deferred("add_child", instanced_interior)
+		var parent_scene = get_tree().current_scene if get_tree().current_scene else get_tree().root
+		parent_scene.call_deferred("add_child", instanced_interior)
 		
 		var exit_spawn_pos = global_position + Vector2(0, 64)
 		instanced_interior.call_deferred("setup_interior", self, exit_spawn_pos)
@@ -569,40 +612,43 @@ func _on_front_body_exited(body: Node2D) -> void:
 		body.unregister_interactable(self)
 
 func get_employee_craft_time(emp: Dictionary, recipe: Resource) -> float:
-	var craft_time = float(recipe.required_level * 5.0)
-	var worker = emp.get("npc_ref")
-	var prod = worker.get("productivity") if is_instance_valid(worker) else 1.0
-	if prod > 0.0:
-		craft_time /= prod
-		
-	# Trait Level 8: Artisan's Efficiency
-	var level = 1
-	if is_instance_valid(worker):
-		if "skills_data" in worker and worker.skills_data.has(recipe.required_career):
-			level = worker.skills_data[recipe.required_career].get("level", 1)
-		elif recipe.required_career + "_level" in worker:
-			level = worker.get(recipe.required_career + "_level")
-	else:
-		level = emp.get("levels", {}).get(recipe.required_career, 1)
-		
-	if level >= 8 and recipe.output_item.get("is_luxury_product") == true:
-		craft_time *= 0.85
-		
-	# Apply local law and delinquency modifiers
-	var pm = get_node_or_null("/root/PoliticsManager")
-	var prov = GameState.get_province_of_node(self) if GameState else ""
-	if pm and prov != "":
-		var faction = "Player" if ownership_type == "Player" else ("Rival" if ownership_type == "NPC" and owner_id == "Rival" else "")
-		if faction != "" and pm.is_faction_delinquent(faction, prov):
-			craft_time *= 1.25
-		if pm.is_law_active("labor_welfare_mandate", prov):
-			craft_time *= 1.176
-			
-	return craft_time
+	if staff_component:
+		return staff_component.get_employee_craft_time(emp, recipe)
+	return recipe.get_base_craft_time()
 
 func start_player_crafting(recipe_path: String) -> void:
+	if is_under_audit:
+		if GameState:
+			GameState.spawn_ui_floating_text("Cannot craft: Building is under audit!")
+		return
+		
 	var recipe = load(recipe_path)
 	if not recipe:
+		return
+		
+	if recipe.get("is_service") == true:
+		var player = get_tree().get_first_node_in_group("Player")
+		if player:
+			var bench_pos = global_position # Fallback
+			if is_instance_valid(instanced_interior) and is_instance_valid(instanced_interior.crafting_bench):
+				bench_pos = instanced_interior.crafting_bench.global_position
+			TransitionScreen.transition_teleport(bench_pos)
+			player.freeze()
+			if player.has_method("spawn_floating_text"):
+				player.spawn_floating_text("Offering Service")
+				
+		is_player_working_here = true
+		player_crafting_recipe_path = recipe_path
+		player_craft_timer = 0.0
+		player_craft_total_time = 0.0
+		player_service_slots.clear()
+		
+		# Close the UI!
+		var hud = get_tree().get_first_node_in_group("PlayerHUD")
+		if not hud:
+			hud = get_tree().get_first_node_in_group("game_hud")
+		if hud and hud.has_method("close_building_ui"):
+			hud.close_building_ui()
 		return
 		
 	# Check Metallurgical Monopoly (smelting outside city walls)
@@ -668,7 +714,7 @@ func start_player_crafting(recipe_path: String) -> void:
 			
 	# Calculate craft time based on player productivity level
 	var level = GameState.career_levels.get(recipe.required_career, 1) if GameState else 1
-	var craft_time = float(recipe.required_level * 5.0)
+	var craft_time = recipe.get_base_craft_time()
 	var prod = player.get("productivity") if player else 1.0
 	if prod > 0.0:
 		craft_time /= prod
@@ -763,70 +809,48 @@ func get_nearest_mega_node_for_resource(resource_id: String) -> Area2D:
 	return nearest_node
 
 func initiate_level_upgrade() -> void:
-	var next_lvl = building_level + 1
-	if not UPGRADE_REQUIREMENTS.has(next_lvl):
-		GameState.spawn_ui_floating_text("Building is already at maximum level!")
-		return
-	var req = UPGRADE_REQUIREMENTS[next_lvl]
-	var career_id = "craftsman"
-	if building_data and building_data.career != "":
-		career_id = building_data.career
-	var player_career_level = GameState.career_levels.get(career_id, 1)
-	if player_career_level < req.profession_level:
-		GameState.spawn_ui_floating_text("Requires %s Level %d!" % [career_id.capitalize(), req.profession_level])
-		return
-	if GameState.gold < req.gold_cost:
-		GameState.spawn_ui_floating_text("Requires %d Gold!" % req.gold_cost)
-		return
-	GameState.gold -= req.gold_cost
-	is_upgrading = true
-	upgrade_timer = req.time
-	reset_all_workers()
-	GameState.spawn_ui_floating_text("Renovation started: %d seconds!" % int(req.time))
+	if upgrade_component:
+		upgrade_component.initiate_level_upgrade()
 
 func purchase_improvement(improvement_id: String) -> void:
-	if not IMPROVEMENT_DEFINITIONS.has(improvement_id):
-		return
-	var def = IMPROVEMENT_DEFINITIONS[improvement_id]
-	var current_lvl = improvements.get(improvement_id, 0)
-	if current_lvl >= def.max_level:
-		GameState.spawn_ui_floating_text("Improvement already at maximum level!")
-		return
-	var cost = def.cost
-	if GameState.gold < cost:
-		GameState.spawn_ui_floating_text("Not enough gold!")
-		return
-	GameState.gold -= cost
-	improvements[improvement_id] = current_lvl + 1
-	recalculate_building_parameters()
-	GameState.spawn_ui_floating_text("%s Purchased!" % def.name)
+	if upgrade_component:
+		upgrade_component.purchase_improvement(improvement_id)
 
 func _tick_employees(delta: float) -> void:
-	if ownership_type != "Player" and ownership_type != "NPC":
+	if is_under_audit:
+		if is_player_working_here:
+			stop_player_crafting()
 		return
 		
-	if is_upgrading:
-		upgrade_timer -= delta
-		if upgrade_timer <= 0.0:
-			is_upgrading = false
-			building_level += 1
-			recalculate_building_parameters()
-			var hud = get_tree().get_first_node_in_group("PlayerHUD")
-			if not hud:
-				hud = get_tree().get_first_node_in_group("game_hud")
-			if hud:
-				hud._spawn_floating_text("%s upgraded to Level %d!" % [name.replace("Interior_", ""), building_level], global_position)
-			GameState.spawn_ui_floating_text("%s upgraded to Level %d!" % [name.replace("Interior_", ""), building_level])
-			for ui in get_tree().get_nodes_in_group("BuildingUIs"):
-				if ui.visible and ui.get("_building") == self:
-					ui.call_deferred("refresh")
+	if ownership_type != "Player" and ownership_type != "NPC" and ownership_type != "Rented":
 		return
 		
+	if upgrade_component:
+		upgrade_component.tick_upgrade(delta)
+		
+	_tick_player_crafting(delta)
+	
+	if staff_component:
+		staff_component.tick_employees(delta)
+
+func _tick_player_crafting(delta: float) -> void:
 	# Process player manual crafting if active
 	if is_player_working_here and player_crafting_recipe_path != "":
-		# Cancel inputs
+		var recipe = load(player_crafting_recipe_path)
+		if recipe and recipe.get("is_service") == true:
+			var new_slots: Array[float] = []
+			for cooldown in player_service_slots:
+				var next_cd = cooldown - delta
+				if next_cd > 0.0:
+					new_slots.append(next_cd)
+			player_service_slots = new_slots
+			
+			if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_cancel"):
+				stop_player_crafting()
+			return
+			
 		if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_cancel"):
-			var recipe = load(player_crafting_recipe_path)
+			recipe = load(player_crafting_recipe_path)
 			if recipe:
 				var target_b_storage = building_storage if building_storage else inventory
 				if target_b_storage:
@@ -837,16 +861,12 @@ func _tick_employees(delta: float) -> void:
 			
 		player_craft_timer -= delta
 		if player_craft_timer <= 0.0:
-			var recipe = load(player_crafting_recipe_path)
+			recipe = load(player_crafting_recipe_path)
 			if recipe:
 				var out_item = recipe.output_item
 				var out_qty = recipe.output_amount
 				var target_b_storage = building_storage if building_storage else inventory
-				
-				# Get player career level
 				var level = GameState.career_levels.get(recipe.required_career, 1)
-				
-				# Level 5/8 Trait: Bountiful Harvest
 				var double_harvest_triggered = false
 				if level >= 8:
 					if randf() <= 0.35:
@@ -857,9 +877,7 @@ func _tick_employees(delta: float) -> void:
 						out_qty *= 2
 						double_harvest_triggered = true
 						
-				var artisan_efficiency_triggered = false
-				if level >= 8 and out_item.get("is_luxury_product") == true:
-					artisan_efficiency_triggered = true
+				var artisan_efficiency_triggered = level >= 8 and out_item.get("is_luxury_product") == true
 					
 				if target_b_storage and target_b_storage.get_free_space_for_item(out_item) >= out_qty:
 					target_b_storage.add_item(out_item, out_qty)
@@ -876,14 +894,52 @@ func _tick_employees(delta: float) -> void:
 					lifetime_production[out_item.id] = lifetime_production.get(out_item.id, 0) + out_qty
 					daily_production[out_item.id] = daily_production.get(out_item.id, 0) + out_qty
 					
-					# Player earns career XP
-					GameState.add_xp(recipe.required_career, int(recipe.xp_reward * 0.5))
+					var b_prov = GameState.get_province_of_node(self) if GameState else ""
+					var gc = get_node_or_null("/root/GuildController")
+					if gc and b_prov != "":
+						var holder = gc.call("get_office_holder", b_prov, "Materials Steward")
+						if holder != "" and holder == "Player" and randf() < 0.10:
+							for item in recipe.inputs:
+								if item.get_item_category() == 0 or item.get_item_category() == 1:
+									target_b_storage.add_item(item, recipe.inputs[item])
+							if GameState:
+								GameState.spawn_ui_floating_text("Materials Refunded! (Materials Steward)")
+									
+					if recipe.get("is_breakthrough_only") == true:
+						var fee = recipe.get_meta("gold_fee")
+						if fee == null: fee = 100
+						GameState.gold = max(0, GameState.gold - fee)
+						var is_p = recipe.get_meta("is_player")
+						var char_n = recipe.get_meta("character_name")
+						var car = recipe.get_meta("career")
+						var locked_lvl = recipe.get_meta("level") or 3
+						
+						if is_p:
+							GameState.career_levels[car] = locked_lvl + 1
+							GameState._on_career_leveled_up(car, locked_lvl + 1)
+						else:
+							for building in get_tree().get_nodes_in_group("production_buildings"):
+								if building.ownership_type == "Player":
+									for emp in building.hired_employees:
+										var npc = emp.get("npc_ref")
+										if is_instance_valid(npc) and npc.npc_name == char_n:
+											npc.skills_data[car]["level"] = locked_lvl + 1
+											break
+											
+						GameState.active_trial_recipes.erase(player_crafting_recipe_path)
+						var dir = DirAccess.open(player_crafting_recipe_path.get_base_dir())
+						if dir:
+							dir.remove(player_crafting_recipe_path.get_file())
+							
+						GameState.spawn_ui_floating_text("Breakthrough Successful! Level up to %d!" % (locked_lvl + 1))
+						stop_player_crafting()
+						return
+						
+					GameState.add_xp(recipe.required_career, recipe.xp_reward)
 					
-					# Start next continuous craft
 					var inputs_ok = true
 					for item in recipe.inputs:
-						var qty = recipe.inputs[item]
-						if target_b_storage.get_item_amount(item.id) < qty:
+						if target_b_storage.get_item_amount(item.id) < recipe.inputs[item]:
 							inputs_ok = false
 							break
 							
@@ -891,20 +947,16 @@ func _tick_employees(delta: float) -> void:
 					
 					if inputs_ok and next_has_space:
 						for item in recipe.inputs:
-							var qty = recipe.inputs[item]
-							target_b_storage.remove_item(item.id, qty)
-						# Recalculate craft time based on level
+							target_b_storage.remove_item(item.id, recipe.inputs[item])
 						var player = get_tree().get_first_node_in_group("Player")
-						var craft_time = float(recipe.required_level * 5.0)
+						var craft_time = recipe.get_base_craft_time()
 						var prod = player.get("productivity") if player else 1.0
 						if prod > 0.0:
 							craft_time /= prod
 						if level >= 8 and recipe.output_item.get("is_luxury_product") == true:
 							craft_time *= 0.85
 							
-						# Apply local law and delinquency modifiers to player
 						var pm = get_node_or_null("/root/PoliticsManager")
-						var b_prov = GameState.get_province_of_node(self) if GameState else ""
 						if pm and b_prov != "":
 							if pm.is_faction_delinquent("Player", b_prov):
 								craft_time *= 1.25
@@ -922,456 +974,19 @@ func _tick_employees(delta: float) -> void:
 				else:
 					stop_player_crafting()
 					GameState.spawn_ui_floating_text("Crafting halted: Storage full!")
-		
-	# Clean up and replenish candidates
-	var valid_candidates = []
-	for cand in hireable_candidates:
-		if is_instance_valid(cand) and not cand.get("is_hired"):
-			valid_candidates.append(cand)
-	hireable_candidates = valid_candidates
-	
-	if hireable_candidates.size() < 3:
-		_populate_candidates()
-		
-	for emp in hired_employees:
-		# 1. Process active recipe (crafting)
-		var recipe_path = emp.get("active_recipe_path", "")
-		if recipe_path != "":
-			var worker = emp.get("npc_ref")
-			if emp.get("is_paused", false):
-				if str(emp.get("active_gathering_node_path", "")) == "":
-					var recipe = load(recipe_path)
-					var inputs_ok = true
-					if recipe and building_storage:
-						for item in recipe.inputs:
-							var qty = recipe.inputs[item]
-							if building_storage.get_item_amount(item.id) < qty:
-								inputs_ok = false
-								break
-					
-					if inputs_ok:
-						if recipe and building_storage:
-							for item in recipe.inputs:
-								var qty = recipe.inputs[item]
-								building_storage.remove_item(item.id, qty)
-						emp["is_paused"] = false
-						var craft_time = get_employee_craft_time(emp, recipe)
-						emp["craft_timer"] = craft_time
-						emp["craft_total_time"] = craft_time
-						if is_instance_valid(worker):
-							worker.set("worker_state", "traveling_to_workbench")
-							if is_instance_valid(instanced_interior) and is_instance_valid(instanced_interior.crafting_bench):
-								var target_pos = instanced_interior.crafting_bench.global_position
-								worker.call("_generate_path", target_pos)
-					else:
-						var missing_raw_material = null
-						if recipe and (improvements.get("auto_gathering", 0) > 0):
-							for item in recipe.inputs:
-								var qty = recipe.inputs[item]
-								if building_storage.get_item_amount(item.id) < qty:
-									if item.is_raw_material:
-										missing_raw_material = item
-										break
-						
-						if missing_raw_material:
-							var is_illegal = false
-							var pm_g = get_node_or_null("/root/PoliticsManager")
-							var b_prov = GameState.get_province_of_node(self) if GameState else ""
-							if pm_g and b_prov != "":
-								if pm_g.is_law_active("crown_forestry_protection", b_prov) and missing_raw_material.id == "standard_timber":
-									is_illegal = true
-								elif pm_g.is_law_active("noble_game_preservation", b_prov) and missing_raw_material.id == "venison":
-									is_illegal = true
-									
-							if is_illegal:
-								emp["active_recipe_path"] = recipe_path
-								emp["craft_timer"] = 0.0
-								emp["craft_total_time"] = 0.0
-								emp["is_paused"] = true
-								if is_instance_valid(worker):
-									worker.set("worker_state", "traveling_to_workbench")
-								continue
-
-							var nearest = get_nearest_mega_node_for_resource(missing_raw_material.id)
-							if nearest:
-								emp["is_paused"] = true
-								emp["craft_timer"] = 0.0
-								emp["craft_total_time"] = 0.0
-								if is_instance_valid(worker):
-									worker.start_gathering_shift(nearest)
-									emp["active_gathering_node_path"] = nearest.get_path()
-						else:
-							emp["active_recipe_path"] = recipe_path
-							emp["craft_timer"] = 0.0
-							emp["craft_total_time"] = 0.0
-							emp["is_paused"] = true
-							if is_instance_valid(worker):
-								worker.set("worker_state", "traveling_to_workbench")
-								var target_pos = get_interaction_position()
-								if worker.global_position.y >= 9000.0:
-									if is_instance_valid(instanced_interior) and is_instance_valid(instanced_interior.crafting_bench):
-										target_pos = instanced_interior.crafting_bench.global_position
-								worker.call("_generate_path", target_pos)
-							
-							# Send alert if not already sent
-							if not emp.get("shortage_alert_sent", false):
-								emp["shortage_alert_sent"] = true
-								if GameState.has_method("add_alert"):
-									var b_name = name.replace("Interior_", "")
-									var msg = "%s cannot produce %s at %s: Insufficient inputs in storage." % [emp.get("name", "Employee"), recipe.recipe_name, b_name]
-									GameState.add_alert("Production Blocked", msg, "warning", self)
-				continue
-				
-			var worker_at_bench = false
-			if is_instance_valid(worker):
-				var w_state = worker.get("worker_state")
-				if w_state == "producing_goods":
-					worker_at_bench = true
-				elif w_state != "traveling_to_workbench" and w_state != "traveling_to_node" and w_state != "gathering_at_node" and w_state != "returning_to_workshop":
-					worker.set("worker_state", "traveling_to_workbench")
-					if is_instance_valid(instanced_interior) and is_instance_valid(instanced_interior.crafting_bench):
-						var target_pos = instanced_interior.crafting_bench.global_position
-						worker.call("_generate_path", target_pos)
-						
-			if worker_at_bench:
-				var timer = emp.get("craft_timer", 0.0)
-				if timer > 0.0:
-					timer -= delta
-					emp["craft_timer"] = max(0.0, timer)
-					
-				if emp["craft_timer"] <= 0.0:
-					var recipe = load(recipe_path)
-					if recipe and building_storage:
-						var out_item = recipe.output_item
-						var out_qty = recipe.output_amount
-						
-						# Determine worker's level for traits
-						var level = 1
-						if is_instance_valid(worker):
-							if "skills_data" in worker and worker.skills_data.has(recipe.required_career):
-								level = worker.skills_data[recipe.required_career].get("level", 1)
-							elif recipe.required_career + "_level" in worker:
-								level = worker.get(recipe.required_career + "_level")
-						else:
-							level = emp.get("levels", {}).get(recipe.required_career, 1)
-							
-						# Level 5/8 Trait: Bountiful Harvest (output doubling)
-						var double_harvest_triggered = false
-						if level >= 8:
-							if randf() <= 0.35:
-								out_qty *= 2
-								double_harvest_triggered = true
-						elif level >= 5:
-							if randf() <= 0.20:
-								out_qty *= 2
-								double_harvest_triggered = true
-								
-						# Level 8 Trait: Artisan's Efficiency feedback
-						var artisan_efficiency_triggered = false
-						if level >= 8 and out_item.get("is_luxury_product") == true:
-							artisan_efficiency_triggered = true
-						
-						if building_storage.get_free_space_for_item(out_item) >= out_qty:
-							building_storage.add_item(out_item, out_qty)
-							
-							# Floating Text feedback
-							var hud = get_tree().get_first_node_in_group("PlayerHUD")
-							if hud and hud.has_method("_spawn_floating_text"):
-								if double_harvest_triggered:
-									hud._spawn_floating_text("Double Harvest!", global_position)
-								if artisan_efficiency_triggered:
-									hud._spawn_floating_text("Masterwork Efficiency!", global_position)
-							
-							# Log daily/lifetime stats
-							lifetime_production[out_item.id] = lifetime_production.get(out_item.id, 0) + out_qty
-							daily_production[out_item.id] = daily_production.get(out_item.id, 0) + out_qty
-							
-							if ownership_type == "Player":
-								GameState.add_xp(recipe.required_career, int(recipe.xp_reward * 0.5))
-							elif ownership_type == "NPC":
-								var rivals = get_tree().get_nodes_in_group("Rivals")
-								if rivals.size() > 0:
-									var rival = rivals[0]
-									if rival.has_method("add_xp"):
-										rival.add_xp(int(recipe.xp_reward * 0.5))
-										
-							# Hired employee gains profession XP
-							if is_instance_valid(worker) and worker.has_method("gain_profession_xp"):
-								worker.gain_profession_xp(recipe.required_career, int(recipe.xp_reward * 0.5))
-							
-							var should_repeat = false
-							if emp.get("is_repeating", true):
-								should_repeat = true
-							else:
-								var limit = emp.get("production_amount_limit", 0)
-								if limit > 1:
-									emp["production_amount_limit"] = limit - 1
-									should_repeat = true
-								else:
-									emp["production_amount_limit"] = 0
-									
-							if should_repeat:
-								var inputs_ok = true
-								for item in recipe.inputs:
-									var qty = recipe.inputs[item]
-									if building_storage.get_item_amount(item.id) < qty:
-										inputs_ok = false
-										break
-								
-								var next_has_space = building_storage.get_free_space_for_item(out_item) >= out_qty
-								
-								if inputs_ok and next_has_space:
-									for item in recipe.inputs:
-										var qty = recipe.inputs[item]
-										building_storage.remove_item(item.id, qty)
-									var craft_time = get_employee_craft_time(emp, recipe)
-									emp["craft_timer"] = craft_time
-									emp["craft_total_time"] = craft_time
-								else:
-									if not inputs_ok and (improvements.get("auto_gathering", 0) > 0):
-										var missing_raw_material = null
-										for item in recipe.inputs:
-											var qty = recipe.inputs[item]
-											if building_storage.get_item_amount(item.id) < qty:
-												if item.is_raw_material:
-													missing_raw_material = item
-													break
-										
-										if missing_raw_material:
-											var is_illegal = false
-											var pm_rep = get_node_or_null("/root/PoliticsManager")
-											var b_prov = GameState.get_province_of_node(self) if GameState else ""
-											if pm_rep and b_prov != "":
-												if pm_rep.is_law_active("crown_forestry_protection", b_prov) and missing_raw_material.id == "standard_timber":
-													is_illegal = true
-												elif pm_rep.is_law_active("noble_game_preservation", b_prov) and missing_raw_material.id == "venison":
-													is_illegal = true
-													
-											if is_illegal:
-												emp["active_recipe_path"] = recipe_path
-												emp["craft_timer"] = 0.0
-												emp["craft_total_time"] = 0.0
-												emp["is_paused"] = true
-												if is_instance_valid(worker):
-													worker.set("worker_state", "producing_goods")
-												continue
-
-											var nearest = get_nearest_mega_node_for_resource(missing_raw_material.id)
-											if nearest:
-												emp["is_paused"] = true
-												emp["craft_timer"] = 0.0
-												emp["craft_total_time"] = 0.0
-												if is_instance_valid(worker):
-													worker.start_gathering_shift(nearest)
-													emp["active_gathering_node_path"] = nearest.get_path()
-												continue
-												
-									if not inputs_ok:
-										emp["active_recipe_path"] = recipe_path
-										emp["craft_timer"] = 0.0
-										emp["craft_total_time"] = 0.0
-										emp["is_paused"] = true
-										if is_instance_valid(worker):
-											worker.set("worker_state", "producing_goods")
-										
-										# Send alert if not already sent
-										if not emp.get("shortage_alert_sent", false):
-											emp["shortage_alert_sent"] = true
-											if GameState.has_method("add_alert"):
-												var b_name = name.replace("Interior_", "")
-												var msg = "%s has stopped producing %s at %s: Insufficient inputs in storage." % [emp.get("name", "Employee"), recipe.recipe_name, b_name]
-												GameState.add_alert("Production Stalled", msg, "warning", self)
-									else:
-										# Storage full - keep standard halt
-										emp["active_recipe_path"] = ""
-										emp["craft_timer"] = 0.0
-										emp["craft_total_time"] = 0.0
-										emp["is_paused"] = false
-										if is_instance_valid(worker):
-											worker.set("worker_state", "producing_goods")
-										if GameState.has_method("add_alert"):
-											var b_name = name.replace("Interior_", "")
-											var msg = "%s has stopped producing %s at %s: Building storage is full." % [emp.get("name", "Employee"), recipe.recipe_name, b_name]
-											GameState.add_alert("Storage Full", msg, "warning", self)
-							else:
-								emp["active_recipe_path"] = ""
-								emp["craft_timer"] = 0.0
-								emp["craft_total_time"] = 0.0
-								if is_instance_valid(worker):
-									worker.set("worker_state", "producing_goods") # keep idle at workbench
-						else:
-							# Storage full
-							emp["active_recipe_path"] = ""
-							emp["craft_timer"] = 0.0
-							emp["craft_total_time"] = 0.0
-							if is_instance_valid(worker):
-								worker.set("worker_state", "producing_goods")
-							if GameState.has_method("add_alert"):
-								var b_name = name.replace("Interior_", "")
-								var msg = "%s has stopped producing %s at %s: Building storage is full." % [emp.get("name", "Employee"), recipe.recipe_name, b_name]
-								GameState.add_alert("Storage Full", msg, "warning", self)
-							
-		# 2. Process active gathering task (shifts)
-		var node_path = str(emp.get("active_gathering_node_path", ""))
-		if node_path != "":
-			var worker = emp.get("shift_worker_ref")
-			if not is_instance_valid(worker) and emp.get("is_paused", false):
-				worker = emp.get("npc_ref")
-			var node = get_node_or_null(node_path)
-			if is_instance_valid(worker):
-				var w_state = worker.get("worker_state")
-				if w_state == "returning_to_workshop":
-					emp["shift_status"] = "returning"
-				elif w_state == "gathering_at_node":
-					emp["shift_status"] = "gathering"
-				elif w_state == "traveling_to_node":
-					emp["shift_status"] = "traveling"
-				elif w_state == "idle_at_workshop":
-					# Finished returning and depositing
-					emp["shift_status"] = "idle"
-					if emp.get("is_paused", false):
-						emp["active_gathering_node_path"] = ""
-					else:
-						emp["shift_worker_ref"] = null
-					
-					# Handle repeating
-					if emp.get("is_repeating", true) and node:
-						var res_id = node.resource_type_id
-						var is_illegal = false
-						var pm_rep = get_node_or_null("/root/PoliticsManager")
-						var b_prov = GameState.get_province_of_node(self) if GameState else ""
-						if pm_rep and b_prov != "":
-							if pm_rep.is_law_active("crown_forestry_protection", b_prov) and res_id == "standard_timber":
-								is_illegal = true
-							elif pm_rep.is_law_active("noble_game_preservation", b_prov) and res_id == "venison":
-								is_illegal = true
-								
-						if is_illegal:
-							emp["active_gathering_node_path"] = ""
-							emp["shift_status"] = "idle"
-							emp["shift_worker_ref"] = null
-							continue
-
-						var econ_mgr = get_node_or_null("/root/EconomyManager")
-						var item_res = econ_mgr.item_database.get(res_id) if econ_mgr else null
-						if item_res and building_storage:
-							var free_space = building_storage.get_free_space_for_item(item_res)
-							var fee = node.get_entry_fee()
-							
-							var player_has_gold = true
-							if ownership_type == "Player":
-								player_has_gold = GameState.gold >= fee
-							else:
-								var rivals = get_tree().get_nodes_in_group("Rivals")
-								player_has_gold = rivals.size() > 0 and rivals[0].gold >= fee
-								
-							if free_space >= 20 and player_has_gold:
-								if ownership_type == "Player":
-									GameState.gold -= fee
-									GameState.spawn_ui_floating_text("Paid Permit: -%d Gold!" % fee)
-								else:
-									var rivals = get_tree().get_nodes_in_group("Rivals")
-									if rivals.size() > 0:
-										rivals[0].gold -= fee
-								
-								worker.start_gathering_shift(node)
-								emp["shift_worker_ref"] = worker
-								emp["shift_status"] = "traveling"
-							else:
-								emp["active_gathering_node_path"] = ""
-								emp["shift_status"] = "idle"
-								emp["shift_worker_ref"] = null
-					else:
-						# Not repeating, clear task
-						emp["active_gathering_node_path"] = ""
-						emp["shift_status"] = "idle"
-						emp["shift_worker_ref"] = null
-				elif emp.get("shift_status") in ["traveling", "gathering"]:
-					# Failsafe reset
-					emp["shift_status"] = "idle"
-					emp["shift_worker_ref"] = null
-
-func _spawn_shift_worker(emp: Dictionary, node: Area2D) -> void:
-	var worker = emp.get("npc_ref")
-	if is_instance_valid(worker):
-		worker.start_gathering_shift(node)
-		emp["shift_worker_ref"] = worker
-		emp["shift_status"] = "traveling"
 
 func _populate_candidates() -> void:
-	hireable_candidates.clear()
-	var province_name = GameState.get_province_of_node(self)
-	var all_npcs = get_tree().get_nodes_in_group("NPCs")
-	var local_unemployed = []
-	for npc in all_npcs:
-		if is_instance_valid(npc) and not npc.get("is_hired") and npc.get("province") == province_name:
-			if npc.get("is_quest_npc") == true or npc.get("roams_interior_only") == true or npc.get("quest_npc_id") != "":
-				continue
-			local_unemployed.append(npc)
-			
-	# Replenish dynamic NPCs if count drops below 3
-	while local_unemployed.size() < 3:
-		var new_npc = spawn_dynamic_npc_in_province(province_name)
-		if is_instance_valid(new_npc):
-			local_unemployed.append(new_npc)
-			
-	for npc in local_unemployed:
-		hireable_candidates.append(npc)
-		
-	ensure_spouse_candidate()
+	if staff_component:
+		staff_component.populate_candidates()
 
 func ensure_spouse_candidate() -> void:
-	var spouse_id = ""
-	if owner_id == "Player" or ownership_type == "Player":
-		if GameState and GameState.is_married:
-			spouse_id = GameState.spouse_npc_id
-	elif owner_id == "Rival":
-		var rivals = get_tree().get_nodes_in_group("Rivals")
-		for r in rivals:
-			if is_instance_valid(r) and r.get("spouse_npc_id") != "":
-				spouse_id = r.spouse_npc_id
-				break
-				
-	if spouse_id != "":
-		var spouse_node = null
-		for npc in get_tree().get_nodes_in_group("NPCs"):
-			if is_instance_valid(npc) and npc.get("quest_npc_id") == spouse_id:
-				spouse_node = npc
-				break
-		if spouse_node and not spouse_node.get("is_hired"):
-			if not hireable_candidates.has(spouse_node):
-				hireable_candidates.append(spouse_node)
-
-func spawn_dynamic_npc_in_province(prov_name: String) -> CharacterBody2D:
-	var npc_scene = load("res://entities/npc/npc.tscn")
-	if not npc_scene:
-		return null
-		
-	var target_settlement = null
-	for city in get_tree().get_nodes_in_group("Cities"):
-		if (city.city_name + " Province") == prov_name:
-			target_settlement = city
-			break
-	if not target_settlement:
-		for town in get_tree().get_nodes_in_group("Towns"):
-			if town.ownership_province == prov_name:
-				target_settlement = town
-				break
-				
-	var spawn_pos = global_position
-	if target_settlement:
-		spawn_pos = target_settlement.global_position
-		
-	var npc = npc_scene.instantiate() as CharacterBody2D
-	npc.global_position = spawn_pos + Vector2(randf_range(-100, 100), randf_range(-100, 100))
-	get_parent().add_child(npc)
-	npc.province = prov_name
-	
-	print("[Building] Spawned dynamic NPC in province %s at position %s" % [prov_name, npc.global_position])
-	return npc
+	if staff_component:
+		staff_component.ensure_spouse_candidate()
 
 func produces_using_only_raw_materials() -> bool:
 	var bench = get_node_or_null("CraftingBench")
+	if not bench and is_instance_valid(instanced_interior):
+		bench = instanced_interior.get_node_or_null("CraftingBench")
 	if not bench or not ("recipes" in bench) or bench.recipes.is_empty():
 		return false
 	for recipe in bench.recipes:
@@ -1381,3 +996,56 @@ func produces_using_only_raw_materials() -> bool:
 			if not input.is_raw_material:
 				return false
 	return true
+
+func get_active_service_provider(service_recipe_path: String) -> Dictionary:
+	if is_player_working_here and player_crafting_recipe_path == service_recipe_path:
+		var required_career = ""
+		var recipe = load(service_recipe_path)
+		if recipe:
+			required_career = recipe.required_career
+		var level = GameState.career_levels.get(required_career, 1) if required_career != "" else 1
+		return {"offered": true, "level": level, "is_player": true}
+		
+	for emp in hired_employees:
+		if emp.get("active_recipe_path", "") == service_recipe_path:
+			var level = 1
+			var npc = emp.get("npc_ref")
+			if is_instance_valid(npc) and npc.get("skills_data"):
+				var recipe = load(service_recipe_path)
+				var car = recipe.required_career if recipe else "patreon"
+				if npc.skills_data.has(car):
+					level = npc.skills_data[car].get("level", 1)
+			return {"offered": true, "level": level, "is_player": false, "employee": emp}
+			
+	return {"offered": false, "level": 1, "is_player": false}
+
+func get_any_active_service_provider() -> Dictionary:
+	var bench = get_node_or_null("CraftingBench")
+	if not bench and is_instance_valid(instanced_interior):
+		bench = instanced_interior.get_node_or_null("CraftingBench")
+	if bench and "recipes" in bench:
+		for recipe in bench.recipes:
+			if recipe and recipe.get("is_service") == true:
+				var provider = get_active_service_provider(recipe.resource_path)
+				if provider["offered"]:
+					var slots = player_service_slots if provider["is_player"] else provider["employee"].get("service_slots", [])
+					if slots.size() < 3:
+						provider["recipe"] = recipe
+						return provider
+	return {"offered": false, "level": 1, "is_player": false, "recipe": null}
+
+func get_service_price(recipe: Recipe) -> int:
+	var base_price = 20
+	if is_in_group("Inns"):
+		match building_level:
+			1: base_price = 35
+			2: base_price = 75
+			3: base_price = 120
+			_: base_price = 120
+	elif is_in_group("Taverns"):
+		match building_level:
+			1: base_price = 20
+			2: base_price = 50
+			3: base_price = 90
+			_: base_price = 90
+	return base_price

@@ -98,20 +98,86 @@ func unregister_interactable(interactable: Node) -> void:
 		interactables_changed.emit()
 
 func get_facing_interactables() -> Array:
+	if not is_inside_tree():
+		return []
+		
+	# Clean up any invalid instances in interactables_in_range
+	var i = interactables_in_range.size() - 1
+	while i >= 0:
+		if not is_instance_valid(interactables_in_range[i]):
+			interactables_in_range.remove_at(i)
+		i -= 1
+
 	var facing = []
-	for obj in interactables_in_range:
+	var facing_dir = Vector2.ZERO
+	match _last_direction:
+		"north": facing_dir = Vector2.UP
+		"south": facing_dir = Vector2.DOWN
+		"east": facing_dir = Vector2.RIGHT
+		"west": facing_dir = Vector2.LEFT
+		
+	# Dynamic fallback query to prevent state/teleportation physics signal desync
+	var candidate_groups = [
+		"NPCs",
+		"InfluenceBroker",
+		"MegaNodes",
+		"CraftingBenches",
+		"MarketStall",
+		"production_buildings",
+		"Beds",
+		"delivery_targets",
+		"bank_teller_triggers",
+		"commercial_routes_consoles",
+		"quest_boards",
+		"Houses",
+		"building_ledgers",
+		"Warehouses",
+		"TeleportTriggers"
+	]
+	
+	var active_candidates = []
+	for group_name in candidate_groups:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if is_instance_valid(node) and node != self:
+				var dist = global_position.distance_to(node.global_position)
+				var limit = 120.0 if node.is_in_group("MegaNodes") else 48.0
+				if dist <= limit:
+					if not active_candidates.has(node):
+						active_candidates.append(node)
+						
+	var merged = interactables_in_range.duplicate()
+	for cand in active_candidates:
+		if not merged.has(cand):
+			merged.append(cand)
+			
+	# First pass: find candidates the player is facing (dot > 0.2)
+	for obj in merged:
 		if is_instance_valid(obj):
 			if obj.is_in_group("MegaNodes"):
 				facing.append(obj)
 				continue
 			var diff = obj.global_position - global_position
-			var obj_dir = ""
-			if abs(diff.x) > abs(diff.y):
-				obj_dir = "east" if diff.x > 0 else "west"
-			else:
-				obj_dir = "south" if diff.y > 0 else "north"
-			if obj_dir == _last_direction:
+			if diff.length() < 0.1:
 				facing.append(obj)
+				continue
+				
+			var dot = facing_dir.dot(diff.normalized())
+			if dot > 0.2:
+				facing.append(obj)
+				
+	# Second pass: if nothing was found facing the player, relax check for nearby items
+	if facing.is_empty():
+		for obj in merged:
+			if is_instance_valid(obj):
+				var diff = obj.global_position - global_position
+				var dist = diff.length()
+				if dist < 28.0: # very close fallback (touching distance from any side)
+					facing.append(obj)
+				else:
+					var dot = facing_dir.dot(diff.normalized())
+					if dot > -0.2: # relaxed facing check (100 degree angle) for objects in front/sides
+						facing.append(obj)
+						
 	facing.sort_custom(func(a, b):
 		return global_position.distance_to(a.global_position) < global_position.distance_to(b.global_position)
 	)
@@ -212,6 +278,10 @@ func try_buy_workstation() -> void:
 		
 	if target.ownership_type == "Player":
 		spawn_floating_text("Already Owned!")
+		return
+		
+	if target.ownership_type == "Public":
+		spawn_floating_text("Cannot Buy Public Buildings!")
 		return
 		
 	var is_buyable = target.is_buyable if "is_buyable" in target else false

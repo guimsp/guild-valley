@@ -18,16 +18,24 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameState="*res://common/singletons/game_state.gd"
-EconomyManager="*res://common/singletons/economy_manager.gd"
 TransitionScreen="*res://common/singletons/transition_screen.tscn"
+EconomyManager="*res://common/singletons/economy_manager.gd"
 LogisticsManager="*res://common/singletons/logistics_manager.gd"
 QuestManager="*res://common/singletons/quest_manager.gd"
 PoliticsManager="*res://common/singletons/politics_manager.gd"
-
+ProsperityManager="*res://common/singletons/prosperity_manager.gd"
+GuildController="*res://common/singletons/guild_controller.gd"
+TimeManager="*res://common/singletons/time_manager.gd"
+NavigationManager="*res://common/singletons/navigation_manager.gd"
+AlertManager="*res://common/singletons/alert_manager.gd"
+SaveLoadManager="*res://common/singletons/save_load_manager.gd"
 
 [display]
 
+window/size/viewport_width=1152
+window/size/viewport_height=648
 window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
 
 [physics]
 

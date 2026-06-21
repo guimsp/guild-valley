@@ -40,10 +40,10 @@ func _on_resume_pressed() -> void:
 	queue_free()
 
 func _on_save_pressed() -> void:
-	GameState.save_game()
+	SaveLoadManager.save_game()
 
 func _on_load_pressed() -> void:
-	GameState.load_game()
+	SaveLoadManager.load_game()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

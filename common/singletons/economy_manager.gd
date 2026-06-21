@@ -2,6 +2,7 @@ extends Node
 
 # Dictionary of item_id (String) -> ItemData
 var item_database: Dictionary = {}
+var item_career_map: Dictionary = {}
 
 # Queue of pending search query requests:
 # Each entry is a Dictionary: { "npc": CharacterBody2D, "item_id": String, "callback": Callable }
@@ -10,14 +11,18 @@ var query_queue: Array[Dictionary] = []
 # Global toggle to show floating debug emotes above NPCs (for testing purposes)
 var show_debug_emotes: bool = true
 
+var empty_items_timers: Dictionary = {}
+
 func _ready() -> void:
 	# Load all items on launch
 	_load_item_database()
 	if GameState:
-		if not GameState.time_changed.is_connected(_on_time_changed):
-			GameState.time_changed.connect(_on_time_changed)
+		if not TimeManager.time_changed.is_connected(_on_time_changed):
+			TimeManager.time_changed.connect(_on_time_changed)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	_process_restock_timers(delta)
+	
 	# Stagger shop queries: process a maximum of 5 requests per frame
 	var processed_count = 0
 	while processed_count < 5 and not query_queue.is_empty():
@@ -44,6 +49,7 @@ func _load_item_database() -> void:
 	item_database.clear()
 	var base_path = "res://common/items/instances/"
 	_scan_item_dir_recursive(base_path)
+	_build_item_career_map()
 	print("[EconomyManager] Successfully initialized item database with %d items." % item_database.size())
 
 func _scan_item_dir_recursive(path: String) -> void:
@@ -64,6 +70,49 @@ func _scan_item_dir_recursive(path: String) -> void:
 						item_database[res.id] = res
 			file_name = dir.get_next()
 		dir.list_dir_end()
+
+func _build_item_career_map() -> void:
+	item_career_map.clear()
+	var dir_path = "res://common/items/recipes/"
+	var dir = DirAccess.open(dir_path)
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if not dir.current_is_dir():
+				var clean_name = file_name
+				if clean_name.ends_with(".remap"):
+					clean_name = clean_name.replace(".remap", "")
+				if clean_name.ends_with(".tres"):
+					var res = load(dir_path + clean_name)
+					if res and "output_item" in res and res.output_item and "required_career" in res:
+						item_career_map[res.output_item.id] = res.required_career
+			file_name = dir.get_next()
+		dir.list_dir_end()
+		print("[EconomyManager] Built recipe-to-career registry with %d items." % item_career_map.size())
+
+func get_item_career(item_id: String) -> String:
+	if item_career_map.has(item_id):
+		return item_career_map[item_id]
+		
+	# Fallback for raw materials/gatherable resources
+	var raw_material_careers = {
+		"wheat": "patreon",
+		"barley_and_hops": "patreon",
+		"grapes": "patreon",
+		"apple": "patreon",
+		"sugar": "patreon",
+		"egg": "patreon",
+		"milk": "patreon",
+		"honey": "patreon",
+		"water": "patreon",
+		"berries": "patreon",
+		"venison": "patreon",
+		"cotton": "tailor",
+		"iron_ore": "craftsman",
+		"standard_timber": "craftsman"
+	}
+	return raw_material_careers.get(item_id, "patreon")
 
 func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callable) -> void:
 	# Check if item exists in database
@@ -95,8 +144,13 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 		if stall.is_in_group("Warehouses") or (stall.get("parent_building") != null and stall.parent_building.is_in_group("Warehouses")):
 			continue
 			
-		# Check if shop stocks the exact item ID (personal/private shops must have real stock)
-		if stall.ownership_type != "Public":
+		# Exclude audited stalls
+		if stall.get("is_under_audit") == true or (stall.get("parent_building") != null and stall.parent_building.get("is_under_audit") == true):
+			continue
+			
+		# Check if shop stocks the exact item ID (personal/private shops and workshops must have real stock)
+		var is_public_market_stall = (stall is MarketStall) and (stall.ownership_type == "Public")
+		if not is_public_market_stall:
 			if stall.inventory.get_item_amount(item_id) <= 0:
 				continue
 			
@@ -143,9 +197,9 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 	# Prepare decision breakdown log
 	var decision_breakdown = {
 		"item_id": item_id,
-		"timestamp_hours": GameState.time_hours,
-		"timestamp_minutes": int(GameState.time_minutes),
-		"timestamp_days": GameState.time_days,
+		"timestamp_hours": TimeManager.time_hours,
+		"timestamp_minutes": int(TimeManager.time_minutes),
+		"timestamp_days": TimeManager.time_days,
 		"candidates": []
 	}
 	
@@ -254,9 +308,9 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 func _save_empty_decision(npc: CharacterBody2D, item_id: String) -> void:
 	var decision_breakdown = {
 		"item_id": item_id,
-		"timestamp_hours": GameState.time_hours,
-		"timestamp_minutes": int(GameState.time_minutes),
-		"timestamp_days": GameState.time_days,
+		"timestamp_hours": TimeManager.time_hours,
+		"timestamp_minutes": int(TimeManager.time_minutes),
+		"timestamp_days": TimeManager.time_days,
 		"candidates": []
 	}
 	if "last_decision_breakdown" in npc:
@@ -273,8 +327,8 @@ func _on_time_changed(hours: int, minutes: int, days: int) -> void:
 		# Consolidated nightly balancing cycle
 		# Phase A: Simulated Background Guild Consumption
 		_process_background_guild_consumption()
-		# Phase B: Merchant Caravan Safety-Valve
-		_process_merchant_caravan_balancing()
+		# Phase B: Merchant Caravan Safety-Valve (Disabled in favor of real-time passive restock)
+		# _process_merchant_caravan_balancing()
 
 func _process_background_guild_consumption() -> void:
 	var stalls = get_tree().get_nodes_in_group("MarketStall")
@@ -360,3 +414,71 @@ func _process_merchant_caravan_balancing() -> void:
 					print("[EconomyManager] Caravan Market Disruption: dumped %d units of %s into public markets!" % [dump_amount, item.id])
 					if GameState and GameState.has_method("spawn_ui_floating_text"):
 						GameState.spawn_ui_floating_text("Caravan Disruption: Oversupply of %s!" % item.name)
+
+func register_public_stall(stall: MarketStall) -> void:
+	if is_instance_valid(stall) and stall.inventory:
+		if not stall.inventory.inventory_changed.is_connected(_on_public_stall_inventory_changed.bind(stall)):
+			stall.inventory.inventory_changed.connect(_on_public_stall_inventory_changed.bind(stall))
+		_check_stall_stock_level(stall)
+
+func _on_public_stall_inventory_changed(stall: MarketStall) -> void:
+	_check_stall_stock_level(stall)
+
+func _check_stall_stock_level(stall: MarketStall) -> void:
+	if not is_instance_valid(stall) or not stall.inventory:
+		return
+	if stall.ownership_type != "Public":
+		return
+	var stall_key = String(stall.get_path())
+	for item in stall.target_stock:
+		var item_id = item.id
+		var key = stall_key + ":" + item_id
+		var current_stock = stall.inventory.get_item_amount(item_id)
+		
+		# If it hits 0 and is not already tracked, start a 1-3 min timer
+		if current_stock == 0:
+			if not empty_items_timers.has(key):
+				var wait_time = randf_range(60.0, 180.0) # 1 to 3 real-time minutes
+				empty_items_timers[key] = {
+					"stall": stall,
+					"item": item,
+					"time_left": wait_time
+				}
+				print("[EconomyManager] Stall %s: item %s is out of stock. Restock scheduled in %.1f seconds." % [stall.name, item_id, wait_time])
+		else:
+			# If it has a timer and is no longer at 0, check if we should remove it (e.g. player/rival restocked it)
+			if empty_items_timers.has(key):
+				var target = stall.target_stock.get(item, item.get_target_stock())
+				var mid_stock = target * 0.5
+				# If stock is now above 20% of mid stock, we can safely clear the replenishment timer
+				if current_stock >= max(1, int(mid_stock * 0.20)):
+					empty_items_timers.erase(key)
+					print("[EconomyManager] Stall %s: item %s restocked externally to %d. Cleared timer." % [stall.name, item_id, current_stock])
+
+func _process_restock_timers(delta: float) -> void:
+	var to_erase = []
+	for key in empty_items_timers:
+		var data = empty_items_timers[key]
+		data["time_left"] -= delta
+		if data["time_left"] <= 0.0:
+			to_erase.append(key)
+			_restock_item(data["stall"], data["item"])
+			
+	for key in to_erase:
+		empty_items_timers.erase(key)
+
+func _restock_item(stall: MarketStall, item: ItemData) -> void:
+	if not is_instance_valid(stall) or not stall.inventory:
+		return
+		
+	var target = stall.target_stock.get(item, item.get_target_stock())
+	var mid_stock = target * 0.5
+	var restock_pct = randf_range(0.20, 0.40)
+	var restock_amount = max(1, int(mid_stock * restock_pct))
+	
+	var current_stock = stall.inventory.get_item_amount(item.id)
+	if current_stock < restock_amount:
+		var needed = restock_amount - current_stock
+		stall.inventory.add_item(item, needed)
+		print("[EconomyManager] Centrally restocked %d units of %s to %s (current: %d, mid-stock: %f, restock target: %d)." % [needed, item.id, stall.name, current_stock, mid_stock, restock_amount])
+

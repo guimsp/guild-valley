@@ -116,7 +116,7 @@ func start_demolish_building(building: Node2D) -> void:
 	_hovered_workstation = null
 	
 	if GameState.has_method("rebake_all_navigation_regions"):
-		GameState.rebake_all_navigation_regions()
+		NavigationManager.rebake_all_navigation_regions()
 	
 	if _hud and _hud.has_method("update_hud_values"):
 		_hud.update_hud_values()
@@ -295,6 +295,10 @@ func exit_placement_mode() -> void:
 	
 	if _active_player:
 		_active_player.unfreeze()
+		
+	var focused = get_viewport().gui_get_focus_owner()
+	if focused:
+		focused.release_focus()
 		
 	if _placement_ghost and _placement_mode == "place":
 		_placement_ghost.queue_free()
@@ -654,7 +658,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					_placement_moving_node = null
 					
 					if GameState.has_method("rebake_all_navigation_regions"):
-						GameState.rebake_all_navigation_regions()
+						NavigationManager.rebake_all_navigation_regions()
 					
 					if _hud and _hud.has_method("update_hud_values"):
 						_hud.update_hud_values()
@@ -766,7 +770,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_hovered_workstation = null
 				
 				if GameState.has_method("rebake_all_navigation_regions"):
-					GameState.rebake_all_navigation_regions()
+					NavigationManager.rebake_all_navigation_regions()
 				
 				if _hud and _hud.has_method("update_hud_values"):
 					_hud.update_hud_values()

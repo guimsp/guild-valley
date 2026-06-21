@@ -65,8 +65,8 @@ func transition_to_next_day() -> void:
 	await animation_player.animation_finished
 	
 	# Advance day and run overnight market ticks
-	GameState.advance_day()
-	GameState.save_game()
+	TimeManager.advance_day()
+	SaveLoadManager.save_game()
 	
 	# Delay for sleep simulation
 	await get_tree().create_timer(1.0).timeout

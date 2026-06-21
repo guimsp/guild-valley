@@ -12,6 +12,7 @@ extends StaticBody2D
 @export var max_rent_days: int = 5
 @export var is_buyable: bool = true
 @export var is_rentable: bool = false
+@export var is_under_audit: bool = false
 
 # Sensitivity of price shifts (higher = steeper price changes)
 @export var sensitivity: float = 0.5
@@ -96,6 +97,11 @@ func _ready() -> void:
 	# Populate default goods for testing
 	_populate_default_stock()
 	
+	if ownership_type == "Public":
+		var econ = get_node_or_null("/root/EconomyManager")
+		if econ and econ.has_method("register_public_stall"):
+			econ.register_public_stall(self)
+	
 	# Connect interaction signals
 	if interaction_area:
 		interaction_area.body_entered.connect(_on_interaction_body_entered)
@@ -129,73 +135,150 @@ func get_custom_price(item: ItemData) -> int:
 
 # Called when player interacts (presses E)
 func interact(player: CharacterBody2D) -> void:
+	if is_under_audit or (parent_building != null and parent_building.get("is_under_audit") == true):
+		if GameState:
+			GameState.spawn_ui_floating_text("Stall is under audit!")
+		return
 	var hud = get_tree().get_first_node_in_group("PlayerHUD")
 	if hud:
 		hud.open_market(self)
 
 
 func _populate_default_stock() -> void:
-	# Load item resources
-	var wheat: ItemData = load("res://common/items/instances/Raw Materials/wheat.tres")
-	var flour: ItemData = load("res://common/items/instances/Semi-Elaborate/flour.tres")
-	var bread: ItemData = load("res://common/items/instances/Finished Goods/bread.tres")
-	var cotton: ItemData = load("res://common/items/instances/Raw Materials/cotton.tres")
-	var cloth: ItemData = load("res://common/items/instances/Semi-Elaborate/cloth.tres")
-	var ore: ItemData = load("res://common/items/instances/Raw Materials/iron_ore.tres")
-	var ingot: ItemData = load("res://common/items/instances/Semi-Elaborate/iron_ingot.tres")
-	var ale: ItemData = load("res://common/items/instances/Finished Goods/ale.tres")
+	if ownership_type == "Player" or ownership_type == "Rented" or owner_id == "Rival" or owner_id == "Player":
+		return
+		
+	if ownership_type == "Public":
+		if inventory:
+			inventory.max_slots = 120
+		var econ = get_node_or_null("/root/EconomyManager")
+		if econ:
+			for item in econ.item_database.values():
+				if not item.is_tradable:
+					continue
+				var cat = item.get_item_category()
+				if cat == 0 or cat == 1: # RAW_MATERIAL or SEMI_ELABORATE
+					target_stock[item] = item.get_target_stock()
+					
+		# Also add skill books to public markets so players can buy them
+		var book_p: ItemData = load("res://common/items/instances/Skill Items/book_patreon.tres")
+		var book_c: ItemData = load("res://common/items/instances/Skill Items/book_craftsman.tres")
+		var book_t: ItemData = load("res://common/items/instances/Skill Items/book_tailor.tres")
+		var book_s: ItemData = load("res://common/items/instances/Skill Items/book_scholar.tres")
+		if book_p: target_stock[book_p] = 1
+		if book_c: target_stock[book_c] = 1
+		if book_t: target_stock[book_t] = 1
+		if book_s: target_stock[book_s] = 1
+	else:
+		# Original default stock logic for non-public/competitor/rented/player stalls
+		var wheat: ItemData = load("res://common/items/instances/Raw Materials/wheat.tres")
+		var flour: ItemData = load("res://common/items/instances/Semi-Elaborate/flour.tres")
+		var bread: ItemData = load("res://common/items/instances/Finished Goods/bread.tres")
+		var cotton: ItemData = load("res://common/items/instances/Raw Materials/cotton.tres")
+		var cloth: ItemData = load("res://common/items/instances/Semi-Elaborate/cloth.tres")
+		var ore: ItemData = load("res://common/items/instances/Raw Materials/iron_ore.tres")
+		var ingot: ItemData = load("res://common/items/instances/Semi-Elaborate/iron_ingot.tres")
+		var ale: ItemData = load("res://common/items/instances/Finished Goods/ale.tres")
+		
+		if wheat: target_stock[wheat] = 40
+		if flour: target_stock[flour] = 20
+		if bread: target_stock[bread] = 10
+		if cotton: target_stock[cotton] = 30
+		if cloth: target_stock[cloth] = 15
+		if ore: target_stock[ore] = 25
+		if ingot: target_stock[ingot] = 10
+		if ale: target_stock[ale] = 30
+
+	if GameState and SaveLoadManager.is_loading_game:
+		print("[MarketStall] Populate default stock aborted (max slots expanded and targets set) for ", name, " because game is loading")
+		return
+		
+	if not is_inside_tree():
+		await ready
+	await get_tree().physics_frame
 	
-	# Load guide books
-	var book_p: ItemData = load("res://common/items/instances/Skill Items/book_patreon.tres")
-	var book_c: ItemData = load("res://common/items/instances/Skill Items/book_craftsman.tres")
-	var book_t: ItemData = load("res://common/items/instances/Skill Items/book_tailor.tres")
-	var book_s: ItemData = load("res://common/items/instances/Skill Items/book_scholar.tres")
+	if not is_inside_tree() or is_queued_for_deletion():
+		return
+		
+	if ownership_type == "Public":
+		var econ = get_node_or_null("/root/EconomyManager")
+		if econ:
+			for item in econ.item_database.values():
+				if not item.is_tradable:
+					continue
+				var cat = item.get_item_category()
+				if cat == 0 or cat == 1: # RAW_MATERIAL or SEMI_ELABORATE
+					var average_amt = int(item.get_target_stock() * 0.5)
+					if inventory:
+						inventory.add_item(item, average_amt)
+						
+		# Also add skill books to public markets so players can buy them
+		var book_p: ItemData = load("res://common/items/instances/Skill Items/book_patreon.tres")
+		var book_c: ItemData = load("res://common/items/instances/Skill Items/book_craftsman.tres")
+		var book_t: ItemData = load("res://common/items/instances/Skill Items/book_tailor.tres")
+		var book_s: ItemData = load("res://common/items/instances/Skill Items/book_scholar.tres")
+		if inventory:
+			if book_p: inventory.add_item(book_p, 1)
+			if book_c: inventory.add_item(book_c, 1)
+			if book_t: inventory.add_item(book_t, 1)
+			if book_s: inventory.add_item(book_s, 1)
+	else:
+		var wheat: ItemData = load("res://common/items/instances/Raw Materials/wheat.tres")
+		var flour: ItemData = load("res://common/items/instances/Semi-Elaborate/flour.tres")
+		var bread: ItemData = load("res://common/items/instances/Finished Goods/bread.tres")
+		var cotton: ItemData = load("res://common/items/instances/Raw Materials/cotton.tres")
+		var cloth: ItemData = load("res://common/items/instances/Semi-Elaborate/cloth.tres")
+		var ore: ItemData = load("res://common/items/instances/Raw Materials/iron_ore.tres")
+		var ingot: ItemData = load("res://common/items/instances/Semi-Elaborate/iron_ingot.tres")
+		var ale: ItemData = load("res://common/items/instances/Finished Goods/ale.tres")
+		
+		if inventory:
+			if wheat: inventory.add_item(wheat, 20)
+			if flour: inventory.add_item(flour, 10)
+			if bread: inventory.add_item(bread, 20)
+			if cotton: inventory.add_item(cotton, 15)
+			if cloth: inventory.add_item(cloth, 7)
+			if ore: inventory.add_item(ore, 12)
+			if ingot: inventory.add_item(ingot, 5)
+			if ale: inventory.add_item(ale, 15)
+
+func get_calculated_price(item: ItemData, current_stock: int) -> float:
+	var base_val: float = item.base_value
+	var min_val: float = item.min_price
+	var max_val: float = item.max_price
+	var target: float = target_stock.get(item, item.get_target_stock())
+	if target <= 0.0:
+		target = 10.0
+		
+	var elasticity = item.get_price_elasticity()
+	# Scale exponent by sensitivity relative to default 0.5
+	var alpha = elasticity * (sensitivity / 0.5)
+	var price: float = base_val
 	
-	# Set market goals (target stocks)
-	target_stock[wheat] = 40
-	target_stock[flour] = 20
-	target_stock[bread] = 10
-	target_stock[cotton] = 30
-	target_stock[cloth] = 15
-	target_stock[ore] = 25
-	target_stock[ingot] = 10
-	target_stock[ale] = 30
-	target_stock[book_p] = 1
-	target_stock[book_c] = 1
-	target_stock[book_t] = 1
-	target_stock[book_s] = 1
-	
-	# Initialize stock (start at 50% target stock)
-	if inventory:
-		inventory.add_item(wheat, 20)
-		inventory.add_item(flour, 10)
-		if ownership_type != "Public":
-			inventory.add_item(bread, 20)
-		else:
-			inventory.add_item(bread, 5)
-		inventory.add_item(cotton, 15)
-		inventory.add_item(cloth, 7)
-		inventory.add_item(ore, 12)
-		inventory.add_item(ingot, 5)
-		inventory.add_item(ale, 15)
-		inventory.add_item(book_p, 1)
-		inventory.add_item(book_c, 1)
-		inventory.add_item(book_t, 1)
-		inventory.add_item(book_s, 1)
+	if current_stock <= 0:
+		price = max_val
+	elif current_stock < target:
+		# Shortage: BaseValue -> MaxPrice
+		var deficit_ratio = 1.0 - (float(current_stock) / target)
+		price = base_val + (max_val - base_val) * pow(deficit_ratio, alpha)
+	elif current_stock <= 2.0 * target:
+		# Surplus: BaseValue -> MinPrice
+		var excess_ratio = 2.0 - (float(current_stock) / target)
+		price = min_val + (base_val - min_val) * pow(excess_ratio, alpha)
+	else:
+		# Saturation floor
+		price = min_val
+		
+	return clamp(price, min_val, max_val)
 
 func get_single_buy_price(item: ItemData, temp_stock: int) -> int:
-	var base_val: int = item.base_value
-	var target: int = target_stock.get(item, item.get_target_stock())
-	if target <= 0: target = 10
-	var elasticity = item.get_price_elasticity()
-	var multiplier: float = 1.0 + (float(target - temp_stock) / target) * (sensitivity * elasticity)
-	multiplier = clamp(multiplier, 0.2, 3.0)
+	var base_price = get_calculated_price(item, temp_stock)
 	
 	var price = 0.0
 	if ownership_type == "Public":
-		price = base_val * multiplier
+		price = base_price
 	else:
-		price = base_val * multiplier * 1.1
+		price = base_price * 1.1
 		
 	# Apply Infrastructure Tariff Import Buy Markup
 	var pm = get_node_or_null("/root/PoliticsManager")
@@ -220,19 +303,19 @@ func get_sell_price(item: ItemData) -> int:
 	if custom_prices.has(item.id):
 		return int(custom_prices[item.id] * 0.8)
 		
-	var base_val: int = item.base_value
 	var current_stock: int = inventory.get_item_amount(item.id)
-	var target: int = target_stock.get(item, item.get_target_stock())
-	
-	if target <= 0:
-		target = 10
-		
-	var elasticity = item.get_price_elasticity()
-	var multiplier: float = 1.0 + (float(target - current_stock) / target) * (sensitivity * elasticity)
-	multiplier = clamp(multiplier, 0.2, 3.0)
+	var base_price = get_calculated_price(item, current_stock)
 	
 	# Sell price is slightly lower than value (10% trade spread)
-	return int(base_val * multiplier * 0.9)
+	return int(base_price * 0.9)
+
+# Calculate single sell price dynamically based on temporary stock level
+func get_single_sell_price(item: ItemData, temp_stock: int) -> int:
+	if custom_prices.has(item.id):
+		return int(custom_prices[item.id] * 0.8)
+		
+	var base_price = get_calculated_price(item, temp_stock)
+	return int(base_price * 0.9)
 
 # Executes buying items from the market (player inventory gets items, pays gold)
 func buy_item(item: ItemData, amount: int) -> bool:
@@ -322,11 +405,7 @@ func sell_item(item: ItemData, amount: int) -> bool:
 	var total_revenue: int = 0
 	var temp_stock: int = current_stock
 	for i in range(amount):
-		var target: int = target_stock.get(item, item.get_target_stock())
-		var elasticity = item.get_price_elasticity()
-		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * (sensitivity * elasticity)
-		multiplier = clamp(multiplier, 0.2, 3.0)
-		total_revenue += int(item.base_value * multiplier * 0.9)
+		total_revenue += get_single_sell_price(item, temp_stock)
 		temp_stock += 1
 		
 	# Try to add items to market inventory
@@ -341,11 +420,7 @@ func sell_item(item: ItemData, amount: int) -> bool:
 		total_revenue = 0
 		temp_stock = current_stock
 		for i in range(accepted):
-			var target: int = target_stock.get(item, item.get_target_stock())
-			var elasticity = item.get_price_elasticity()
-			var multiplier: float = 1.0 + (float(target - temp_stock) / target) * (sensitivity * elasticity)
-			multiplier = clamp(multiplier, 0.2, 3.0)
-			total_revenue += int(item.base_value * multiplier * 0.9)
+			total_revenue += get_single_sell_price(item, temp_stock)
 			temp_stock += 1
 			
 		# Deduct from rival if NPC owned

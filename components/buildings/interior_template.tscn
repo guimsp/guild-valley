@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://components/buildings/interior_template.gd" id="1_interior"]
 [ext_resource type="Script" path="res://components/teleport/teleport_trigger.gd" id="2_teleport"]
 [ext_resource type="PackedScene" path="res://components/crafting/crafting_bench.tscn" id="3_bench"]
-[ext_resource type="PackedScene" path="res://components/market/market_stall.tscn" id="4_chest"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(320, 16)
@@ -67,9 +66,3 @@ color = Color(0.18, 0.62, 0.9, 0.6)
 
 [node name="CraftingBench" parent="." instance=ExtResource("3_bench")]
 position = Vector2(-80, -30)
-
-[node name="StorageChest" parent="." instance=ExtResource("4_chest")]
-position = Vector2(80, -30)
-market_name = "Storage Chest"
-is_buyable = false
-is_rentable = false

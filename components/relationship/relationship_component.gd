@@ -26,7 +26,7 @@ var retaliation_flag: bool = false
 func _ready() -> void:
 	# Reset daily slots at day change
 	if GameState:
-		GameState.time_changed.connect(_on_time_changed)
+		TimeManager.time_changed.connect(_on_time_changed)
 
 func _process(delta: float) -> void:
 	if irritated_timer > 0.0:

@@ -76,6 +76,9 @@ func get_total_gathering_bonus() -> float:
 func damage_tool(amount: int = 1) -> bool:
 	var tool = slots.get("tool")
 	if tool and tool.is_tool:
+		# Enforce 1000% longer lifetime (10x) by having only a 10% chance to apply damage per tick
+		if randf() >= 0.10:
+			return false
 		# Ensure we are modifying a duplicate/instance specific durability if shared
 		tool.durability = max(0, tool.durability - amount)
 		if tool.durability <= 0:

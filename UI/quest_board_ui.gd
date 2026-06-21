@@ -195,7 +195,7 @@ func _select_quest(quest: Dictionary) -> void:
 		confirm_hbox.visible = false
 	
 	if show_accepted_tab:
-		var remaining_days = quest.due_day - GameState.time_days
+		var remaining_days = quest.due_day - TimeManager.time_days
 		time_label.text = "Due in: " + str(remaining_days) + " Days (By Day " + str(quest.due_day) + ")"
 		action_button.text = "Accepted"
 		action_button.disabled = true

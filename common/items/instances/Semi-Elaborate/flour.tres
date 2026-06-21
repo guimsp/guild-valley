@@ -6,6 +6,7 @@
 script = ExtResource("1_script")
 id = "flour"
 name = "Flour"
+item_level = 2
 base_value = 12
 weight = 0.3
 category = "Material"

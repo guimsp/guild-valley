@@ -1,8 +1,10 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://common/ui/player_hud.gd" id="1_player_hud"]
 [ext_resource type="PackedScene" path="res://common/ui/market_ui.tscn" id="2_market_ui"]
 [ext_resource type="PackedScene" path="res://common/ui/crafting_ui.tscn" id="3_crafting_ui"]
+[ext_resource type="Script" path="res://common/ui/player_inventory_window.gd" id="4_player_inventory"]
+[ext_resource type="Script" path="res://common/ui/player_interact_prompt.gd" id="5_player_interact_prompt"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
 bg_color = Color(0.08, 0.08, 0.12, 0.85)
@@ -60,23 +62,6 @@ content_margin_left = 12
 content_margin_right = 12
 content_margin_top = 8
 content_margin_bottom = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_build"]
-bg_color = Color(0.1, 0.1, 0.14, 0.94)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.24, 0.65, 0.44, 0.8)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-content_margin_left = 16
-content_margin_right = 16
-content_margin_top = 16
-content_margin_bottom = 16
-
 
 [node name="PlayerHUD" type="CanvasLayer"]
 script = ExtResource("1_player_hud")
@@ -207,6 +192,7 @@ offset_bottom = -38.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_prompt")
+script = ExtResource("5_player_interact_prompt")
 
 [node name="InteractLabel" type="Label" parent="HUDControl/InteractPrompt"]
 unique_name_in_owner = true
@@ -232,6 +218,7 @@ offset_bottom = 215.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_inv")
+script = ExtResource("4_player_inventory")
 
 [node name="MainLayout" type="VBoxContainer" parent="HUDControl/InventoryPanel"]
 layout_mode = 2
@@ -251,7 +238,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_profile")
 
-[node name="ProfileVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/ProfilePanel"]
+[node name="ProfileVBox" type="VBoxContainer" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/ProfilePanel/ProfileVBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
@@ -279,6 +266,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 8
 
 [node name="BagLabel" type="Label" parent="HUDControl/InventoryPanel/MainLayout/SplitBox/LeftColumn/InventorySection"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Bag Space (4 Slots)"
@@ -314,156 +302,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 32)
 layout_mode = 2
 text = "Close"
-
-
-
-[node name="BuildPanel" type="PanelContainer" parent="HUDControl"]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(640, 480)
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = -240.0
-offset_right = 320.0
-offset_bottom = 240.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_build")
-
-[node name="MainLayout" type="VBoxContainer" parent="HUDControl/BuildPanel"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Title" type="Label" parent="HUDControl/BuildPanel/MainLayout"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.65, 0.44, 1)
-theme_override_font_sizes/font_size = 18
-text = "Construction Menu"
-horizontal_alignment = 1
-
-[node name="ToolsHBox" type="HBoxContainer" parent="HUDControl/BuildPanel/MainLayout"]
-layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
-
-[node name="MoveToolButton" type="Button" parent="HUDControl/BuildPanel/MainLayout/ToolsHBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 32)
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "Move Building (75% Cost)"
-
-[node name="DemolishToolButton" type="Button" parent="HUDControl/BuildPanel/MainLayout/ToolsHBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 32)
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "Demolish (80% Refund)"
-
-[node name="BuildTabContainer" type="TabContainer" parent="HUDControl/BuildPanel/MainLayout"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="All" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/All"]
-layout_mode = 2
-
-[node name="AllList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/All/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="Patreon" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
-visible = false
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Patreon"]
-layout_mode = 2
-
-[node name="PatreonList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Patreon/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="Scholar" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
-visible = false
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Scholar"]
-layout_mode = 2
-
-[node name="ScholarList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Scholar/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="Craftsman" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
-visible = false
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Craftsman"]
-layout_mode = 2
-
-[node name="CraftsmanList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Craftsman/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="Tailor" type="MarginContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer"]
-visible = false
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="ScrollContainer" type="ScrollContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Tailor"]
-layout_mode = 2
-
-[node name="TailorList" type="VBoxContainer" parent="HUDControl/BuildPanel/MainLayout/BuildTabContainer/Tailor/ScrollContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="CloseButtonHBox" type="HBoxContainer" parent="HUDControl/BuildPanel/MainLayout"]
-layout_mode = 2
-alignment = 1
-
-[node name="BuildCloseButton" type="Button" parent="HUDControl/BuildPanel/MainLayout/CloseButtonHBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 32)
-layout_mode = 2
-text = "Close"
-
 
 [node name="MarketUI" parent="HUDControl" instance=ExtResource("2_market_ui")]
 unique_name_in_owner = true

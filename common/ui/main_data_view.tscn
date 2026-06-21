@@ -1,0 +1,378 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/ui/main_data_view.gd" id="1_view"]
+[ext_resource type="Script" path="res://common/ui/workshop_view.gd" id="2_workshop"]
+[ext_resource type="Script" path="res://common/ui/warehouse_view.gd" id="3_warehouse"]
+[ext_resource type="Script" path="res://common/ui/modal_manager.gd" id="4_modal"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup"]
+bg_color = Color(0.12, 0.12, 0.16, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.52, 0.85, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 16
+content_margin_top = 16
+content_margin_right = 16
+content_margin_bottom = 16
+
+[node name="MainDataView" type="Control"]
+layout_mode = 2
+script = ExtResource("1_view")
+
+[node name="WorkshopView" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+script = ExtResource("2_workshop")
+
+[node name="WorkshopLeft" type="VBoxContainer" parent="WorkshopView"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="QueueLabel" type="Label" parent="WorkshopView/WorkshopLeft"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Employee Task Delegation"
+
+[node name="QueueScroll" type="ScrollContainer" parent="WorkshopView/WorkshopLeft"]
+custom_minimum_size = Vector2(0, 320)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="QueueList" type="VBoxContainer" parent="WorkshopView/WorkshopLeft/QueueScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ShortcutGuide" type="Label" parent="WorkshopView/WorkshopLeft"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 0.85)
+theme_override_font_sizes/font_size = 10
+text = "Storage Shortcuts:
+ • Building Storage: [Click / Select] to open Transfer Dialog
+ • Stall & Player: [Click] to Transfer | [Shift + Click] transfers Full Stack"
+
+[node name="WorkshopRight" type="VBoxContainer" parent="WorkshopView"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="RightScroll" type="ScrollContainer" parent="WorkshopView/WorkshopRight"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ScrollContent" type="VBoxContainer" parent="WorkshopView/WorkshopRight/RightScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="StorageLabel" type="Label" parent="WorkshopView/WorkshopRight/RightScroll/ScrollContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Building Storage (8 Slots)"
+
+[node name="StorageGrid" type="GridContainer" parent="WorkshopView/WorkshopRight/RightScroll/ScrollContent"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 4
+
+[node name="StallLabel" type="Label" parent="WorkshopView/WorkshopRight/RightScroll/ScrollContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Stall Storefront (4 Slots)"
+
+[node name="StallVBox" type="VBoxContainer" parent="WorkshopView/WorkshopRight/RightScroll/ScrollContent"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NoStallLabel" type="Label" parent="WorkshopView/WorkshopRight/RightScroll/ScrollContent"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "Not applicable."
+
+[node name="PlayerInvLabel" type="Label" parent="WorkshopView/WorkshopRight/RightScroll/ScrollContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Your Inventory"
+
+[node name="PlayerInvList" type="VBoxContainer" parent="WorkshopView/WorkshopRight/RightScroll/ScrollContent"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="WarehouseView" type="HBoxContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+script = ExtResource("3_warehouse")
+
+[node name="WarehouseLeft" type="VBoxContainer" parent="WarehouseView"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="MinStockLabel" type="Label" parent="WarehouseView/WarehouseLeft"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Logistics: Min Retained Stock"
+
+[node name="MinStockDesc" type="Label" parent="WarehouseView/WarehouseLeft"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 0.8)
+theme_override_font_sizes/font_size = 10
+text = "Couriers will not pull items out if stock is at or below this value."
+autowrap_mode = 3
+
+[node name="StockScroll" type="ScrollContainer" parent="WarehouseView/WarehouseLeft"]
+custom_minimum_size = Vector2(0, 320)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="MinStockList" type="VBoxContainer" parent="WarehouseView/WarehouseLeft/StockScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="WarehouseRight" type="VBoxContainer" parent="WarehouseView"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="WarehouseScroll" type="ScrollContainer" parent="WarehouseView/WarehouseRight"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="WarehouseScrollContent" type="VBoxContainer" parent="WarehouseView/WarehouseRight/WarehouseScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="WarehouseStorageLabel" type="Label" parent="WarehouseView/WarehouseRight/WarehouseScroll/WarehouseScrollContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Warehouse Storage"
+
+[node name="WarehouseStorageGrid" type="GridContainer" parent="WarehouseView/WarehouseRight/WarehouseScroll/WarehouseScrollContent"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 6
+
+[node name="WarehousePlayerLabel" type="Label" parent="WarehouseView/WarehouseRight/WarehouseScroll/WarehouseScrollContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Player Inventory"
+
+[node name="WarehousePlayerGrid" type="GridContainer" parent="WarehouseView/WarehouseRight/WarehouseScroll/WarehouseScrollContent"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 6
+
+[node name="PopupOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.08, 0.12, 0.65)
+script = ExtResource("4_modal")
+
+[node name="TransferOptionsModal" type="PanelContainer" parent="PopupOverlay"]
+visible = false
+custom_minimum_size = Vector2(300, 160)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -80.0
+offset_right = 150.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup")
+
+[node name="VBox" type="VBoxContainer" parent="PopupOverlay/TransferOptionsModal"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="PopupOverlay/TransferOptionsModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.52, 0.85, 1)
+theme_override_font_sizes/font_size = 13
+text = "Transfer Options"
+horizontal_alignment = 1
+
+[node name="AmountLabel" type="Label" parent="PopupOverlay/TransferOptionsModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
+theme_override_font_sizes/font_size = 10
+text = "Quantity in storage: 0"
+horizontal_alignment = 1
+
+[node name="Buttons" type="VBoxContainer" parent="PopupOverlay/TransferOptionsModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ToPlayerButton" type="Button" parent="PopupOverlay/TransferOptionsModal/VBox/Buttons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Transfer to Player Inventory"
+
+[node name="ToStallButton" type="Button" parent="PopupOverlay/TransferOptionsModal/VBox/Buttons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Transfer to Stall Storefront"
+
+[node name="CancelButton" type="Button" parent="PopupOverlay/TransferOptionsModal/VBox/Buttons"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Cancel"
+
+[node name="PlayerAssignModal" type="PanelContainer" parent="PopupOverlay"]
+visible = false
+custom_minimum_size = Vector2(400, 300)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup")
+
+[node name="VBox" type="VBoxContainer" parent="PopupOverlay/PlayerAssignModal"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="PopupOverlay/PlayerAssignModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.52, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+text = "Assign Task - Player"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="PopupOverlay/PlayerAssignModal/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="PopupOverlay/PlayerAssignModal/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="CancelButton" type="Button" parent="PopupOverlay/PlayerAssignModal/VBox"]
+custom_minimum_size = Vector2(90, 26)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Cancel"
+
+[node name="EmpAssignModal" type="PanelContainer" parent="PopupOverlay"]
+visible = false
+custom_minimum_size = Vector2(580, 360)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -180.0
+offset_right = 290.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup")
+
+[node name="VBox" type="VBoxContainer" parent="PopupOverlay/EmpAssignModal"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="PopupOverlay/EmpAssignModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.52, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+text = "Assign Task - Employee"
+horizontal_alignment = 1
+
+[node name="Content" type="HBoxContainer" parent="PopupOverlay/EmpAssignModal/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Left" type="VBoxContainer" parent="PopupOverlay/EmpAssignModal/VBox/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SelectLabel" type="Label" parent="PopupOverlay/EmpAssignModal/VBox/Content/Left"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Select a task:"
+
+[node name="Scroll" type="ScrollContainer" parent="PopupOverlay/EmpAssignModal/VBox/Content/Left"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="PopupOverlay/EmpAssignModal/VBox/Content/Left/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="Right" type="VBoxContainer" parent="PopupOverlay/EmpAssignModal/VBox/Content"]
+visible = false
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="QtyLabel" type="Label" parent="PopupOverlay/EmpAssignModal/VBox/Content/Right"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Select Quantity:"
+
+[node name="QtyButtons" type="VBoxContainer" parent="PopupOverlay/EmpAssignModal/VBox/Content/Right"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="PopupOverlay/EmpAssignModal/VBox"]
+custom_minimum_size = Vector2(90, 26)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 11
+text = "Cancel"

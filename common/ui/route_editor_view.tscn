@@ -1,0 +1,98 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/ui/route_editor_view.gd" id="1_editor"]
+
+[node name="RouteEditorView" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+script = ExtResource("1_editor")
+
+[node name="Columns" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="LeftColumn" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.6
+theme_override_constants/separation = 12
+
+[node name="WaypointListLabel" type="Label" parent="Columns/LeftColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Selected Waypoints Route Path:"
+
+[node name="WaypointsScroll" type="ScrollContainer" parent="Columns/LeftColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WaypointsList" type="VBoxContainer" parent="Columns/LeftColumn/WaypointsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="RightColumn" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.4
+theme_override_constants/separation = 12
+
+[node name="StallsLabel" type="Label" parent="Columns/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Click to Add Waypoint Markets:"
+
+[node name="StallsScroll" type="ScrollContainer" parent="Columns/RightColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StallsList" type="VBoxContainer" parent="Columns/RightColumn/StallsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="FooterBar" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="MetricsVBox" type="VBoxContainer" parent="FooterBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DistanceLabel" type="Label" parent="FooterBar/MetricsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.88, 1.0, 1)
+theme_override_font_sizes/font_size = 12
+text = "Total Route Distance: 0 pixels"
+
+[node name="TimeLabel" type="Label" parent="FooterBar/MetricsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.88, 1.0, 1)
+theme_override_font_sizes/font_size = 12
+text = "Est. Round-Trip Travel Time: 0 seconds"
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="FooterBar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ClearRouteButton" type="Button" parent="FooterBar/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "Clear Path"
+
+[node name="StartRouteButton" type="Button" parent="FooterBar/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(1.0, 0.9, 0.4, 1.0)
+text = "Start Route"

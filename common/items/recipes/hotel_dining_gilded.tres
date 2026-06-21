@@ -6,6 +6,7 @@
 
 [resource]
 script = ExtResource("1_script")
+is_service = true
 recipe_name = "Hotel Fine Dining (Gilded Cake)"
 required_career = "patreon"
 required_level = 7

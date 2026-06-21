@@ -23,6 +23,9 @@ enum RarityTier {
 # Unique identifier for the item (e.g. "wheat", "iron_ore")
 @export var id: String = ""
 
+# Item advancement level/tier (used for dynamic crafting time calculations)
+@export var item_level: int = 1
+
 # User-facing display name (e.g. "Wheat")
 @export var name: String = ""
 
@@ -33,10 +36,30 @@ enum RarityTier {
 @export var base_value: int = 10
 
 # Minimum price bounds for pricing controls
-@export var min_price: int = 1
+@export var min_price: int = 1:
+	get:
+		if min_price == 1:
+			match get_rarity_tier():
+				RarityTier.COMMON:
+					return max(1, int(base_value * 0.6))
+				RarityTier.LUXURY:
+					return max(1, int(base_value * 0.4))
+				RarityTier.RARE:
+					return max(1, int(base_value * 0.2))
+		return min_price
 
 # Maximum price bounds for pricing controls
-@export var max_price: int = 999
+@export var max_price: int = 999:
+	get:
+		if max_price == 999:
+			match get_rarity_tier():
+				RarityTier.COMMON:
+					return max(base_value + 1, int(base_value * 1.6))
+				RarityTier.LUXURY:
+					return max(base_value + 2, int(base_value * 2.5))
+				RarityTier.RARE:
+					return max(base_value + 5, int(base_value * 5.0))
+		return max_price
 
 # Weight per unit (useful for inventory limits)
 @export var weight: float = 0.5
@@ -78,7 +101,7 @@ enum RarityTier {
 # Flag indicating if the item is a baseline raw material
 @export var is_raw_material: bool = false:
 	get:
-		if market_category == "Raw Materials":
+		if market_category == "Raw Materials" or id == "standard_timber":
 			return true
 		return is_raw_material
 
@@ -131,9 +154,9 @@ func get_price_elasticity() -> float:
 		return price_elasticity_override
 	match get_rarity_tier():
 		RarityTier.COMMON:
-			return 0.5
+			return 1.0
 		RarityTier.LUXURY:
-			return 1.2
+			return 1.5
 		RarityTier.RARE:
 			return 3.0
 		_:

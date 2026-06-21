@@ -30,8 +30,27 @@ func _update_location_label() -> void:
 		return
 		
 	var pos = player.global_position
+	
+	# Resolve overworld position if player is inside an interior
+	if pos.y > 8000.0:
+		var closest_interior: Node2D = null
+		var min_interior_dist = INF
+		for interior in get_tree().get_nodes_in_group("Interiors"):
+			if is_instance_valid(interior):
+				var dist = pos.distance_to(interior.global_position)
+				if dist < min_interior_dist:
+					min_interior_dist = dist
+					closest_interior = interior
+		if closest_interior and is_instance_valid(closest_interior.get("parent_building")):
+			pos = closest_interior.parent_building.global_position
+			
 	var province = "Valley Province" if pos.x < 3500 else "Oakhaven Province"
 	
+	var prosperity_val = 100
+	var pm = get_node_or_null("/root/ProsperityManager")
+	if pm:
+		prosperity_val = int(pm.province_prosperity.get(province, 100.0))
+		
 	var closest_settlement: Node2D = null
 	var min_dist: float = INF
 	var is_city: bool = false
@@ -63,7 +82,7 @@ func _update_location_label() -> void:
 		if min_dist <= influence_radius:
 			location_name = closest_settlement.city_name if is_city else closest_settlement.town_name
 			
-	location_lbl.text = "%s - %s" % [province, location_name]
+	location_lbl.text = "%s (%d) - %s" % [province, prosperity_val, location_name]
 
 func _draw() -> void:
 	# 1. Background Grid & Radar Area

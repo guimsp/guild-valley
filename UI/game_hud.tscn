@@ -1,10 +1,15 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://UI/game_hud.gd" id="1_game_hud"]
 [ext_resource type="PackedScene" path="res://common/ui/market_ui.tscn" id="2_market_ui"]
 [ext_resource type="PackedScene" path="res://common/ui/crafting_ui.tscn" id="3_crafting_ui"]
 [ext_resource type="Script" path="res://UI/map_graphics.gd" id="4_map_graphics"]
 [ext_resource type="Script" path="res://UI/minimap_radar.gd" id="5_minimap_radar"]
+[ext_resource type="Script" path="res://UI/title_upgrade_window.gd" id="6_title_upgrade_window"]
+[ext_resource type="Script" path="res://UI/influence_broker_window.gd" id="7_influence_broker_window"]
+[ext_resource type="Script" path="res://UI/build_menu_window.gd" id="8_build_menu_window"]
+[ext_resource type="Script" path="res://UI/business_list_window.gd" id="9_business_list_window"]
+[ext_resource type="Script" path="res://UI/opponents_list_window.gd" id="10_opponents_list_window"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass_blue"]
 bg_color = Color(0.1, 0.1, 0.14, 0.94)
@@ -590,6 +595,7 @@ offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass_green")
+script = ExtResource("8_build_menu_window")
 
 [node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/BuildMenu_Window"]
 layout_mode = 2
@@ -670,6 +676,7 @@ offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+script = ExtResource("9_business_list_window")
 
 [node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/BusinessList_Window"]
 layout_mode = 2
@@ -720,6 +727,7 @@ offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass_red")
+script = ExtResource("10_opponents_list_window")
 
 [node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/OpponentsList_Window"]
 layout_mode = 2
@@ -888,6 +896,7 @@ offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass_blue")
+script = ExtResource("6_title_upgrade_window")
 
 [node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/TitleUpgrade_Window"]
 layout_mode = 2
@@ -983,6 +992,7 @@ offset_bottom = 130.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass_gold")
+script = ExtResource("7_influence_broker_window")
 
 [node name="VBox" type="VBoxContainer" parent="Control/Control_Windows/InfluenceBroker_Window"]
 layout_mode = 2

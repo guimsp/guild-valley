@@ -50,8 +50,8 @@ func tick_demands(delta: float) -> Array[String]:
 	for item_id in demand_profiles:
 		var profile = demand_profiles[item_id]
 		if not profile.has("timer"):
-			var min_c = profile.get("cooldown_min", 30.0)
-			var max_c = profile.get("cooldown_max", 60.0)
+			var min_c = profile.get("cooldown_min", 60.0)
+			var max_c = profile.get("cooldown_max", 120.0)
 			var start_c = randf_range(min_c, max_c)
 			profile["timer"] = start_c
 			profile["cooldown_total"] = start_c
@@ -61,8 +61,8 @@ func tick_demands(delta: float) -> Array[String]:
 			
 		profile["timer"] -= delta
 		if profile["timer"] <= 0.0:
-			var min_c = profile.get("cooldown_min", 30.0)
-			var max_c = profile.get("cooldown_max", 60.0)
+			var min_c = profile.get("cooldown_min", 60.0)
+			var max_c = profile.get("cooldown_max", 120.0)
 			var next_c = randf_range(min_c, max_c)
 			profile["timer"] = next_c
 			profile["cooldown_total"] = next_c
@@ -81,3 +81,16 @@ func get_class_string() -> String:
 		SocialClass.NOBLE:
 			return "Noble"
 	return "Peasant"
+
+const PROFESSION_TIERS = ["NOVICE", "JOURNEYMAN", "EXPERT", "MASTER"]
+
+static func get_profession_tier(level: int) -> String:
+	if level <= 3:
+		return "NOVICE"
+	elif level <= 6:
+		return "JOURNEYMAN"
+	elif level <= 9:
+		return "EXPERT"
+	else:
+		return "MASTER"
+

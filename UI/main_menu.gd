@@ -121,7 +121,7 @@ func _on_load_pressed() -> void:
 		# Since load_game clears and instantiates the world, we can transition first
 		TransitionScreen.transition_to_scene("res://entities/world/world.tscn", Vector2(1550, 500))
 		await TransitionScreen.faded_out
-		GameState.load_game()
+		SaveLoadManager.load_game()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

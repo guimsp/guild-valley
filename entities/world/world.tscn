@@ -343,6 +343,7 @@ custom_name = "Town Hall"
 position = Vector2(250, 0)
 ownership_type = "Public"
 is_buyable = false
+is_city_council = true
 custom_name = "City Council"
 
 [node name="QuestBoard" parent="ValleyCity" instance=ExtResource("23_quest_board")]
@@ -374,6 +375,7 @@ custom_name = "Town Hall"
 position = Vector2(250, 0)
 ownership_type = "Public"
 is_buyable = false
+is_city_council = true
 custom_name = "City Council"
 
 [node name="QuestBoard" parent="OakhavenCity" instance=ExtResource("23_quest_board")]

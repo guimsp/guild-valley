@@ -15,8 +15,8 @@ var time_keyframes: Dictionary = {
 
 func _process(_delta: float) -> void:
 	# Calculate decimal in-game hour
-	var hours = GameState.time_hours
-	var minutes = GameState.time_minutes
+	var hours = TimeManager.time_hours
+	var minutes = TimeManager.time_minutes
 	var decimal_time = hours + (minutes / 60.0)
 	
 	color = _get_color_for_time(decimal_time)

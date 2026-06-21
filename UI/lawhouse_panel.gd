@@ -6,7 +6,8 @@ var active_tab: String = "ActiveLaws"
 # References to UI elements
 var title_lbl: Label
 var status_lbl: Label
-var content_container: ScrollContainer
+var main_content_hbox: HBoxContainer
+var details_pane: PanelContainer
 var tab_active_btn: Button
 var tab_sponsor_btn: Button
 var tab_ballot_btn: Button
@@ -50,6 +51,7 @@ func open(province_name: String) -> void:
 		
 	show()
 	_refresh_display()
+	_focus_first_element()
 
 func _on_close_pressed() -> void:
 	hide()
@@ -131,12 +133,12 @@ func _build_ui_nodes() -> void:
 	tab_vote_btn.pressed.connect(func(): _switch_tab("CastVotes"))
 	tabs_hbox.add_child(tab_vote_btn)
 	
-	# 3. Main Content Scroll
-	content_container = ScrollContainer.new()
-	content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	content_vbox.add_child(content_container)
+	# 3. Main Content Layout
+	main_content_hbox = HBoxContainer.new()
+	main_content_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_content_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_content_hbox.add_theme_constant_override("separation", 16)
+	content_vbox.add_child(main_content_hbox)
 	
 	# HSeparator
 	var sep2 = HSeparator.new()
@@ -147,6 +149,7 @@ func _build_ui_nodes() -> void:
 	close_btn.text = "Exit Chamber"
 	close_btn.custom_minimum_size = Vector2(160, 34)
 	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_btn.focus_mode = Control.FOCUS_NONE
 	_setup_button_hover(close_btn)
 	close_btn.pressed.connect(_on_close_pressed)
 	content_vbox.add_child(close_btn)
@@ -154,6 +157,7 @@ func _build_ui_nodes() -> void:
 func _style_tab_btn(btn: Button) -> void:
 	btn.custom_minimum_size = Vector2(120, 30)
 	btn.add_theme_font_size_override("font_size", 12)
+	btn.focus_mode = Control.FOCUS_NONE
 	_setup_button_hover(btn)
 
 func _setup_button_hover(btn: Button) -> void:
@@ -170,6 +174,69 @@ func _switch_tab(tab_name: String) -> void:
 	active_tab = tab_name
 	_update_tabs_visibility()
 	_refresh_display()
+	_focus_first_element()
+
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
+		
+	if event.is_action_pressed("ui_cancel"):
+		_on_close_pressed()
+		get_viewport().set_input_as_handled()
+		return
+		
+	if event.is_pressed() and not event.is_echo():
+		const TABS = ["ActiveLaws", "SponsorLaw", "CurrentBallot", "CastVotes"]
+		if event.is_action_pressed("ui_page_up") or (event is InputEventKey and event.keycode == KEY_Q):
+			var idx = TABS.find(active_tab)
+			var next_idx = (idx - 1 + TABS.size()) % TABS.size()
+			_switch_tab(TABS[next_idx])
+			get_viewport().set_input_as_handled()
+			return
+		elif event.is_action_pressed("ui_page_down") or (event is InputEventKey and event.keycode == KEY_E):
+			var idx = TABS.find(active_tab)
+			var next_idx = (idx + 1) % TABS.size()
+			_switch_tab(TABS[next_idx])
+			get_viewport().set_input_as_handled()
+			return
+			
+		if event.is_action_pressed("interact") or (event is InputEventKey and event.keycode == KEY_F) or event.is_action_pressed("ui_accept"):
+			var focused = get_viewport().gui_get_focus_owner()
+			if focused and is_instance_valid(focused) and is_ancestor_of(focused):
+				if focused is Button:
+					focused.pressed.emit()
+					get_viewport().set_input_as_handled()
+					return
+					
+		if event is InputEventKey:
+			var key = event.keycode
+			if key == KEY_W or key == KEY_S or key == KEY_A or key == KEY_D:
+				var focused = get_viewport().gui_get_focus_owner()
+				if not focused or not is_ancestor_of(focused):
+					_focus_first_element()
+					get_viewport().set_input_as_handled()
+					return
+					
+				var action_name = ""
+				match key:
+					KEY_W: action_name = "ui_up"
+					KEY_S: action_name = "ui_down"
+					KEY_A: action_name = "ui_left"
+					KEY_D: action_name = "ui_right"
+					
+				if action_name != "":
+					var ev = InputEventAction.new()
+					ev.action = action_name
+					ev.pressed = true
+					Input.parse_input_event(ev)
+					get_viewport().set_input_as_handled()
+					return
+
+func _focus_first_element() -> void:
+	await get_tree().process_frame
+	var grid = main_content_hbox.get_node_or_null("left_vbox/GridContainer")
+	if grid and grid.get_child_count() > 0:
+		grid.get_child(0).grab_focus()
 
 func _update_tabs_visibility() -> void:
 	var active_color = Color(1.0, 0.85, 0.4) # Warm gold for active tab
@@ -201,462 +268,595 @@ func _refresh_display() -> void:
 		
 	status_lbl.text = "Current State: " + phase_str
 	
-	# Clear scroll container child
-	for child in content_container.get_children():
+	# Cache focus index before clearing
+	var focused = get_viewport().gui_get_focus_owner()
+	var focused_index = -1
+	var in_left_grid = false
+	if focused and is_instance_valid(focused) and main_content_hbox.is_ancestor_of(focused):
+		var grid = main_content_hbox.get_node_or_null("left_vbox/GridContainer")
+		if grid and grid.is_ancestor_of(focused):
+			focused_index = focused.get_index()
+			in_left_grid = true
+			
+	# Clear main_content_hbox
+	for child in main_content_hbox.get_children():
 		child.queue_free()
 		
-	var scroll_vbox = VBoxContainer.new()
-	scroll_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll_vbox.add_theme_constant_override("separation", 10)
-	content_container.add_child(scroll_vbox)
-	
+	# Clear any previous warning banner
+	var content_vbox = main_content_hbox.get_parent()
+	if content_vbox:
+		var old_banner = content_vbox.get_node_or_null("TaxBanner")
+		if old_banner:
+			old_banner.queue_free()
+			
+	# Render the active tab
 	match active_tab:
 		"ActiveLaws":
-			_render_active_laws(scroll_vbox, pm)
+			_render_active_laws_tab(pm)
 		"SponsorLaw":
-			_render_sponsor_tab(scroll_vbox, pm, phase_id, state)
+			_render_sponsor_tab(pm, phase_id, state)
 		"CurrentBallot":
-			_render_ballot_tab(scroll_vbox, pm, phase_id, state)
+			_render_ballot_tab(pm, phase_id, state)
 		"CastVotes":
-			_render_voting_tab(scroll_vbox, pm, phase_id, state)
+			_render_voting_tab(pm, phase_id, state)
+			
+	# Restore focus if we were on the left grid
+	if in_left_grid and focused_index != -1:
+		await get_tree().process_frame
+		var grid = main_content_hbox.get_node_or_null("left_vbox/GridContainer")
+		if grid and focused_index < grid.get_child_count():
+			grid.get_child(focused_index).grab_focus()
 
-func _render_active_laws(parent: VBoxContainer, pm: Node) -> void:
+func _setup_two_pane_layout() -> GridContainer:
+	# 1. Left VBox
+	var left_vbox = VBoxContainer.new()
+	left_vbox.name = "left_vbox"
+	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_vbox.add_theme_constant_override("separation", 10)
+	main_content_hbox.add_child(left_vbox)
+	
+	# GridContainer for cards
+	var grid = GridContainer.new()
+	grid.name = "GridContainer"
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_vbox.add_child(grid)
+	
+	# 2. Right Pane (Details Panel)
+	details_pane = PanelContainer.new()
+	details_pane.name = "details_pane"
+	details_pane.custom_minimum_size = Vector2(300, 320)
+	details_pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	details_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	var r_style = StyleBoxFlat.new()
+	r_style.bg_color = Color(0.12, 0.16, 0.24, 0.6)
+	r_style.set_corner_radius_all(8)
+	r_style.set_border_width_all(1)
+	r_style.border_color = Color(0.24, 0.60, 0.86, 0.4)
+	r_style.content_margin_left = 14
+	r_style.content_margin_right = 14
+	r_style.content_margin_top = 14
+	r_style.content_margin_bottom = 14
+	details_pane.add_theme_stylebox_override("panel", r_style)
+	
+	main_content_hbox.add_child(details_pane)
+	
+	return grid
+
+func _show_law_details(law_name: String, law_desc: String, status_text: String, status_color: Color, action_callback: Callable = Callable()) -> void:
+	for child in details_pane.get_children():
+		child.queue_free()
+		
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	details_pane.add_child(vbox)
+	
+	# Title
+	var title = Label.new()
+	title.text = law_name
+	title.add_theme_font_size_override("font_size", 13)
+	title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(title)
+	
+	# Status Pill
+	var pill = PanelContainer.new()
+	var pill_style = StyleBoxFlat.new()
+	pill_style.bg_color = status_color
+	pill_style.set_corner_radius_all(4)
+	pill_style.content_margin_left = 8
+	pill_style.content_margin_right = 8
+	pill_style.content_margin_top = 4
+	pill_style.content_margin_bottom = 4
+	pill.add_theme_stylebox_override("panel", pill_style)
+	
+	var pill_lbl = Label.new()
+	pill_lbl.text = status_text
+	pill_lbl.add_theme_font_size_override("font_size", 9)
+	pill_lbl.add_theme_color_override("font_color", Color.WHITE)
+	pill.add_child(pill_lbl)
+	pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	vbox.add_child(pill)
+	
+	# Description
+	var desc = Label.new()
+	desc.text = law_desc
+	desc.add_theme_font_size_override("font_size", 10)
+	desc.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(desc)
+	
+	# Actions Container
+	if action_callback.is_valid():
+		var actions_vbox = VBoxContainer.new()
+		actions_vbox.add_theme_constant_override("separation", 8)
+		actions_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.add_child(actions_vbox)
+		action_callback.call(actions_vbox)
+
+func _show_info_details(title_text: String, desc_text: String) -> void:
+	var info_lbl = Label.new()
+	info_lbl.text = desc_text
+	info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	info_lbl.add_theme_font_size_override("font_size", 12)
+	info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_content_hbox.add_child(info_lbl)
+
+func _show_tax_warning_banner(backlog: int, is_delinquent: bool, pm: Node) -> void:
+	var content_vbox = main_content_hbox.get_parent()
+	if not content_vbox:
+		return
+		
+	var banner = PanelContainer.new()
+	banner.name = "TaxBanner"
+	var banner_style = StyleBoxFlat.new()
+	banner_style.bg_color = Color(0.35, 0.08, 0.08, 0.9) if is_delinquent else Color(0.25, 0.18, 0.08, 0.9)
+	banner_style.border_color = Color(0.8, 0.2, 0.2, 0.7) if is_delinquent else Color(0.7, 0.5, 0.2, 0.7)
+	banner_style.set_border_width_all(1)
+	banner_style.set_corner_radius_all(6)
+	banner_style.content_margin_left = 12
+	banner_style.content_margin_right = 12
+	banner_style.content_margin_top = 8
+	banner_style.content_margin_bottom = 8
+	banner.add_theme_stylebox_override("panel", banner_style)
+	
+	var banner_hbox = HBoxContainer.new()
+	banner_hbox.add_theme_constant_override("separation", 10)
+	banner_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	banner.add_child(banner_hbox)
+	
+	var text_vbox = VBoxContainer.new()
+	text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	banner_hbox.add_child(text_vbox)
+	
+	var banner_title = Label.new()
+	banner_title.text = "⚠️ TAX DELINQUENCY WARNING" if is_delinquent else "⚠️ OUTSTANDING TAX BACKLOG"
+	banner_title.add_theme_font_size_override("font_size", 11)
+	banner_title.add_theme_color_override("font_color", Color(1.0, 0.8, 0.8) if is_delinquent else Color(1.0, 0.9, 0.7))
+	text_vbox.add_child(banner_title)
+	
+	var banner_desc = Label.new()
+	banner_desc.text = "You owe %d Gold in seasonal taxes. " % backlog
+	if is_delinquent:
+		banner_desc.text += "Your structures in this province suffer -50% Attractiveness and -20% Productivity penalties!"
+	else:
+		banner_desc.text += "Pay this backlog to avoid delinquency penalties."
+	banner_desc.add_theme_font_size_override("font_size", 10)
+	banner_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_vbox.add_child(banner_desc)
+	
+	var pay_btn = Button.new()
+	pay_btn.text = "Pay Backlog (%d Gold)" % backlog
+	pay_btn.custom_minimum_size = Vector2(160, 24)
+	pay_btn.add_theme_font_size_override("font_size", 10)
+	pay_btn.focus_mode = Control.FOCUS_NONE
+	_setup_button_hover(pay_btn)
+	
+	if GameState.gold < backlog:
+		pay_btn.disabled = true
+		
+	pay_btn.pressed.connect(func():
+		if pm.pay_player_backlog(current_province):
+			_refresh_display()
+	)
+	banner_hbox.add_child(pay_btn)
+	
+	content_vbox.add_child(banner)
+	content_vbox.move_child(banner, 2)
+
+func _focus_action_button(btn_text: String) -> void:
+	var found = _find_button_by_text(details_pane, btn_text)
+	if found:
+		found.grab_focus()
+
+func _find_button_by_text(node: Node, text: String) -> Button:
+	if node is Button and node.text == text:
+		return node
+	for child in node.get_children():
+		var found = _find_button_by_text(child, text)
+		if found:
+			return found
+	return null
+
+func _render_active_laws_tab(pm: Node) -> void:
+	var grid = _setup_two_pane_layout()
 	var state = pm.province_states.get(current_province, {})
 	var active_laws = state.get("active_laws", {})
 	
-	# Delinquency status check
 	var is_delinquent = pm.is_faction_delinquent("Player", current_province)
 	var backlog = pm.tax_backlog.get(current_province, {}).get("Player", 0)
-	
 	if is_delinquent or backlog > 0:
-		var banner = PanelContainer.new()
-		var banner_style = StyleBoxFlat.new()
-		banner_style.bg_color = Color(0.35, 0.08, 0.08, 0.9) if is_delinquent else Color(0.25, 0.18, 0.08, 0.9)
-		banner_style.border_color = Color(0.8, 0.2, 0.2, 0.7) if is_delinquent else Color(0.7, 0.5, 0.2, 0.7)
-		banner_style.set_border_width_all(1)
-		banner_style.set_corner_radius_all(6)
-		banner_style.content_margin_left = 12
-		banner_style.content_margin_right = 12
-		banner_style.content_margin_top = 8
-		banner_style.content_margin_bottom = 8
-		banner.add_theme_stylebox_override("panel", banner_style)
+		_show_tax_warning_banner(backlog, is_delinquent, pm)
 		
-		var banner_vbox = VBoxContainer.new()
-		banner_vbox.add_theme_constant_override("separation", 4)
-		banner.add_child(banner_vbox)
-		
-		var banner_title = Label.new()
-		banner_title.text = "⚠️ TAX DELINQUENCY WARNING" if is_delinquent else "⚠️ OUTSTANDING TAX BACKLOG"
-		banner_title.add_theme_font_size_override("font_size", 12)
-		banner_title.add_theme_color_override("font_color", Color(1.0, 0.8, 0.8) if is_delinquent else Color(1.0, 0.9, 0.7))
-		banner_vbox.add_child(banner_title)
-		
-		var banner_desc = Label.new()
-		banner_desc.text = "You owe %d Gold in seasonal taxes. " % backlog
-		if is_delinquent:
-			banner_desc.text += "Your structures in this province suffer -50% Attractiveness and -20% Productivity penalties!"
-		else:
-			banner_desc.text += "Pay this backlog to avoid delinquency penalties at the next seasonal shift."
-		banner_desc.add_theme_font_size_override("font_size", 11)
-		banner_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		banner_vbox.add_child(banner_desc)
-		
-		var pay_btn = Button.new()
-		pay_btn.text = "Pay Backlog (%d Gold)" % backlog
-		pay_btn.custom_minimum_size = Vector2(160, 24)
-		pay_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-		pay_btn.add_theme_font_size_override("font_size", 10)
-		_setup_button_hover(pay_btn)
-		
-		if GameState.gold < backlog:
-			pay_btn.disabled = true
-			
-		pay_btn.pressed.connect(func():
-			if pm.pay_player_backlog(current_province):
-				_refresh_display()
-		)
-		banner_vbox.add_child(pay_btn)
-		
-		parent.add_child(banner)
-		
-		# Spacing
-		var spacer = Control.new()
-		spacer.custom_minimum_size = Vector2(0, 8)
-		parent.add_child(spacer)
-		
-	var active_lbl = Label.new()
-	active_lbl.text = "Enforced Laws & Policies:"
-	active_lbl.add_theme_font_size_override("font_size", 13)
-	active_lbl.add_theme_color_override("font_color", Color(0.2, 0.8, 0.3))
-	parent.add_child(active_lbl)
-	
-	# Grouped logic for Enforced Laws (combining active custom laws and default common laws)
-	# 1. Real Estate Tax
+	var active_list = []
 	if active_laws.get("real_estate_levy_inc", false):
-		parent.add_child(_create_law_card(pm.laws_db["real_estate_levy_inc"].name, pm.laws_db["real_estate_levy_inc"].description, true))
+		active_list.append(pm.laws_db["real_estate_levy_inc"])
 	elif active_laws.get("real_estate_levy_dec", false):
-		parent.add_child(_create_law_card(pm.laws_db["real_estate_levy_dec"].name, pm.laws_db["real_estate_levy_dec"].description, true))
+		active_list.append(pm.laws_db["real_estate_levy_dec"])
 	else:
-		parent.add_child(_create_law_card("Regular Real Estate Levy", "Residential housing units pay standard flat-rate seasonal property taxes.", true))
+		active_list.append({"id": "real_estate_levy_default", "name": "Regular Real Estate Levy", "description": "Residential housing units pay standard flat-rate seasonal property taxes.", "is_default": true})
 		
-	# 2. Production Building Tax
 	if active_laws.get("hospitality_excise_tax", false):
-		parent.add_child(_create_law_card(pm.laws_db["hospitality_excise_tax"].name, pm.laws_db["hospitality_excise_tax"].description, true))
+		active_list.append(pm.laws_db["hospitality_excise_tax"])
 	else:
-		parent.add_child(_create_law_card("Regular production building tax 10%", "Workshops, taverns, and inns pay the standard flat production tax shift rates.", true))
+		active_list.append({"id": "hospitality_excise_tax_default", "name": "Regular Production Tax 10%", "description": "Workshops, taverns, and inns pay the standard flat production tax shift rates.", "is_default": true})
 		
-	# 3. Logging
 	if active_laws.get("crown_forestry_protection", false):
-		parent.add_child(_create_law_card(pm.laws_db["crown_forestry_protection"].name, pm.laws_db["crown_forestry_protection"].description, true))
+		active_list.append(pm.laws_db["crown_forestry_protection"])
 	else:
-		parent.add_child(_create_law_card("Legal Logging", "Timber harvesting is permitted on all public forest grounds without crown penalties.", true))
+		active_list.append({"id": "forestry_default", "name": "Legal Logging", "description": "Timber harvesting is permitted on all public forest grounds without crown penalties.", "is_default": true})
 		
-	# 4. Hunting
 	if active_laws.get("noble_game_preservation", false):
-		parent.add_child(_create_law_card(pm.laws_db["noble_game_preservation"].name, pm.laws_db["noble_game_preservation"].description, true))
+		active_list.append(pm.laws_db["noble_game_preservation"])
 	else:
-		parent.add_child(_create_law_card("Legal hunting", "Citizens are free to hunt wild game (venison) in designated forest regions.", true))
+		active_list.append({"id": "hunting_default", "name": "Legal Hunting", "description": "Citizens are free to hunt wild game (venison) in designated forest regions.", "is_default": true})
 		
-	# 5. Mining
 	if active_laws.get("metallurgical_monopoly", false):
-		parent.add_child(_create_law_card(pm.laws_db["metallurgical_monopoly"].name, pm.laws_db["metallurgical_monopoly"].description, true))
+		active_list.append(pm.laws_db["metallurgical_monopoly"])
 	else:
-		parent.add_child(_create_law_card("Legal mining", "Smelting and mineral refining are permitted throughout the province, including outposts and rural workshops.", true))
+		active_list.append({"id": "mining_default", "name": "Legal Mining", "description": "Smelting and mineral refining are permitted throughout the province, including outposts and rural workshops.", "is_default": true})
 		
-	# 6. Curfew
 	if active_laws.get("courier_curfew", false):
-		parent.add_child(_create_law_card(pm.laws_db["courier_curfew"].name, pm.laws_db["courier_curfew"].description, true))
+		active_list.append(pm.laws_db["courier_curfew"])
 	else:
-		parent.add_child(_create_law_card("Unrestricted Night Travel", "No courier curfew is active. Commercial routes operate 24 hours a day without penalty.", true))
+		active_list.append({"id": "curfew_default", "name": "Unrestricted Night Travel", "description": "No courier curfew is active. Commercial routes operate 24 hours a day without penalty.", "is_default": true})
 		
-	# 7. Carriage Ban
 	if active_laws.get("martial_carriage_ban", false):
-		parent.add_child(_create_law_card(pm.laws_db["martial_carriage_ban"].name, pm.laws_db["martial_carriage_ban"].description, true))
+		active_list.append(pm.laws_db["martial_carriage_ban"])
 	else:
-		parent.add_child(_create_law_card("Free Carriage of Arms", "No ban on carrying swords outdoors is active. Carriage speed is normal.", true))
+		active_list.append({"id": "carriage_default", "name": "Free Carriage of Arms", "description": "No ban on carrying swords outdoors is active. Carriage speed is normal.", "is_default": true})
 		
-	# 8. Labor Welfare
 	if active_laws.get("labor_welfare_mandate", false):
-		parent.add_child(_create_law_card(pm.laws_db["labor_welfare_mandate"].name, pm.laws_db["labor_welfare_mandate"].description, true))
+		active_list.append(pm.laws_db["labor_welfare_mandate"])
 	else:
-		parent.add_child(_create_law_card("Unregulated Labor Market", "Wages and working conditions are set by market rate. No welfare productivity penalties apply.", true))
+		active_list.append({"id": "labor_default", "name": "Unregulated Labor Market", "description": "Wages and working conditions are set by market rate. No welfare productivity penalties apply.", "is_default": true})
 		
-	# 9. Usury
 	if active_laws.get("usury_prohibition", false):
-		parent.add_child(_create_law_card(pm.laws_db["usury_prohibition"].name, pm.laws_db["usury_prohibition"].description, true))
+		active_list.append(pm.laws_db["usury_prohibition"])
 	else:
-		parent.add_child(_create_law_card("Unregulated Interest Rates", "Interest rates on bank loans are determined by bank operators without local caps.", true))
+		active_list.append({"id": "usury_default", "name": "Unregulated Interest Rates", "description": "Interest rates on bank loans are determined by bank operators without local caps.", "is_default": true})
 		
-	# 10. Garrison Allocation
 	if active_laws.get("garrison_allocation_inc", false):
-		parent.add_child(_create_law_card(pm.laws_db["garrison_allocation_inc"].name, pm.laws_db["garrison_allocation_inc"].description, true))
+		active_list.append(pm.laws_db["garrison_allocation_inc"])
 	elif active_laws.get("garrison_allocation_dec", false):
-		parent.add_child(_create_law_card(pm.laws_db["garrison_allocation_dec"].name, pm.laws_db["garrison_allocation_dec"].description, true))
+		active_list.append(pm.laws_db["garrison_allocation_dec"])
 	else:
-		parent.add_child(_create_law_card("Regular Garrison Patrols", "Guards scan for active law violations with a standard 50% detection probability.", true))
-		
-	# Spacing
-	var sep = HSeparator.new()
-	parent.add_child(sep)
-	
-	var inactive_lbl = Label.new()
-	inactive_lbl.text = "Inactive Custom Laws / Bills:"
-	inactive_lbl.add_theme_font_size_override("font_size", 13)
-	inactive_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
-	parent.add_child(inactive_lbl)
-	
-	for law_id in pm.laws_db:
-		if active_laws.get(law_id, false) == false:
-			var law = pm.laws_db[law_id]
-			var card = _create_law_card(law.name, law.description, false)
-			parent.add_child(card)
+		active_list.append({"id": "garrison_default", "name": "Regular Garrison Patrols", "description": "Guards scan for active law violations with a standard 50% detection probability.", "is_default": true})
 
-func _render_sponsor_tab(parent: VBoxContainer, pm: Node, phase: int, state: Dictionary) -> void:
+	for i in range(active_list.size()):
+		var law = active_list[i]
+		var card_btn = Button.new()
+		card_btn.text = law.name
+		card_btn.add_theme_font_size_override("font_size", 9)
+		card_btn.custom_minimum_size = Vector2(170, 36)
+		card_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		
+		var btn_style = StyleBoxFlat.new()
+		btn_style.bg_color = Color(0.1, 0.14, 0.2, 0.7)
+		btn_style.set_corner_radius_all(6)
+		btn_style.set_border_width_all(1)
+		btn_style.border_color = Color(0.2, 0.8, 0.3, 0.6) if not law.get("is_default", false) else Color(0.24, 0.60, 0.86, 0.4)
+		card_btn.add_theme_stylebox_override("normal", btn_style)
+		card_btn.add_theme_stylebox_override("hover", btn_style)
+		card_btn.add_theme_stylebox_override("focus", btn_style)
+		
+		card_btn.focus_entered.connect(func():
+			_show_law_details(law.name, law.description, "ACTIVE", Color(0.1, 0.4, 0.15))
+		)
+		
+		grid.add_child(card_btn)
+		
+	_focus_first_element()
+
+func _render_sponsor_tab(pm: Node, phase: int, state: Dictionary) -> void:
+	var grid = _setup_two_pane_layout()
+	var active_laws = state.get("active_laws", {})
 	var sponsored_law = state.get("sponsored_law")
 	
-	if sponsored_law != null:
-		var lbl = Label.new()
-		lbl.text = "Your Sponsored Bill for this session:"
-		lbl.add_theme_font_size_override("font_size", 14)
-		lbl.add_theme_color_override("font_color", Color(0.24, 0.60, 0.86))
-		parent.add_child(lbl)
-		
-		var card = _create_law_card(sponsored_law.name, sponsored_law.description, false)
-		parent.add_child(card)
-		
-		var info_lbl = Label.new()
-		info_lbl.text = "The bill has been registered and will appear on the ballot during Ballot Assembly at midday."
-		info_lbl.add_theme_font_size_override("font_size", 11)
-		info_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-		parent.add_child(info_lbl)
-		return
-		
-	if phase != 1:
-		var locked_lbl = Label.new()
-		locked_lbl.text = "Sponsorship is only open during the Morning (6:00 AM to 12:00 PM) of the Legislative Day (Day 4 of the cycle)."
-		locked_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		locked_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		locked_lbl.add_theme_font_size_override("font_size", 12)
-		parent.add_child(locked_lbl)
-		return
-		
-	var lbl = Label.new()
-	lbl.text = "Select a law to sponsor. Sponsoring requires Influence. (Available Influence: %d)" % GameState.influence
-	lbl.add_theme_font_size_override("font_size", 13)
-	parent.add_child(lbl)
-	
-	for law_id in pm.laws_db:
-		var law = pm.laws_db[law_id]
-		# Check if already active
-		if state.get("active_laws", {}).get(law_id, false):
-			continue
+	var sponsor_callback = func(actions_vbox: VBoxContainer, law: Dictionary):
+		if sponsored_law != null:
+			var info_lbl = Label.new()
+			info_lbl.text = "Another bill is already sponsored for this session."
+			info_lbl.add_theme_font_size_override("font_size", 10)
+			info_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+			actions_vbox.add_child(info_lbl)
+			return
 			
-		var card = _create_law_card(law.name, law.description, false)
-		var btn = Button.new()
-		btn.text = "Sponsor Bill (-%d Influence)" % law.influence_cost
-		btn.add_theme_font_size_override("font_size", 11)
-		btn.custom_minimum_size = Vector2(180, 26)
-		_setup_button_hover(btn)
+		if phase != 1:
+			var locked_lbl = Label.new()
+			locked_lbl.text = "Sponsorship is only open during the Morning (6:00 AM - 12:00 PM) of Legislative Day 4."
+			locked_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+			locked_lbl.add_theme_font_size_override("font_size", 10)
+			locked_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			actions_vbox.add_child(locked_lbl)
+			return
+			
+		var sponsor_btn = Button.new()
+		sponsor_btn.text = "Sponsor Bill (-%d Influence)" % law.influence_cost
+		sponsor_btn.add_theme_font_size_override("font_size", 11)
+		sponsor_btn.custom_minimum_size = Vector2(180, 28)
+		_setup_button_hover(sponsor_btn)
 		
 		if GameState.influence < law.influence_cost:
-			btn.disabled = true
+			sponsor_btn.disabled = true
 			
-		btn.pressed.connect(func():
+		sponsor_btn.pressed.connect(func():
 			if GameState.influence >= law.influence_cost:
 				GameState.influence -= law.influence_cost
 				pm.register_sponsored_law(current_province, law)
 				_refresh_display()
 		)
-		
-		card.get_child(0).add_child(btn) # Add button to the HBox of the card
-		parent.add_child(card)
+		actions_vbox.add_child(sponsor_btn)
 
-func _render_ballot_tab(parent: VBoxContainer, pm: Node, phase: int, state: Dictionary) -> void:
+	var eligible_laws = []
+	for law_id in pm.laws_db:
+		if not active_laws.get(law_id, false):
+			eligible_laws.append(pm.laws_db[law_id])
+			
+	for i in range(eligible_laws.size()):
+		var law = eligible_laws[i]
+		var card_btn = Button.new()
+		card_btn.text = law.name
+		card_btn.add_theme_font_size_override("font_size", 9)
+		card_btn.custom_minimum_size = Vector2(170, 36)
+		card_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		
+		var btn_style = StyleBoxFlat.new()
+		btn_style.bg_color = Color(0.1, 0.14, 0.2, 0.7)
+		btn_style.set_corner_radius_all(6)
+		btn_style.set_border_width_all(1)
+		btn_style.border_color = Color(0.24, 0.60, 0.86, 0.4)
+		card_btn.add_theme_stylebox_override("normal", btn_style)
+		card_btn.add_theme_stylebox_override("hover", btn_style)
+		card_btn.add_theme_stylebox_override("focus", btn_style)
+		
+		var is_currently_sponsored = (sponsored_law != null and sponsored_law.id == law.id)
+		
+		card_btn.focus_entered.connect(func():
+			var status_text = "ELIGIBLE"
+			var status_color = Color(0.24, 0.52, 0.85)
+			if is_currently_sponsored:
+				status_text = "SPONSORED BY YOU"
+				status_color = Color(0.9, 0.77, 0.31)
+			_show_law_details(law.name, law.description, status_text, status_color, sponsor_callback.bind(law))
+		)
+		
+		grid.add_child(card_btn)
+		
+	_focus_first_element()
+
+func _render_ballot_tab(pm: Node, phase: int, state: Dictionary) -> void:
+	var grid = _setup_two_pane_layout()
 	var ballot = state.get("current_ballot", [])
 	
 	if phase < 2:
-		var info_lbl = Label.new()
-		info_lbl.text = "The legislative ballot has not been assembled yet. It will be built at Midday (12:00 PM)."
-		info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		info_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		parent.add_child(info_lbl)
+		_show_info_details("Legislative Ballot", "The ballot has not been assembled yet. It will be built at Midday (12:00 PM).")
 		return
 		
-	var lbl = Label.new()
-	lbl.text = "Ballot Bills Up for Vote in this session:"
-	lbl.add_theme_font_size_override("font_size", 14)
-	lbl.add_theme_color_override("font_color", Color(0.9, 0.77, 0.31))
-	parent.add_child(lbl)
-	
-	for law in ballot:
-		var card = _create_law_card(law.name, law.description, false)
-		parent.add_child(card)
+	if ballot.is_empty():
+		_show_info_details("Legislative Ballot", "No bills are sponsored for this session.")
+		return
+		
+	for i in range(ballot.size()):
+		var law = ballot[i]
+		var card_btn = Button.new()
+		card_btn.text = law.name
+		card_btn.add_theme_font_size_override("font_size", 9)
+		card_btn.custom_minimum_size = Vector2(170, 36)
+		card_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		
+		var btn_style = StyleBoxFlat.new()
+		btn_style.bg_color = Color(0.1, 0.14, 0.2, 0.7)
+		btn_style.set_corner_radius_all(6)
+		btn_style.set_border_width_all(1)
+		btn_style.border_color = Color(0.9, 0.77, 0.31, 0.6)
+		card_btn.add_theme_stylebox_override("normal", btn_style)
+		card_btn.add_theme_stylebox_override("hover", btn_style)
+		card_btn.add_theme_stylebox_override("focus", btn_style)
+		
+		card_btn.focus_entered.connect(func():
+			_show_law_details(law.name, law.description, "BALLOT", Color(0.9, 0.77, 0.31))
+		)
+		
+		grid.add_child(card_btn)
+		
+	_focus_first_element()
 
-func _render_voting_tab(parent: VBoxContainer, pm: Node, phase: int, state: Dictionary) -> void:
+func _render_voting_tab(pm: Node, phase: int, state: Dictionary) -> void:
 	var ballot = state.get("current_ballot", [])
 	
 	if phase != 3:
-		# Check if we have voting history to show
 		var history = state.get("votes_history", [])
+		var history_text = ""
 		if not history.is_empty():
 			var last_vote = history[history.size() - 1]
-			var hist_lbl = Label.new()
-			hist_lbl.text = "Last Vote Results (Day %d):" % last_vote["day"]
-			hist_lbl.add_theme_font_size_override("font_size", 14)
-			hist_lbl.add_theme_color_override("font_color", Color(0.24, 0.60, 0.86))
-			parent.add_child(hist_lbl)
-			
+			history_text = "Last Vote Results (Day %d):\n" % last_vote["day"]
 			for l_id in last_vote["results"]:
 				var res = last_vote["results"][l_id]
-				var r_lbl = Label.new()
-				r_lbl.text = "Bill: %s - %s (Pass Weight: %d, Fail Weight: %d)" % [
+				history_text += "- %s: %s (Pass %d, Fail %d)\n" % [
 					res["law_name"],
 					"PASSED" if res["passed"] else "FAILED",
 					res["pass_weight"],
 					res["fail_weight"]
 				]
-				r_lbl.add_theme_font_size_override("font_size", 12)
-				r_lbl.add_theme_color_override("font_color", Color(0.3, 0.8, 0.4) if res["passed"] else Color(0.9, 0.4, 0.2))
-				parent.add_child(r_lbl)
-				
-		var info_lbl = Label.new()
-		info_lbl.text = "\nVoting only takes place during the Evening (6:00 PM to 12:00 AM) of the Legislative Day."
-		info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		info_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		parent.add_child(info_lbl)
+		
+		_show_info_details("Voting Session Closed", "Voting only takes place during the Evening (6:00 PM to 12:00 AM) of Legislative Day 4.\n\n" + history_text)
 		return
 		
-	var lbl = Label.new()
-	lbl.text = "Configure and Cast Votes. (Available Influence: %d)" % GameState.influence
-	lbl.add_theme_font_size_override("font_size", 14)
-	parent.add_child(lbl)
+	if ballot.is_empty():
+		_show_info_details("Voting Session", "No bills on the ballot to vote for.")
+		return
+		
+	var grid = _setup_two_pane_layout()
+	var left_vbox = grid.get_parent() as VBoxContainer
 	
-	for law in ballot:
-		var card = PanelContainer.new()
-		var card_style = StyleBoxFlat.new()
-		card_style.bg_color = Color(0.12, 0.16, 0.24, 0.6)
-		card_style.set_corner_radius_all(6)
-		card_style.set_border_width_all(1)
-		card_style.border_color = Color(0.2, 0.35, 0.5)
-		card.add_theme_stylebox_override("panel", card_style)
-		
-		var inner_vbox = VBoxContainer.new()
-		inner_vbox.add_theme_constant_override("separation", 8)
-		card.add_child(inner_vbox)
-		
-		var title = Label.new()
-		title.text = law.name
-		title.add_theme_font_size_override("font_size", 13)
-		title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
-		inner_vbox.add_child(title)
-		
-		var desc = Label.new()
-		desc.text = law.description
-		desc.add_theme_font_size_override("font_size", 11)
-		desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85))
-		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		inner_vbox.add_child(desc)
-		
-		var controls = HBoxContainer.new()
-		controls.add_theme_constant_override("separation", 16)
-		inner_vbox.add_child(controls)
-		
-		# Choice Yes/No Buttons
-		var pass_fail = player_votes.get(law.id, true)
-		
-		var pass_btn = Button.new()
-		pass_btn.text = "PASS"
-		pass_btn.custom_minimum_size = Vector2(80, 26)
-		_setup_button_hover(pass_btn)
-		pass_btn.pressed.connect(func():
-			player_votes[law.id] = true
-			_refresh_display()
-		)
-		controls.add_child(pass_btn)
-		
-		var fail_btn = Button.new()
-		fail_btn.text = "FAIL"
-		fail_btn.custom_minimum_size = Vector2(80, 26)
-		_setup_button_hover(fail_btn)
-		fail_btn.pressed.connect(func():
-			player_votes[law.id] = false
-			_refresh_display()
-		)
-		controls.add_child(fail_btn)
-		
-		# Styling selected choices
-		if pass_fail:
-			pass_btn.add_theme_color_override("font_color", Color.GREEN)
-			fail_btn.remove_theme_color_override("font_color")
-		else:
-			fail_btn.add_theme_color_override("font_color", Color.RED)
-			pass_btn.remove_theme_color_override("font_color")
-			
-		# Influence Buy Weight Slider/Controls
-		var inf_spent = player_influence_spent.get(law.id, 0)
-		
-		var weight_lbl = Label.new()
-		weight_lbl.text = "Vote Weight: %d (+%d Influence)" % [1 + int(inf_spent / 10), inf_spent]
-		weight_lbl.add_theme_font_size_override("font_size", 11)
-		controls.add_child(weight_lbl)
-		
-		var minus_btn = Button.new()
-		minus_btn.text = "-"
-		minus_btn.custom_minimum_size = Vector2(24, 24)
-		minus_btn.pressed.connect(func():
-			if inf_spent >= 10:
-				GameState.influence += 10
-				player_influence_spent[law.id] = inf_spent - 10
-				_refresh_display()
-		)
-		controls.add_child(minus_btn)
-		
-		var plus_btn = Button.new()
-		plus_btn.text = "+"
-		plus_btn.custom_minimum_size = Vector2(24, 24)
-		plus_btn.pressed.connect(func():
-			if GameState.influence >= 10:
-				GameState.influence -= 10
-				player_influence_spent[law.id] = inf_spent + 10
-				_refresh_display()
-		)
-		controls.add_child(plus_btn)
-		
-		parent.add_child(card)
-		
-	# Submit Button
+	var sep = HSeparator.new()
+	left_vbox.add_child(sep)
+	
 	var submit_btn = Button.new()
 	submit_btn.text = "Cast Ballots & Resolve Session"
-	submit_btn.custom_minimum_size = Vector2(240, 36)
+	submit_btn.custom_minimum_size = Vector2(240, 32)
+	submit_btn.add_theme_font_size_override("font_size", 11)
 	submit_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_setup_button_hover(submit_btn)
+	left_vbox.add_child(submit_btn)
+	
+	submit_btn.focus_entered.connect(func():
+		var summary_text = "Summary of configured votes:\n\n"
+		for b_law in ballot:
+			var vote_choice = player_votes.get(b_law.id, true)
+			var vote_inf = player_influence_spent.get(b_law.id, 0)
+			var weight = 1 + int(vote_inf / 10)
+			summary_text += "- %s: %s (Weight: %d, Influence: %d)\n" % [
+				b_law.name,
+				"PASS" if vote_choice else "FAIL",
+				weight,
+				vote_inf
+			]
+		_show_law_details("Resolve Voting Session", summary_text, "BALLOT READY", Color(0.9, 0.77, 0.31))
+	)
+	
 	submit_btn.pressed.connect(func():
 		var results = pm.resolve_voting_session(current_province, player_votes, player_influence_spent)
 		player_votes.clear()
 		player_influence_spent.clear()
 		_switch_tab("ActiveLaws")
 	)
-	parent.add_child(submit_btn)
 
-func _create_law_card(law_name: String, law_desc: String, is_active: bool) -> PanelContainer:
-	var card = PanelContainer.new()
-	var card_style = StyleBoxFlat.new()
-	card_style.bg_color = Color(0.12, 0.16, 0.24, 0.5)
-	card_style.set_corner_radius_all(6)
-	card_style.set_border_width_all(1)
-	card_style.border_color = Color(0.24, 0.60, 0.86, 0.3)
-	card.add_theme_stylebox_override("panel", card_style)
-	
-	var hbox = HBoxContainer.new()
-	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_theme_constant_override("separation", 16)
-	card.add_child(hbox)
-	
-	var vbox = VBoxContainer.new()
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(vbox)
-	
-	var title = Label.new()
-	title.text = law_name
-	title.add_theme_font_size_override("font_size", 13)
-	title.add_theme_color_override("font_color", Color(0.9, 0.77, 0.31))
-	vbox.add_child(title)
-	
-	var desc = Label.new()
-	desc.text = law_desc
-	desc.add_theme_font_size_override("font_size", 11)
-	desc.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox.add_child(desc)
-	
-	# Status Pill on the right
-	var pill = PanelContainer.new()
-	var pill_style = StyleBoxFlat.new()
-	pill_style.set_corner_radius_all(4)
-	pill_style.content_margin_left = 8
-	pill_style.content_margin_right = 8
-	pill_style.content_margin_top = 4
-	pill_style.content_margin_bottom = 4
-	
-	var pill_lbl = Label.new()
-	pill_lbl.add_theme_font_size_override("font_size", 10)
-	
-	if is_active:
-		pill_style.bg_color = Color(0.1, 0.4, 0.15, 0.8) # Green
-		pill_style.border_color = Color(0.2, 0.8, 0.3, 0.6)
-		pill_style.set_border_width_all(1)
-		pill_lbl.text = "ACTIVE"
-		pill_lbl.add_theme_color_override("font_color", Color(0.6, 1.0, 0.7))
-	else:
-		pill_style.bg_color = Color(0.2, 0.2, 0.25, 0.6) # Gray/Dark Blue
-		pill_style.border_color = Color(0.4, 0.4, 0.45, 0.4)
-		pill_style.set_border_width_all(1)
-		pill_lbl.text = "INACTIVE"
-		pill_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+	var vote_action_callback = func(actions_vbox: VBoxContainer, law: Dictionary):
+		var inf_lbl = Label.new()
+		inf_lbl.text = "Available Influence: %d" % GameState.influence
+		inf_lbl.add_theme_font_size_override("font_size", 10)
+		inf_lbl.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85))
+		actions_vbox.add_child(inf_lbl)
 		
-	pill.add_theme_stylebox_override("panel", pill_style)
-	pill.add_child(pill_lbl)
-	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	hbox.add_child(pill)
-	
-	return card
+		var choice_hbox = HBoxContainer.new()
+		choice_hbox.add_theme_constant_override("separation", 10)
+		actions_vbox.add_child(choice_hbox)
+		
+		var pass_fail = player_votes.get(law.id, true)
+		
+		var pass_btn = Button.new()
+		pass_btn.text = "PASS"
+		pass_btn.custom_minimum_size = Vector2(70, 26)
+		_setup_button_hover(pass_btn)
+		choice_hbox.add_child(pass_btn)
+		
+		var fail_btn = Button.new()
+		fail_btn.text = "FAIL"
+		fail_btn.custom_minimum_size = Vector2(70, 26)
+		_setup_button_hover(fail_btn)
+		choice_hbox.add_child(fail_btn)
+		
+		if pass_fail:
+			pass_btn.add_theme_color_override("font_color", Color.GREEN)
+		else:
+			fail_btn.add_theme_color_override("font_color", Color.RED)
+			
+		pass_btn.pressed.connect(func():
+			player_votes[law.id] = true
+			_refresh_display()
+			call_deferred("_focus_action_button", "PASS")
+		)
+		fail_btn.pressed.connect(func():
+			player_votes[law.id] = false
+			_refresh_display()
+			call_deferred("_focus_action_button", "FAIL")
+		)
+		
+		var spacer = Control.new()
+		spacer.custom_minimum_size = Vector2(0, 4)
+		actions_vbox.add_child(spacer)
+		
+		var slider_hbox = HBoxContainer.new()
+		slider_hbox.add_theme_constant_override("separation", 8)
+		actions_vbox.add_child(slider_hbox)
+		
+		var inf_spent = player_influence_spent.get(law.id, 0)
+		var weight_lbl = Label.new()
+		weight_lbl.text = "Weight: %d (+%d Inf)" % [1 + int(inf_spent / 10), inf_spent]
+		weight_lbl.add_theme_font_size_override("font_size", 10)
+		slider_hbox.add_child(weight_lbl)
+		
+		var minus_btn = Button.new()
+		minus_btn.text = "-"
+		minus_btn.custom_minimum_size = Vector2(22, 22)
+		_setup_button_hover(minus_btn)
+		slider_hbox.add_child(minus_btn)
+		
+		var plus_btn = Button.new()
+		plus_btn.text = "+"
+		plus_btn.custom_minimum_size = Vector2(22, 22)
+		_setup_button_hover(plus_btn)
+		slider_hbox.add_child(plus_btn)
+		
+		minus_btn.pressed.connect(func():
+			if inf_spent >= 10:
+				GameState.influence += 10
+				player_influence_spent[law.id] = inf_spent - 10
+				_refresh_display()
+				call_deferred("_focus_action_button", "-")
+		)
+		plus_btn.pressed.connect(func():
+			if GameState.influence >= 10:
+				GameState.influence -= 10
+				player_influence_spent[law.id] = inf_spent + 10
+				_refresh_display()
+				call_deferred("_focus_action_button", "+")
+		)
+
+	for i in range(ballot.size()):
+		var law = ballot[i]
+		var card_btn = Button.new()
+		card_btn.text = law.name
+		card_btn.add_theme_font_size_override("font_size", 9)
+		card_btn.custom_minimum_size = Vector2(170, 36)
+		card_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		
+		var btn_style = StyleBoxFlat.new()
+		btn_style.bg_color = Color(0.1, 0.14, 0.2, 0.7)
+		btn_style.set_corner_radius_all(6)
+		btn_style.set_border_width_all(1)
+		btn_style.border_color = Color(0.9, 0.77, 0.31, 0.6)
+		card_btn.add_theme_stylebox_override("normal", btn_style)
+		card_btn.add_theme_stylebox_override("hover", btn_style)
+		card_btn.add_theme_stylebox_override("focus", btn_style)
+		
+		card_btn.focus_entered.connect(func():
+			_show_law_details(law.name, law.description, "BALLOT", Color(0.9, 0.77, 0.31), vote_action_callback.bind(law))
+		)
+		
+		grid.add_child(card_btn)
+		
+	_focus_first_element()

@@ -101,7 +101,7 @@ func _physics_process(delta: float) -> void:
 			if npc_prov == "Unknown Province" or npc_prov == "":
 				npc_prov = GameState.get_province_of_node(parent_body) if GameState else ""
 			if pm.is_law_active("courier_curfew", npc_prov):
-				var is_night = GameState.time_hours >= 20 or GameState.time_hours < 6 if GameState else false
+				var is_night = TimeManager.time_hours >= 20 or TimeManager.time_hours < 6 if GameState else false
 				if is_night:
 					is_waiting = true
 		

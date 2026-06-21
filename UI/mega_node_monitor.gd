@@ -311,8 +311,7 @@ func _render_gather_popup_step() -> void:
 				{"id": "cotton", "name": "Cotton"},
 				{"id": "berries", "name": "Berries"},
 				{"id": "honey", "name": "Honey"},
-				{"id": "venison", "name": "Venison"},
-				{"id": "water", "name": "Water"}
+				{"id": "venison", "name": "Venison"}
 			]
 			
 		var item_buttons = []

@@ -4,6 +4,7 @@ extends StaticBody2D
 
 @export var is_rental: bool = false
 @export var is_guild: bool = false
+@export var is_city_council: bool = false
 @export_enum("Public", "Player", "Rented", "NPC") var ownership_type: String = "Player"
 @export var owner_id: String = "Player"
 @export var buy_cost: int = 250
@@ -32,6 +33,10 @@ func _ready() -> void:
 		ownership_type = "Public"
 		is_buyable = false
 		owner_id = "Guild"
+	elif is_city_council:
+		ownership_type = "Public"
+		is_buyable = false
+		owner_id = "Council"
 		
 	var local_interior = get_node_or_null("Interior")
 	if local_interior:
@@ -66,7 +71,7 @@ func _ready() -> void:
 	interior_position = GameState.allocate_interior_space(building_id)
 	
 	var interior_path = "res://components/buildings/interior_template.tscn"
-	if custom_name == "City Council" or custom_name == "Lawhouse":
+	if is_city_council:
 		interior_path = "res://components/buildings/lawhouse_interior.tscn"
 	elif is_guild:
 		interior_path = "res://components/buildings/guild_hall_interior.tscn"
@@ -76,7 +81,8 @@ func _ready() -> void:
 		instanced_interior = interior_scene.instantiate() as Node2D
 		instanced_interior.name = "Interior_House_" + str(int(global_position.x))
 		instanced_interior.global_position = interior_position
-		get_tree().current_scene.call_deferred("add_child", instanced_interior)
+		var parent_scene = get_tree().current_scene if get_tree().current_scene else get_tree().root
+		parent_scene.call_deferred("add_child", instanced_interior)
 		
 		var exit_spawn_pos = global_position + Vector2(0, 64)
 		instanced_interior.call_deferred("setup_interior", self, exit_spawn_pos)

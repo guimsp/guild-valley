@@ -87,4 +87,7 @@ When designing and creating UI windows, always prioritize controller and keyboar
    - Windows must be closed using the Escape key (`ui_cancel`) or a dedicated, centered "Close" button positioned at the bottom footer of the window for mouse users.
 3. **Always Configure Focus Neighbors**:
    - Manually wire up the focus neighbors (`focus_neighbor_left`, etc.) dynamically or in the scene file to ensure focus moves predictably with WASD/D-pad navigation.
+4. **Tab Cycling with Q/E**:
+   - Cycle through UI category tabs using the `Q` and `E` keys (or `ui_page_up` and `ui_page_down`).
+   - Upon tab switching, automatically grab focus of the first interactable element in the new tab to preserve navigation flow.
 

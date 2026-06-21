@@ -111,7 +111,7 @@ func setup_interior(parent_b: Node2D, exit_pos: Vector2) -> void:
 			add_child(console)
 
 	# Spawn Counselor NPC if parent building is the City Council
-	if parent_building and parent_building.custom_name == "City Council":
+	if parent_building and parent_building.get("is_city_council") == true:
 		if storage_chest:
 			storage_chest.queue_free()
 			storage_chest = null
@@ -168,4 +168,3 @@ func _setup_interior_navigation() -> void:
 	region.navigation_polygon = poly
 	region.enabled = true
 	region.bake_navigation_polygon(false)
-

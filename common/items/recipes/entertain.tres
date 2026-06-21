@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1_script")
+is_service = true
 recipe_name = "Tavern Entertainment Service"
 required_career = "patreon"
 required_level = 2

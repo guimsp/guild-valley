@@ -52,159 +52,33 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.9, 0.77, 0.31, 1)
 theme_override_font_sizes/font_size = 20
-text = "Commercial Trade Routes Console"
+text = "Global Logistics & Trade Console"
 
-[node name="Columns" type="HBoxContainer" parent="Margin/VBox"]
+[node name="CloseButton" type="Button" parent="Margin/VBox/TitleBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 30)
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 24
+text = "Close"
 
-[node name="LeftColumn" type="VBoxContainer" parent="Margin/VBox/Columns"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.1
-theme_override_constants/separation = 12
-
-[node name="RouteConfigLabel" type="Label" parent="Margin/VBox/Columns/LeftColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Route Settings"
-
-[node name="Grid" type="GridContainer" parent="Margin/VBox/Columns/LeftColumn"]
-layout_mode = 2
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 10
-columns = 2
-
-[node name="SourceLabel" type="Label" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Source Workshop:"
-
-[node name="SourceDropdown" type="OptionButton" parent="Margin/VBox/Columns/LeftColumn/Grid"]
+[node name="TabHBox" type="HBoxContainer" parent="Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_constants/separation = 16
 
-[node name="CarrierLabel" type="Label" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Carrier Employee:"
-
-[node name="CarrierDropdown" type="OptionButton" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="CargoLabel" type="Label" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Target Item Cargo:"
-
-[node name="CargoDropdown" type="OptionButton" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="AmountLabel" type="Label" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Cargo Quantity:"
-
-[node name="AmountEdit" type="LineEdit" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "20"
-
-[node name="PriceLabel" type="Label" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Minimum Sell Price:"
-
-[node name="PriceEdit" type="LineEdit" parent="Margin/VBox/Columns/LeftColumn/Grid"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "15"
-
-[node name="HSeparator" type="HSeparator" parent="Margin/VBox/Columns/LeftColumn"]
-layout_mode = 2
-
-[node name="WaypointListLabel" type="Label" parent="Margin/VBox/Columns/LeftColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "Selected Waypoints Route Path:"
-
-[node name="WaypointsScroll" type="ScrollContainer" parent="Margin/VBox/Columns/LeftColumn"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="WaypointsList" type="VBoxContainer" parent="Margin/VBox/Columns/LeftColumn/WaypointsScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
-
-[node name="RightColumn" type="VBoxContainer" parent="Margin/VBox/Columns"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 12
-
-[node name="StallsLabel" type="Label" parent="Margin/VBox/Columns/RightColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Click to Add Waypoint Markets:"
-
-[node name="StallsScroll" type="ScrollContainer" parent="Margin/VBox/Columns/RightColumn"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="StallsList" type="VBoxContainer" parent="Margin/VBox/Columns/RightColumn/StallsScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
-
-[node name="FooterBar" type="HBoxContainer" parent="Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="MetricsVBox" type="VBoxContainer" parent="Margin/VBox/FooterBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="DistanceLabel" type="Label" parent="Margin/VBox/FooterBar/MetricsVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.88, 1.0, 1)
-theme_override_font_sizes/font_size = 12
-text = "Total Route Distance: 0 pixels"
-
-[node name="TimeLabel" type="Label" parent="Margin/VBox/FooterBar/MetricsVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.88, 1.0, 1)
-theme_override_font_sizes/font_size = 12
-text = "Est. Round-Trip Travel Time: 0 seconds"
-
-[node name="ButtonsHBox" type="HBoxContainer" parent="Margin/VBox/FooterBar"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="ClearRouteButton" type="Button" parent="Margin/VBox/FooterBar/ButtonsHBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 36)
-layout_mode = 2
-text = "Clear Path"
-
-[node name="StartRouteButton" type="Button" parent="Margin/VBox/FooterBar/ButtonsHBox"]
+[node name="ActiveTabButton" type="Button" parent="Margin/VBox/TabHBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(1.0, 0.9, 0.4, 1.0)
-text = "Start Route"
+text = "Active Routes"
 
-[node name="CloseButton" type="Button" parent="Margin/VBox/FooterBar/ButtonsHBox"]
+[node name="EditorTabButton" type="Button" parent="Margin/VBox/TabHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 36)
+custom_minimum_size = Vector2(160, 36)
 layout_mode = 2
-text = "Close"
+text = "Route Editor"
+
+[node name="ContentArea" type="PanelContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")

@@ -16,6 +16,7 @@ var _slider_overlay: ColorRect = null
 var _last_traded_item_id: String = ""
 var _last_traded_mode: String = ""
 var _last_focused_trigger_button: Button = null
+var _last_valid_popup_focus: Control = null
 
 const CATEGORIES = ["Raw Materials", "Semi-Elaborate", "Finished Goods", "Consumables", "Equipment", "Skill Items"]
 var _active_category_idx: int = 0
@@ -55,6 +56,8 @@ func _ready() -> void:
 		_setup_button_hover(bottom_close_button)
 		bottom_close_button.focus_mode = Control.FOCUS_ALL
 
+	get_viewport().gui_focus_changed.connect(_on_viewport_focus_changed)
+
 	# Dynamic UI Restructuring:
 	# Hide PlayerColumn and make MarketColumn occupy full width
 	var player_col = $MarginContainer/VBoxContainer/Columns/PlayerColumn
@@ -77,13 +80,13 @@ func _ready() -> void:
 		market_col.add_child(_category_tab_container)
 		market_col.move_child(_category_tab_container, 1)
 			
-	# Instantiating the new 3-column GridContainer inside the ScrollContainer
+	# Instantiating the new 5-column GridContainer inside the ScrollContainer
 	if market_list:
 		_grid_container = GridContainer.new()
-		_grid_container.columns = 3
+		_grid_container.columns = 5
 		_grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_grid_container.add_theme_constant_override("h_separation", 16)
-		_grid_container.add_theme_constant_override("v_separation", 16)
+		_grid_container.add_theme_constant_override("h_separation", 8)
+		_grid_container.add_theme_constant_override("v_separation", 8)
 		market_list.add_child(_grid_container)
 
 	# Create slider overlay backdrop
@@ -154,17 +157,27 @@ func _input(event: InputEvent) -> void:
 	var is_popup_visible = (_slider_overlay and _slider_overlay.visible)
 
 	# Handle slider navigation using A/D keys
-	if is_popup_visible and event.is_pressed() and not event.is_echo():
+	if is_popup_visible and event.is_pressed():
 		var slider = _find_slider_in_node(_slider_overlay)
 		if slider and is_instance_valid(slider):
-			if event.is_action_pressed("move_left") or (event is InputEventKey and event.keycode == KEY_A):
-				slider.value = max(slider.min_value, slider.value - 1)
-				get_viewport().set_input_as_handled()
-				return
-			elif event.is_action_pressed("move_right") or (event is InputEventKey and event.keycode == KEY_D):
-				slider.value = min(slider.max_value, slider.value + 1)
-				get_viewport().set_input_as_handled()
-				return
+			var focused = get_viewport().gui_get_focus_owner()
+			if focused == slider:
+				if event.is_action_pressed("move_left", true) or (event is InputEventKey and event.keycode == KEY_A):
+					slider.value = max(slider.min_value, slider.value - 1)
+					get_viewport().set_input_as_handled()
+					return
+				elif event.is_action_pressed("move_right", true) or (event is InputEventKey and event.keycode == KEY_D):
+					slider.value = min(slider.max_value, slider.value + 1)
+					get_viewport().set_input_as_handled()
+					return
+			
+			if event is InputEventKey and event.keycode == KEY_R and not event.is_echo():
+				var confirm_btn = _find_confirm_button_in_node(_slider_overlay)
+				if confirm_btn and is_instance_valid(confirm_btn):
+					slider.value = slider.max_value
+					confirm_btn.pressed.emit()
+					get_viewport().set_input_as_handled()
+					return
 
 	# Handle F / interact / ui_accept confirming focused buttons
 	if event.is_pressed() and not event.is_echo():
@@ -274,6 +287,8 @@ func refresh() -> void:
 		
 	if parent_b:
 		var bench = parent_b.get_node_or_null("CraftingBench")
+		if not bench and is_instance_valid(parent_b.get("instanced_interior")):
+			bench = parent_b.instanced_interior.get_node_or_null("CraftingBench")
 		if bench and "recipes" in bench:
 			for recipe in bench.recipes:
 				if recipe and recipe.get("output_item") and not display_items.has(recipe.output_item):
@@ -282,11 +297,11 @@ func refresh() -> void:
 	if display_items.is_empty():
 		display_items = _items
 		
-	# Filter display_items by active category
+	# Filter display_items by active category and ensure they are tradable
 	var active_cat = CATEGORIES[_active_category_idx]
 	var filtered_items = []
 	for item in display_items:
-		if item.market_category == active_cat:
+		if item.market_category == active_cat and item.is_tradable:
 			filtered_items.append(item)
 			
 	# Update tabs
@@ -314,7 +329,7 @@ func _refresh_trade_grid(display_items: Array) -> void:
 		# Build a single focusable Button card
 		var card = Button.new()
 		card.name = "Card_" + item.id
-		card.custom_minimum_size = Vector2(175, 82)
+		card.custom_minimum_size = Vector2(136, 42)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		# Theme override styles for card
@@ -323,10 +338,10 @@ func _refresh_trade_grid(display_items: Array) -> void:
 		normal_style.set_border_width_all(2)
 		normal_style.border_color = Color(0.22, 0.22, 0.32, 0.7)
 		normal_style.set_corner_radius_all(6)
-		normal_style.content_margin_left = 8
-		normal_style.content_margin_right = 8
-		normal_style.content_margin_top = 6
-		normal_style.content_margin_bottom = 6
+		normal_style.content_margin_left = 4
+		normal_style.content_margin_right = 4
+		normal_style.content_margin_top = 2
+		normal_style.content_margin_bottom = 2
 		
 		var hover_style = normal_style.duplicate()
 		hover_style.bg_color = Color(0.18, 0.18, 0.24, 0.9)
@@ -348,22 +363,22 @@ func _refresh_trade_grid(display_items: Array) -> void:
 		
 		# Inner vbox with proper anchors to fill button and padding
 		var vbox = VBoxContainer.new()
-		vbox.add_theme_constant_override("separation", 2)
+		vbox.add_theme_constant_override("separation", 0)
 		vbox.mouse_filter = Control.MOUSE_FILTER_PASS
 		vbox.anchor_left = 0.0
 		vbox.anchor_right = 1.0
 		vbox.anchor_top = 0.0
 		vbox.anchor_bottom = 1.0
-		vbox.offset_left = 12
-		vbox.offset_right = -12
-		vbox.offset_top = 8
-		vbox.offset_bottom = -8
+		vbox.offset_left = 6
+		vbox.offset_right = -6
+		vbox.offset_top = 2
+		vbox.offset_bottom = -2
 		card.add_child(vbox)
 		
 		# Name
 		var name_lbl = Label.new()
 		name_lbl.text = item.name
-		name_lbl.add_theme_font_size_override("font_size", 12)
+		name_lbl.add_theme_font_size_override("font_size", 9)
 		name_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 		vbox.add_child(name_lbl)
@@ -371,14 +386,14 @@ func _refresh_trade_grid(display_items: Array) -> void:
 		# Stock
 		var stock_lbl = Label.new()
 		stock_lbl.text = "Stall: %d  |  Own: %d" % [stall_stock, player_stock]
-		stock_lbl.add_theme_font_size_override("font_size", 10)
+		stock_lbl.add_theme_font_size_override("font_size", 8)
 		stock_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.9))
 		stock_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 		vbox.add_child(stock_lbl)
 		
 		# Price info
 		var price_lbl = Label.new()
-		price_lbl.add_theme_font_size_override("font_size", 10)
+		price_lbl.add_theme_font_size_override("font_size", 8)
 		price_lbl.add_theme_color_override("font_color", Color(0.9, 0.75, 0.2))
 		price_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 		
@@ -429,10 +444,7 @@ func _calculate_max_affordable(item: ItemData) -> int:
 	var current_gold = GameState.gold
 	var accumulated_cost = 0
 	for i in range(current_stock):
-		var target = _current_stall.target_stock.get(item, 10)
-		var multiplier = 1.0 + (float(target - temp_stock) / target) * _current_stall.sensitivity
-		multiplier = clamp(multiplier, 0.2, 3.0)
-		var price = int(item.base_value * multiplier * 1.1)
+		var price = _current_stall.get_single_buy_price(item, temp_stock)
 		if accumulated_cost + price <= current_gold:
 			accumulated_cost += price
 			max_affordable += 1
@@ -598,6 +610,9 @@ func _open_transaction_prompt(item: ItemData, card_node: Control) -> void:
 	if not active_btns.is_empty():
 		active_btns[0].focus_neighbor_left = active_btns[0].get_path()
 		active_btns[-1].focus_neighbor_right = active_btns[-1].get_path()
+		for btn in active_btns:
+			btn.focus_neighbor_top = btn.get_path()
+			btn.focus_neighbor_bottom = btn.get_path()
 		
 	_slider_overlay.show()
 	first_focus_btn.grab_focus()
@@ -703,15 +718,25 @@ func _open_price_adjuster_prompt(item: ItemData, card_node: Control) -> void:
 	_setup_button_hover(confirm_btn)
 	actions_hbox.add_child(confirm_btn)
 	
+	dec_btn.focus_neighbor_left = dec_btn.get_path()
+	dec_btn.focus_neighbor_top = dec_btn.get_path()
 	dec_btn.focus_neighbor_right = inc_btn.get_path()
-	inc_btn.focus_neighbor_left = dec_btn.get_path()
-	inc_btn.focus_neighbor_bottom = confirm_btn.get_path()
 	dec_btn.focus_neighbor_bottom = cancel_btn.get_path()
 	
-	cancel_btn.focus_neighbor_top = dec_btn.get_path()
-	confirm_btn.focus_neighbor_top = inc_btn.get_path()
+	inc_btn.focus_neighbor_left = dec_btn.get_path()
+	inc_btn.focus_neighbor_right = inc_btn.get_path()
+	inc_btn.focus_neighbor_top = inc_btn.get_path()
+	inc_btn.focus_neighbor_bottom = confirm_btn.get_path()
+	
+	cancel_btn.focus_neighbor_left = cancel_btn.get_path()
 	cancel_btn.focus_neighbor_right = confirm_btn.get_path()
+	cancel_btn.focus_neighbor_top = dec_btn.get_path()
+	cancel_btn.focus_neighbor_bottom = cancel_btn.get_path()
+	
 	confirm_btn.focus_neighbor_left = cancel_btn.get_path()
+	confirm_btn.focus_neighbor_right = confirm_btn.get_path()
+	confirm_btn.focus_neighbor_top = inc_btn.get_path()
+	confirm_btn.focus_neighbor_bottom = confirm_btn.get_path()
 	
 	_slider_overlay.show()
 	confirm_btn.grab_focus()
@@ -820,8 +845,42 @@ func _open_quantity_slider(item: ItemData, mode: String, max_limit: int, card_no
 	_setup_button_hover(confirm_btn)
 	buttons_hbox.add_child(confirm_btn)
 	
+	var all_btn = Button.new()
+	all_btn.name = "AllButton"
+	all_btn.text = "All (R)"
+	all_btn.custom_minimum_size = Vector2(85, 30)
+	all_btn.focus_mode = Control.FOCUS_ALL
+	_setup_button_hover(all_btn)
+	buttons_hbox.add_child(all_btn)
+	buttons_hbox.move_child(all_btn, 1) # Insert between Cancel and Confirm
+	all_btn.pressed.connect(func():
+		slider.value = slider.max_value
+		_on_slider_confirmed(item, mode, int(slider.value), card_node)
+	)
+	
+	# Wire focus neighbors within the dialog to trap focus
+	slider.focus_neighbor_left = slider.get_path()
+	slider.focus_neighbor_right = slider.get_path()
+	slider.focus_neighbor_top = slider.get_path()
+	slider.focus_neighbor_bottom = all_btn.get_path()
+	
+	cancel_btn.focus_neighbor_left = cancel_btn.get_path()
+	cancel_btn.focus_neighbor_right = all_btn.get_path()
+	cancel_btn.focus_neighbor_top = slider.get_path()
+	cancel_btn.focus_neighbor_bottom = cancel_btn.get_path()
+	
+	all_btn.focus_neighbor_left = cancel_btn.get_path()
+	all_btn.focus_neighbor_right = confirm_btn.get_path()
+	all_btn.focus_neighbor_top = slider.get_path()
+	all_btn.focus_neighbor_bottom = all_btn.get_path()
+	
+	confirm_btn.focus_neighbor_left = all_btn.get_path()
+	confirm_btn.focus_neighbor_right = confirm_btn.get_path()
+	confirm_btn.focus_neighbor_top = slider.get_path()
+	confirm_btn.focus_neighbor_bottom = confirm_btn.get_path()
+	
 	_slider_overlay.show()
-	confirm_btn.grab_focus()
+	slider.grab_focus()
 
 func _on_slider_confirmed(item: ItemData, mode: String, amount: int, card_node: Control) -> void:
 	_last_traded_item_id = item.id
@@ -844,6 +903,7 @@ func _on_slider_confirmed(item: ItemData, mode: String, amount: int, card_node: 
 	refresh()
 
 func _close_slider_popup() -> void:
+	_last_valid_popup_focus = null
 	if _slider_overlay:
 		for child in _slider_overlay.get_children():
 			child.queue_free()
@@ -861,10 +921,7 @@ func _calculate_total_buy_cost(item: ItemData, amount: int) -> int:
 	var total_price: int = 0
 	var temp_stock: int = current_stock
 	for i in range(amount):
-		var target: int = _current_stall.target_stock.get(item, 10)
-		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * _current_stall.sensitivity
-		multiplier = clamp(multiplier, 0.2, 3.0)
-		total_price += int(item.base_value * multiplier * 1.1)
+		total_price += _current_stall.get_single_buy_price(item, temp_stock)
 		temp_stock -= 1
 	return total_price
 
@@ -875,10 +932,7 @@ func _calculate_total_sell_revenue(item: ItemData, amount: int) -> int:
 	var total_revenue: int = 0
 	var temp_stock: int = current_stock
 	for i in range(amount):
-		var target: int = _current_stall.target_stock.get(item, 10)
-		var multiplier: float = 1.0 + (float(target - temp_stock) / target) * _current_stall.sensitivity
-		multiplier = clamp(multiplier, 0.2, 3.0)
-		total_revenue += int(item.base_value * multiplier * 0.9)
+		total_revenue += _current_stall.get_single_sell_price(item, temp_stock)
 		temp_stock += 1
 	return total_revenue
 
@@ -1013,3 +1067,27 @@ func _link_market_grid_focus() -> void:
 				btn.focus_neighbor_bottom = rows[r + 1][target_c].get_path()
 			else:
 				btn.focus_neighbor_bottom = btn.get_path()
+
+func _on_viewport_focus_changed(control: Control) -> void:
+	if _slider_overlay and _slider_overlay.visible:
+		if control:
+			if _slider_overlay.is_ancestor_of(control):
+				_last_valid_popup_focus = control
+			else:
+				if _last_valid_popup_focus and is_instance_valid(_last_valid_popup_focus) and _last_valid_popup_focus.is_inside_tree() and _last_valid_popup_focus.visible:
+					_last_valid_popup_focus.call_deferred("grab_focus")
+				else:
+					var fallback = _find_first_focusable_in_popup(_slider_overlay)
+					if fallback:
+						_last_valid_popup_focus = fallback
+						fallback.call_deferred("grab_focus")
+
+func _find_first_focusable_in_popup(node: Node) -> Control:
+	if node is Control and node.visible and node.focus_mode != Control.FOCUS_NONE:
+		if node is HSlider or node is Button:
+			return node
+	for child in node.get_children():
+		var found = _find_first_focusable_in_popup(child)
+		if found:
+			return found
+	return null

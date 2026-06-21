@@ -7,7 +7,7 @@
 [node name="AIRival" instance=ExtResource("1_player")]
 script = ExtResource("2_ai_rival")
 speed = 80.0
-gold = 100
+gold = 1500
 
 [node name="AnimatedSprite2D" parent="." index="1"]
 modulate = Color(1, 0.6, 0.6, 1)

@@ -27,7 +27,7 @@ var quest_board_ui_scene = load("res://UI/quest_board_ui.tscn")
 var quest_board_ui_instance: PanelContainer = null
 var lawhouse_ui_scene = load("res://UI/lawhouse_panel.tscn")
 var lawhouse_ui_instance: PanelContainer = null
-
+var guild_ui_instance: PanelContainer = null
 
 # Shortcut buttons
 @onready var button_f1: Button = %Button_F1
@@ -38,18 +38,6 @@ var lawhouse_ui_instance: PanelContainer = null
 @onready var button_f6: Button = %Button_F6
 @onready var button_f10: Button = %Button_F10
 
-# TitleUpgrade elements
-@onready var titles_list_container: VBoxContainer = %TitlesList
-@onready var selected_title_name_label: Label = %SelectedTitleName
-@onready var selected_title_desc_label: Label = %SelectedTitleDesc
-@onready var title_upgrade_cost_label: Label = %TitleUpgradeCostLabel
-@onready var upgrade_title_button: Button = %UpgradeTitleButton
-
-# InfluenceBroker elements
-@onready var broker_gold_label: Label = %BrokerGoldLabel
-@onready var broker_influence_label: Label = %BrokerInfluenceLabel
-@onready var exchange_button: Button = %ExchangeButton
-
 # Overlay elements
 @onready var interact_prompt: PanelContainer = %InteractPrompt
 @onready var interact_label: Label = %InteractLabel
@@ -59,9 +47,6 @@ var lawhouse_ui_instance: PanelContainer = null
 # Inner layouts
 @onready var inventory_grid: GridContainer = %InventoryGrid
 @onready var career_tab_container: TabContainer = %CareerTabContainer
-@onready var build_tab_container: TabContainer = %BuildTabContainer
-@onready var home_tab_list: VBoxContainer = %HomeTabList
-@onready var business_tab_list: VBoxContainer = %BusinessTabList
 
 # Equipment Panel UI references
 @onready var armor_label: Label = %ArmorLabel
@@ -79,10 +64,6 @@ var lawhouse_ui_instance: PanelContainer = null
 @onready var ring_slot: Button = %RingSlot
 @onready var trans_slot: Button = %TransSlot
 
-# Business list & Opponents list outlets
-@onready var business_scroll_list: VBoxContainer = %BusinessScrollList
-@onready var opponents_scroll_list: VBoxContainer = %OpponentsScrollList
-
 # Pause Menu overlay reference for GameState compatibility
 var pause_menu: Control:
 	get: return pause_window
@@ -90,11 +71,10 @@ var pause_menu: Control:
 var _active_player: Player = null
 var _all_recipes: Array = []
 var _building_ui_instance: Control = null
-var _filter_only_buildable: bool = false
 var _commercial_route_ui_instance: Control = null
 
 var alert_history_window: PanelContainer = null
-var alert_cards_vbox: VBoxContainer = null
+var alert_ui_manager: Node = null
 
 func _ready() -> void:
 	# Keep processing even when paused
@@ -110,9 +90,24 @@ func _ready() -> void:
 	# Connect to player if already exists
 	_find_player()
 	
-	# Create Alert Card and History containers dynamically
-	_create_alert_containers()
+	# Instantiate alert UI manager
+	alert_ui_manager = load("res://UI/alert_ui_manager.gd").new()
+	add_child(alert_ui_manager)
+	alert_ui_manager.setup(self)
+	alert_history_window = alert_ui_manager.alert_history_window
 	
+	# Setup child scripts
+	if title_upgrade_window:
+		title_upgrade_window.setup(self)
+	if influence_broker_window:
+		influence_broker_window.setup(self)
+	if build_window:
+		build_window.setup(self)
+	if business_window:
+		business_window.setup(self)
+	if opponents_window:
+		opponents_window.setup(self)
+		
 	# Wire up equipment slots
 	head_slot.pressed.connect(func(): _on_equipment_slot_pressed("head"))
 	body_slot.pressed.connect(func(): _on_equipment_slot_pressed("body"))
@@ -160,17 +155,9 @@ func _ready() -> void:
 	var quit_btn = %QuitButton
 	
 	resume_btn.pressed.connect(toggle_pause_menu)
-	save_btn.pressed.connect(func(): GameState.save_game())
-	load_btn.pressed.connect(func(): GameState.load_game())
+	save_btn.pressed.connect(func(): SaveLoadManager.save_game())
+	load_btn.pressed.connect(func(): SaveLoadManager.load_game())
 	quit_btn.pressed.connect(func(): get_tree().quit())
-	
-	# Wire up Title & Influence Broker buttons
-	if upgrade_title_button:
-		upgrade_title_button.pressed.connect(_on_upgrade_title_pressed)
-		_setup_button_hover(upgrade_title_button)
-	if exchange_button:
-		exchange_button.pressed.connect(_on_exchange_influence_pressed)
-		_setup_button_hover(exchange_button)
 	
 	# Lock Pause Menu buttons keyboard focus
 	resume_btn.focus_neighbor_top = quit_btn.get_path()
@@ -203,40 +190,24 @@ func _ready() -> void:
 					child.hide()
 				if _active_player:
 					_active_player.unfreeze()
+				var focused = get_viewport().gui_get_focus_owner()
+				if focused:
+					focused.release_focus()
 			)
 			_setup_button_hover(btn)
-	
-	# Initialize tab containers focus modes
-	if build_tab_container:
-		build_tab_container.focus_mode = Control.FOCUS_NONE
-		build_tab_container.tab_changed.connect(func(_tab_idx):
-			_focus_first_card_in_active_tab()
-		)
-	if career_tab_container:
-		career_tab_container.focus_mode = Control.FOCUS_NONE
-		
+			
 	# Update values initially
 	update_hud_values()
 	
 	# Connect GameState and inventory signals
+	if GameState.has_signal("gold_changed"):
+		GameState.gold_changed.connect(func(new_gold): update_hud_values())
+		
 	if GameState.player_inventory:
 		GameState.player_inventory.inventory_changed.connect(update_inventory_panel)
 		
-	GameState.time_changed.connect(_on_time_changed)
-	_on_time_changed(GameState.time_hours, int(GameState.time_minutes), GameState.time_days)
-	
-	# Connect alerts signals and initialize existing active alerts
-	GameState.alert_added.connect(_on_alert_added)
-	GameState.alert_removed.connect(_on_alert_removed)
-	for alert in GameState.active_alerts:
-		_on_alert_added(alert)
-		
-	# Connect to QuestManager to auto-refresh the ledger if open
-	if QuestManager:
-		QuestManager.quests_updated.connect(func():
-			if business_window and business_window.visible:
-				populate_business_ledger()
-		)
+	TimeManager.time_changed.connect(_on_time_changed)
+	_on_time_changed(TimeManager.time_hours, int(TimeManager.time_minutes), TimeManager.time_days)
 
 func _process(_delta: float) -> void:
 	if not _active_player:
@@ -377,19 +348,32 @@ func _animate_scale(node: Control, target_scale: float) -> void:
 	tween.tween_property(node, "scale", Vector2(target_scale, target_scale), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func toggle_window(window: PanelContainer) -> void:
-	# If placement mode is active, do not allow menu toggle except pause menu
+	# If placement mode is active, do not allow menu toggle except pause menu and build menu (which cancels placement)
 	var pm = get_tree().get_first_node_in_group("PlacementManager")
 	var pm_active = pm and pm.is_placement_active()
 	if pm_active and window != pause_window:
+		if window == build_window:
+			pm._spawn_floating_text("Cancel", pm._active_player.global_position if pm._active_player else Vector2.ZERO)
+			var focused = get_viewport().gui_get_focus_owner()
+			if focused:
+				focused.release_focus()
+			pm.exit_placement_mode()
 		return
 
 	if window.visible:
 		# Close window
+		if window.has_method("_close_levels_overlay"):
+			window._close_levels_overlay()
 		window.hide()
 		windows_container.hide()
 		get_tree().paused = false
 		if _active_player:
 			_active_player.unfreeze()
+		
+		# Explicitly release focus so that WASD keys are not captured by hidden controls
+		var focused = get_viewport().gui_get_focus_owner()
+		if focused:
+			focused.release_focus()
 	else:
 		# Hide others
 		windows_container.show()
@@ -419,27 +403,22 @@ func toggle_window(window: PanelContainer) -> void:
 		tween.tween_property(window, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		
 		# Populate contents
-		if window == character_window:
+		if window.has_method("refresh"):
+			window.refresh()
+		elif window == alert_history_window and alert_ui_manager:
+			alert_ui_manager.refresh()
+		elif window == character_window:
 			update_career_tabs()
 		elif window == inventory_window:
 			update_inventory_panel()
-		elif window == build_window:
-			refresh_build_menu()
-		elif window == business_window:
-			populate_business_ledger()
-		elif window == opponents_window:
-			populate_opponents_list()
-		elif window == title_upgrade_window:
-			update_title_upgrade_window()
-		elif window == influence_broker_window:
-			update_influence_broker_window()
-		elif window == alert_history_window:
-			populate_alert_history()
 			
 		# Sync Keyboard Focus
 		call_deferred("_grab_focus_on_first_element", window)
 
 func _grab_focus_on_first_element(window: Control) -> void:
+	if window.has_method("_focus_first_card_in_active_tab"):
+		window._focus_first_card_in_active_tab()
+		return
 	var target = _find_first_focusable(window)
 	if target:
 		target.grab_focus()
@@ -457,6 +436,94 @@ func _find_first_focusable(node: Node) -> Control:
 	return null
 
 func _input(event: InputEvent) -> void:
+	# Dialogue bubbles and input shortcuts
+	if event.is_action_pressed("ui_cancel"):
+		var pm = get_tree().get_first_node_in_group("PlacementManager")
+		var pm_active = pm and pm.is_placement_active()
+		if pm_active:
+			return
+			
+		var dialogue_bubbles = get_tree().get_nodes_in_group("DialogueBubble")
+		if dialogue_bubbles.size() > 0:
+			for bubble in dialogue_bubbles:
+				if is_instance_valid(bubble) and bubble.visible:
+					bubble._on_close_pressed()
+			get_viewport().set_input_as_handled()
+			return
+
+		var rel_ui = get_tree().get_first_node_in_group("RelationshipUI")
+		if rel_ui and rel_ui.visible:
+			rel_ui._on_close_pressed()
+			get_viewport().set_input_as_handled()
+			return
+			
+		var bank_ui_inst = get_node_or_null("BankUI")
+		if not bank_ui_inst:
+			bank_ui_inst = get_node_or_null("HUDControl/BankUI")
+		if bank_ui_inst and bank_ui_inst.visible:
+			if bank_ui_inst.has_method("_on_close_pressed"):
+				bank_ui_inst._on_close_pressed()
+			else:
+				bank_ui_inst.queue_free()
+				if _active_player:
+					_active_player.unfreeze()
+			update_interaction_prompt()
+			get_viewport().set_input_as_handled()
+			return
+			
+		var npc_inspector = get_node_or_null("NPCInspectorPanel")
+		if not npc_inspector:
+			npc_inspector = get_node_or_null("HUDControl/NPCInspectorPanel")
+		if npc_inspector and npc_inspector.visible:
+			npc_inspector.hide()
+			get_viewport().set_input_as_handled()
+			return
+			
+		if _building_ui_instance and _building_ui_instance.visible:
+			close_building_ui()
+			get_viewport().set_input_as_handled()
+			return
+
+		if _commercial_route_ui_instance and _commercial_route_ui_instance.visible:
+			if not _commercial_route_ui_instance.get("popup") and not _commercial_route_ui_instance.get("employee_popup"):
+				close_commercial_routes_ui()
+				get_viewport().set_input_as_handled()
+				return
+
+		if market_ui and market_ui.visible:
+			market_ui.close()
+			get_viewport().set_input_as_handled()
+			return
+
+		if crafting_ui and crafting_ui.visible:
+			crafting_ui.close()
+			get_viewport().set_input_as_handled()
+			return
+
+		if is_instance_valid(build_window) and build_window.visible and is_instance_valid(build_window.levels_overlay):
+			build_window._close_levels_overlay()
+			get_viewport().set_input_as_handled()
+			return
+
+		if windows_container.visible:
+			if pause_window.visible:
+				toggle_pause_menu()
+			else:
+				windows_container.hide()
+				for child in windows_container.get_children():
+					child.hide()
+				if _active_player:
+					_active_player.unfreeze()
+				var focused = get_viewport().gui_get_focus_owner()
+				if focused:
+					focused.release_focus()
+			get_viewport().set_input_as_handled()
+			return
+
+		toggle_pause_menu()
+		get_viewport().set_input_as_handled()
+
+func _unhandled_input(event: InputEvent) -> void:
 	# Shortcut Key Toggles
 	if event is InputEventKey and event.pressed and not event.is_echo():
 		if event.is_action_pressed("hud_character"):
@@ -504,12 +571,23 @@ func _input(event: InputEvent) -> void:
 					inspector._populate_npc_list()
 					inspector.show()
 				get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_Y:
+			var focused = get_viewport().gui_get_focus_owner()
+			if not (focused and (focused is LineEdit or focused is TextEdit)):
+				if GameState and not AlertManager.active_alerts.is_empty():
+					var recent_alert = AlertManager.active_alerts.back()
+					_open_alert_history_focusing_on(recent_alert.id)
+					get_viewport().set_input_as_handled()
 				
 		# Sub-Tabs swapping in build panel or careers (Q/E)
 		elif event.keycode == KEY_Q or event.keycode == KEY_E:
+			if build_window.visible and is_instance_valid(build_window.levels_overlay):
+				get_viewport().set_input_as_handled()
+				return
+				
 			var active_tab_container: TabContainer = null
 			if build_window.visible:
-				active_tab_container = build_tab_container
+				active_tab_container = build_window.build_tab_container
 			elif character_window.visible:
 				active_tab_container = career_tab_container
 				
@@ -518,13 +596,6 @@ func _input(event: InputEvent) -> void:
 				var next_tab = (active_tab_container.current_tab + offset + active_tab_container.get_tab_count()) % active_tab_container.get_tab_count()
 				active_tab_container.current_tab = next_tab
 				get_viewport().set_input_as_handled()
-				
-		elif event.keycode == KEY_TAB and build_window.visible:
-			_filter_only_buildable = not _filter_only_buildable
-			refresh_build_menu()
-			_update_build_menu_title()
-			_focus_first_card_in_active_tab()
-			get_viewport().set_input_as_handled()
 
 	# Intercept F / Interact key confirming buttons
 	if event.is_pressed() and not event.is_echo():
@@ -541,96 +612,6 @@ func _input(event: InputEvent) -> void:
 					event_accept.pressed = true
 					focused.gui_input.emit(event_accept)
 					get_viewport().set_input_as_handled()
-
-	# Handle UI close via cancel/escape
-	if event.is_action_pressed("ui_cancel"):
-		var pm = get_tree().get_first_node_in_group("PlacementManager")
-		var pm_active = pm and pm.is_placement_active()
-		if pm_active:
-			return
-			
-		# 0. Dialogue Bubble
-		var dialogue_bubbles = get_tree().get_nodes_in_group("DialogueBubble")
-		if dialogue_bubbles.size() > 0:
-			for bubble in dialogue_bubbles:
-				if is_instance_valid(bubble) and bubble.visible:
-					bubble._on_close_pressed()
-			get_viewport().set_input_as_handled()
-			return
-
-		# 0.5. Relationship UI
-		var rel_ui = get_tree().get_first_node_in_group("RelationshipUI")
-		if rel_ui and rel_ui.visible:
-			rel_ui._on_close_pressed()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 1. Bank UI
-		var bank_ui_inst = get_node_or_null("BankUI")
-		if not bank_ui_inst:
-			bank_ui_inst = get_node_or_null("HUDControl/BankUI")
-		if bank_ui_inst and bank_ui_inst.visible:
-			if bank_ui_inst.has_method("_on_close_pressed"):
-				bank_ui_inst._on_close_pressed()
-			else:
-				bank_ui_inst.queue_free()
-				if _active_player:
-					_active_player.unfreeze()
-			update_interaction_prompt()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 2. NPC Inspector Panel
-		var npc_inspector = get_node_or_null("NPCInspectorPanel")
-		if not npc_inspector:
-			npc_inspector = get_node_or_null("HUDControl/NPCInspectorPanel")
-		if npc_inspector and npc_inspector.visible:
-			npc_inspector.hide()
-			get_viewport().set_input_as_handled()
-			return
-			
-		# 3. Building UI (e.g. inspector of built properties/stalls)
-		if _building_ui_instance and _building_ui_instance.visible:
-			close_building_ui()
-			get_viewport().set_input_as_handled()
-			return
-
-		# 4. Commercial Route Panel (Trade console)
-		if _commercial_route_ui_instance and _commercial_route_ui_instance.visible:
-			if not _commercial_route_ui_instance.get("popup") and not _commercial_route_ui_instance.get("employee_popup"):
-				close_commercial_routes_ui()
-				get_viewport().set_input_as_handled()
-				return
-
-		# 5. Market UI
-		if market_ui and market_ui.visible:
-			market_ui.close()
-			get_viewport().set_input_as_handled()
-			return
-
-		# 6. Crafting UI
-		if crafting_ui and crafting_ui.visible:
-			crafting_ui.close()
-			get_viewport().set_input_as_handled()
-			return
-
-		# 7. General Windows Container (Character, Inventory, Build, Business, Opponents, Map)
-		if windows_container.visible:
-			# If pause window is visible, calling toggle_pause_menu will unpause
-			if pause_window.visible:
-				toggle_pause_menu()
-			else:
-				windows_container.hide()
-				for child in windows_container.get_children():
-					child.hide()
-				if _active_player:
-					_active_player.unfreeze()
-			get_viewport().set_input_as_handled()
-			return
-
-		# 8. Otherwise, toggle pause menu
-		toggle_pause_menu()
-		get_viewport().set_input_as_handled()
 
 func toggle_pause_menu() -> void:
 	toggle_window(pause_window)
@@ -659,7 +640,18 @@ func open_lawhouse_ui(province_name: String) -> void:
 		
 	lawhouse_ui_instance.open(province_name)
 
-# ----------------- BACKWARD COMPATIBLE & DYNAMIC LOOPS -----------------
+func open_guild_ui(province_name: String, tab_name: String = "") -> void:
+	if windows_container:
+		windows_container.show()
+		for child in windows_container.get_children():
+			child.hide()
+			
+	if not is_instance_valid(guild_ui_instance):
+		guild_ui_instance = PanelContainer.new()
+		guild_ui_instance.set_script(preload("res://UI/guild_panel.gd"))
+		windows_container.add_child(guild_ui_instance)
+		
+	guild_ui_instance.open(province_name, tab_name)
 
 func update_hud_values() -> void:
 	if gold_label:
@@ -672,10 +664,10 @@ func update_hud_values() -> void:
 		
 	if character_window.visible:
 		update_career_tabs()
-	if title_upgrade_window.visible:
-		_refresh_title_details()
-	if influence_broker_window.visible:
-		update_influence_broker_window()
+	if title_upgrade_window.visible and title_upgrade_window.has_method("refresh"):
+		title_upgrade_window.refresh()
+	if influence_broker_window.visible and influence_broker_window.has_method("refresh"):
+		influence_broker_window.refresh()
 
 func update_inventory_panel() -> void:
 	update_hud_values()
@@ -865,7 +857,8 @@ func _on_inventory_slot_interacted(item: ItemData) -> void:
 				GameState.player_inventory.remove_item(item.id, 1)
 				_spawn_floating_text("+ Career Unlocked!", inventory_window.global_position + inventory_window.size / 2.0)
 				update_inventory_panel()
-				refresh_build_menu()
+				if build_window.has_method("refresh"):
+					build_window.refresh()
 	elif item.equipment_slot != "None" and _active_player and _active_player.has_node("EquipmentComponent"):
 		var eq = _active_player.get_node("EquipmentComponent")
 		
@@ -1014,818 +1007,7 @@ func update_career_tabs() -> void:
 		var lvl = GameState.career_levels.get(career, 1)
 		career_tab_container.set_tab_title(i, "%s (Lv. %d)" % [career.capitalize(), lvl])
 
-func _update_build_menu_title() -> void:
-	var title_lbl = %BuildTitle
-	if title_lbl:
-		if _filter_only_buildable:
-			title_lbl.text = "Construction Menu (Filter: Buildable - [Tab] to toggle)"
-		else:
-			title_lbl.text = "Construction Menu (Filter: All - [Tab] to toggle)"
-
-func refresh_build_menu() -> void:
-	_populate_personal_home_tab()
-	_populate_business_tab()
-
-func _create_vertical_connector() -> Control:
-	var container = CenterContainer.new()
-	container.custom_minimum_size = Vector2(0, 12)
-	var line = ColorRect.new()
-	line.custom_minimum_size = Vector2(4, 12)
-	line.color = Color(0.24, 0.65, 0.44, 0.6) # Sleek green/teal connector
-	container.add_child(line)
-	return container
-
-func _populate_personal_home_tab() -> void:
-	if not home_tab_list:
-		return
-		
-	for child in home_tab_list.get_children():
-		child.queue_free()
-		
-	var home_items = []
-	for item in GameState.build_database:
-		if item.family == "personal_home":
-			if not _filter_only_buildable or _is_building_buildable(item):
-				home_items.append(item)
-			
-	home_items.sort_custom(func(a, b):
-		return a.building_level < b.building_level
-	)
-	
-	var col_cards = []
-	for i in range(home_items.size()):
-		if i > 0:
-			home_tab_list.add_child(_create_vertical_connector())
-		var card = _create_building_card(home_items[i])
-		card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		home_tab_list.add_child(card)
-		col_cards.append(card)
-		
-	if not col_cards.is_empty():
-		_link_tab_focus_neighbors([[col_cards]])
-
-func _populate_business_tab() -> void:
-	if not business_tab_list:
-		return
-		
-	for child in business_tab_list.get_children():
-		child.queue_free()
-		
-	var careers = ["patreon", "craftsman", "tailor", "scholar"]
-	var tab_sections = []
-	
-	for career_name in careers:
-		var section_items = []
-		for item in GameState.build_database:
-			if item.career == career_name:
-				if not _filter_only_buildable or _is_building_buildable(item):
-					section_items.append(item)
-					
-		if section_items.is_empty():
-			continue
-			
-		var section_title = Label.new()
-		section_title.text = career_name.capitalize() + " Profession"
-		section_title.add_theme_font_size_override("font_size", 14)
-		section_title.add_theme_color_override("font_color", Color(0.24, 0.6, 0.86))
-		section_title.add_theme_constant_override("outline_size", 2)
-		section_title.add_theme_color_override("font_outline_color", Color.BLACK)
-		
-		var title_margin = MarginContainer.new()
-		title_margin.add_theme_constant_override("margin_top", 12)
-		title_margin.add_theme_constant_override("margin_bottom", 6)
-		title_margin.add_child(section_title)
-		business_tab_list.add_child(title_margin)
-		
-		var families = []
-		var family_names = []
-		for item in section_items:
-			var fam = item.family
-			if not (fam in family_names):
-				family_names.append(fam)
-				families.append({
-					"name": fam,
-					"tier": item.tier
-				})
-					
-		families.sort_custom(func(a, b):
-			return a["tier"] < b["tier"]
-		)
-		
-		var max_levels = 0
-		var family_data = {}
-		for fam_info in families:
-			var fam_name = fam_info["name"]
-			var fam_items = []
-			for item in section_items:
-				if item.family == fam_name:
-					fam_items.append(item)
-			fam_items.sort_custom(func(a, b):
-				return a.building_level < b.building_level
-			)
-			family_data[fam_name] = fam_items
-			if fam_items.size() > max_levels:
-				max_levels = fam_items.size()
-		
-		var scroll = ScrollContainer.new()
-		var scroll_height = 110 + (max_levels - 1) * 110 if max_levels > 0 else 110
-		scroll.custom_minimum_size = Vector2(0, scroll_height)
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
-		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		
-		var columns_hbox = HBoxContainer.new()
-		columns_hbox.add_theme_constant_override("separation", 16)
-		columns_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		scroll.add_child(columns_hbox)
-		
-		business_tab_list.add_child(scroll)
-		
-		var section_cols = []
-		for fam_info in families:
-			var fam_name = fam_info["name"]
-			var col_vbox = VBoxContainer.new()
-			col_vbox.custom_minimum_size = Vector2(170, 0)
-			col_vbox.add_theme_constant_override("separation", 4)
-			columns_hbox.add_child(col_vbox)
-			
-			var fam_items = family_data[fam_name]
-			var col_cards = []
-			for i in range(fam_items.size()):
-				if i > 0:
-					col_vbox.add_child(_create_vertical_connector())
-				var card = _create_building_card(fam_items[i])
-				col_vbox.add_child(card)
-				col_cards.append(card)
-			section_cols.append(col_cards)
-		tab_sections.append(section_cols)
-		
-	_link_tab_focus_neighbors(tab_sections)
-
-func _is_building_buildable(building: BuildingData) -> bool:
-	var career = building.career
-	var req_lvl = building.level
-	var player_lvl = 1
-	if career != "":
-		player_lvl = GameState.career_levels.get(career, 1)
-	var is_level_locked = player_lvl < req_lvl
-	var is_gold_locked = GameState.gold < building.cost
-	var is_locked_placeholder = building.scene_path == ""
-	var is_title_locked = building.tier > GameState.title_level
-	return not is_level_locked and not is_gold_locked and not is_locked_placeholder and not is_title_locked
-
-func _create_building_card(building: BuildingData) -> PanelContainer:
-	var career = building.career
-	var req_lvl = building.level
-	var type = building.type
-	var player_lvl = 1
-	if career != "":
-		player_lvl = GameState.career_levels.get(career, 1)
-		
-	var is_level_locked = player_lvl < req_lvl
-	var is_gold_locked = GameState.gold < building.cost
-	var is_locked_placeholder = building.scene_path == ""
-	var is_title_locked = building.tier > GameState.title_level
-	var is_disabled = is_level_locked or is_locked_placeholder or is_title_locked
-	
-	var card = PanelContainer.new()
-	card.custom_minimum_size = Vector2(170, 85)
-	card.focus_mode = Control.FOCUS_ALL
-	
-	var style = StyleBoxFlat.new()
-	style.set_corner_radius_all(8)
-	style.content_margin_left = 8
-	style.content_margin_right = 8
-	style.content_margin_top = 6
-	style.content_margin_bottom = 6
-	
-	var base_color = Color(0.16, 0.16, 0.22, 0.8)
-	var border_color = Color(0.35, 0.35, 0.45, 0.6)
-	
-	if not is_disabled:
-		if career == "patreon":
-			base_color = Color(0.12, 0.28, 0.18, 0.8)
-			border_color = Color(0.24, 0.56, 0.36, 0.6)
-		elif career == "craftsman":
-			base_color = Color(0.25, 0.2, 0.15, 0.8)
-			border_color = Color(0.55, 0.44, 0.32, 0.6)
-		elif career == "tailor":
-			base_color = Color(0.24, 0.14, 0.28, 0.8)
-			border_color = Color(0.52, 0.32, 0.62, 0.6)
-		elif career == "scholar":
-			base_color = Color(0.12, 0.2, 0.3, 0.8)
-			border_color = Color(0.24, 0.44, 0.66, 0.6)
-		elif type == "home":
-			base_color = Color(0.24, 0.12, 0.12, 0.8)
-			border_color = Color(0.65, 0.24, 0.24, 0.6)
-		elif type == "renting":
-			base_color = Color(0.12, 0.24, 0.24, 0.8)
-			border_color = Color(0.24, 0.65, 0.65, 0.6)
-	else:
-		base_color = Color(0.1, 0.1, 0.12, 0.45)
-		border_color = Color(0.2, 0.2, 0.22, 0.3)
-		
-	style.bg_color = base_color
-	style.border_color = border_color
-	style.set_border_width_all(1)
-	card.add_theme_stylebox_override("panel", style)
-	
-	var main_hbox = HBoxContainer.new()
-	main_hbox.add_theme_constant_override("separation", 8)
-	card.add_child(main_hbox)
-	
-	var initials = ""
-	var words = building.name.split(" ")
-	for word in words:
-		if word.length() > 0:
-			initials += word[0].to_upper()
-	if initials.length() > 3:
-		initials = initials.substr(0, 3)
-		
-	var icon_container = PanelContainer.new()
-	icon_container.custom_minimum_size = Vector2(32, 32)
-	icon_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	
-	var icon_style = StyleBoxFlat.new()
-	icon_style.set_corner_radius_all(6)
-	
-	var icon_color = Color(0.3, 0.3, 0.35)
-	if not is_disabled:
-		if career == "patreon":
-			icon_color = Color(0.2, 0.6, 0.3)
-		elif career == "craftsman":
-			icon_color = Color(0.7, 0.45, 0.2)
-		elif career == "tailor":
-			icon_color = Color(0.6, 0.25, 0.7)
-		elif career == "scholar":
-			icon_color = Color(0.2, 0.45, 0.7)
-		elif type == "home":
-			icon_color = Color(0.8, 0.3, 0.3)
-		elif type == "renting":
-			icon_color = Color(0.3, 0.7, 0.7)
-	else:
-		icon_color = Color(0.15, 0.15, 0.18)
-		
-	icon_style.bg_color = icon_color
-	icon_container.add_theme_stylebox_override("panel", icon_style)
-	
-	var icon_label = Label.new()
-	icon_label.text = initials
-	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	icon_label.add_theme_font_size_override("font_size", 10)
-	icon_label.add_theme_color_override("font_color", Color.WHITE)
-	icon_label.add_theme_constant_override("outline_size", 2)
-	icon_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	icon_container.add_child(icon_label)
-	main_hbox.add_child(icon_container)
-	
-	var details_vbox = VBoxContainer.new()
-	details_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details_vbox.add_theme_constant_override("separation", 2)
-	main_hbox.add_child(details_vbox)
-	
-	var title_lbl = Label.new()
-	var title_text = building.name
-	if building.building_level > 1 and not ("Lv." in title_text):
-		title_text += " Lv. %d" % building.building_level
-	title_lbl.text = title_text
-	title_lbl.add_theme_font_size_override("font_size", 11)
-	if is_disabled:
-		title_lbl.modulate = Color(0.5, 0.5, 0.5, 0.8)
-	else:
-		title_lbl.modulate = Color(0.9, 0.95, 0.9, 1)
-	details_vbox.add_child(title_lbl)
-	
-	var desc_lbl = Label.new()
-	desc_lbl.text = building.description
-	desc_lbl.add_theme_font_size_override("font_size", 8)
-	desc_lbl.modulate = Color(0.65, 0.65, 0.7, 0.8)
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.max_lines_visible = 2
-	details_vbox.add_child(desc_lbl)
-	
-	var info_lbl = Label.new()
-	info_lbl.add_theme_font_size_override("font_size", 8)
-	if is_locked_placeholder:
-		info_lbl.text = "T%d Coming Soon" % building.tier
-		info_lbl.modulate = Color(0.6, 0.6, 0.6, 0.8)
-	elif is_title_locked:
-		var title_name = GameState.get_title_name(building.tier)
-		info_lbl.text = "Requires Title: %s" % title_name
-		info_lbl.modulate = Color(0.9, 0.35, 0.35, 1)
-	elif is_level_locked:
-		info_lbl.text = "Req. %s Lv. %d" % [career.capitalize(), req_lvl]
-		info_lbl.modulate = Color(0.9, 0.35, 0.35, 1)
-	else:
-		info_lbl.text = "%d G | %.1fs" % [building.cost, building.time]
-		if is_gold_locked:
-			info_lbl.modulate = Color(0.9, 0.45, 0.45, 0.9)
-		else:
-			info_lbl.modulate = Color(0.85, 0.85, 0.4, 0.9)
-	details_vbox.add_child(info_lbl)
-	
-	card.resized.connect(func(): card.pivot_offset = card.size / 2.0)
-	
-	# Setup card scaling tweens on hover/focus
-	card.focus_entered.connect(func():
-		var bright = style.duplicate() as StyleBoxFlat
-		bright.border_color = border_color.lightened(0.3)
-		bright.bg_color = base_color.lightened(0.1)
-		card.add_theme_stylebox_override("panel", bright)
-		card.pivot_offset = card.size / 2.0
-		_animate_scale(card, 1.03)
-	)
-	card.focus_exited.connect(func():
-		card.add_theme_stylebox_override("panel", style)
-		_animate_scale(card, 1.0)
-	)
-	card.mouse_entered.connect(func():
-		if not is_disabled:
-			var bright = style.duplicate() as StyleBoxFlat
-			bright.border_color = border_color.lightened(0.3)
-			bright.bg_color = base_color.lightened(0.1)
-			card.add_theme_stylebox_override("panel", bright)
-			card.pivot_offset = card.size / 2.0
-			_animate_scale(card, 1.03)
-	)
-	card.mouse_exited.connect(func():
-		if not is_disabled:
-			card.add_theme_stylebox_override("panel", style)
-			_animate_scale(card, 1.0)
-	)
-	
-	card.gui_input.connect(func(event: InputEvent):
-		var is_click = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed
-		var is_accept = event.is_action_pressed("ui_accept")
-		if is_click or is_accept:
-			card.get_viewport().set_input_as_handled()
-			if is_disabled:
-				_shake_node(card)
-				if is_title_locked:
-					var title_name = GameState.get_title_name(building.tier)
-					_spawn_floating_text("Requires Title: %s" % title_name, card.global_position + card.size / 2.0)
-				else:
-					_spawn_floating_text("Locked!", card.global_position + card.size / 2.0)
-				return
-			if is_gold_locked:
-				_shake_node(card)
-				_spawn_floating_text("Need Gold!", card.global_position + card.size / 2.0)
-				return
-				
-			# Click animation before triggering build action
-			var click_tween = card.create_tween()
-			click_tween.tween_property(card, "scale", Vector2(0.96, 0.96), 0.05)
-			click_tween.tween_property(card, "scale", Vector2(1.03, 1.03), 0.05)
-			await click_tween.finished
-			
-			windows_container.hide()
-			build_window.hide()
-			if _active_player:
-				_active_player.unfreeze()
-			build_requested.emit(building)
-	)
-	
-	return card
-
-func _shake_node(node: Control) -> void:
-	var baseline_x = node.position.x
-	var tween = node.create_tween()
-	tween.tween_property(node, "position:x", baseline_x - 5, 0.05)
-	tween.tween_property(node, "position:x", baseline_x + 5, 0.05)
-	tween.tween_property(node, "position:x", baseline_x - 3, 0.05)
-	tween.tween_property(node, "position:x", baseline_x, 0.05)
-
-func _focus_first_card_in_active_tab() -> void:
-	if not build_tab_container:
-		return
-	var active_tab_index = build_tab_container.current_tab
-	var active_control = build_tab_container.get_child(active_tab_index)
-	if active_control:
-		var card = _find_first_focusable_card(active_control)
-		if card:
-			_grab_focus_deferred(card)
-			build_tab_container.focus_neighbor_bottom = card.get_path()
-
-func _grab_focus_deferred(control: Control) -> void:
-	if not control.is_inside_tree():
-		await control.ready
-	await get_tree().process_frame
-	if is_instance_valid(control) and control.is_inside_tree() and control.visible:
-		control.grab_focus()
-
-func _find_first_focusable_card(node: Node) -> Control:
-	if node is PanelContainer and node.focus_mode == Control.FOCUS_ALL and node.visible:
-		if not node.name.ends_with("_Window"):
-			return node
-	for child in node.get_children():
-		var found = _find_first_focusable_card(child)
-		if found:
-			return found
-	return null
-
-func _link_tab_focus_neighbors(tab_sections: Array) -> void:
-	for s_idx in range(tab_sections.size()):
-		var cols = tab_sections[s_idx]
-		for c_idx in range(cols.size()):
-			var cards = cols[c_idx]
-			for l_idx in range(cards.size()):
-				var card = cards[l_idx]
-				
-				# Connect Left/Right
-				if c_idx > 0:
-					var prev_col = cols[c_idx - 1]
-					var target_l = min(l_idx, prev_col.size() - 1)
-					card.focus_neighbor_left = prev_col[target_l].get_path()
-				else:
-					card.focus_neighbor_left = card.get_path()
-					
-				if c_idx < cols.size() - 1:
-					var next_col = cols[c_idx + 1]
-					var target_l = min(l_idx, next_col.size() - 1)
-					card.focus_neighbor_right = next_col[target_l].get_path()
-				else:
-					card.focus_neighbor_right = card.get_path()
-				
-				# Connect Up/Down
-				if l_idx > 0:
-					card.focus_neighbor_top = cards[l_idx - 1].get_path()
-				else:
-					if s_idx > 0:
-						var prev_section_cols = tab_sections[s_idx - 1]
-						var target_c = min(c_idx, prev_section_cols.size() - 1)
-						var target_prev_col = prev_section_cols[target_c]
-						card.focus_neighbor_top = target_prev_col[target_prev_col.size() - 1].get_path()
-					else:
-						card.focus_neighbor_top = card.get_path()
-							
-				if l_idx < cards.size() - 1:
-					card.focus_neighbor_bottom = cards[l_idx + 1].get_path()
-				else:
-					if s_idx < tab_sections.size() - 1:
-						var next_section_cols = tab_sections[s_idx + 1]
-						var target_c = min(c_idx, next_section_cols.size() - 1)
-						var target_next_col = next_section_cols[target_c]
-						card.focus_neighbor_bottom = target_next_col[0].get_path()
-					else:
-						card.focus_neighbor_bottom = card.get_path()
-				
-				if not card.focus_entered.is_connected(_on_card_focused.bind(card)):
-					card.focus_entered.connect(_on_card_focused.bind(card))
-
-func _on_card_focused(card: Control) -> void:
-	var main_scroll = _find_main_scroll_container(card)
-	if main_scroll:
-		_ensure_card_visible(card, main_scroll)
-
-func _find_main_scroll_container(card: Control) -> ScrollContainer:
-	var p = card.get_parent()
-	while p:
-		if p is ScrollContainer and p.get_parent().get_parent() == build_tab_container:
-			return p
-		p = p.get_parent()
-	return null
-
-func _ensure_card_visible(card: Control, main_scroll: ScrollContainer) -> void:
-	if not main_scroll or not is_instance_valid(main_scroll):
-		return
-	await card.get_tree().process_frame
-	if not is_instance_valid(card) or not is_instance_valid(main_scroll):
-		return
-		
-	var card_rect = card.get_global_rect()
-	var scroll_rect = main_scroll.get_global_rect()
-	var padding = 12.0
-	
-	if card_rect.position.y < scroll_rect.position.y + padding:
-		var diff = (scroll_rect.position.y + padding) - card_rect.position.y
-		main_scroll.scroll_vertical -= int(diff)
-	elif card_rect.end.y > scroll_rect.end.y - padding:
-		var diff = card_rect.end.y - (scroll_rect.end.y - padding)
-		main_scroll.scroll_vertical += int(diff)
-
-# ----------------- BUSINESS LEDGER & RIVALS -----------------
-
-func populate_business_ledger() -> void:
-	if not business_scroll_list:
-		return
-		
-	# Clear previous contents
-	for child in business_scroll_list.get_children():
-		child.queue_free()
-		
-	# 1. Businesses Section Title
-	var biz_section_title = Label.new()
-	biz_section_title.text = "Owned Businesses & Real Estate"
-	biz_section_title.add_theme_font_size_override("font_size", 13)
-	biz_section_title.add_theme_color_override("font_color", Color(0.9, 0.75, 0.3))
-	biz_section_title.add_theme_constant_override("outline_size", 2)
-	biz_section_title.add_theme_color_override("font_outline_color", Color.BLACK)
-	business_scroll_list.add_child(biz_section_title)
-	
-	var groups = ["Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Banks", "Inns", "Houses"]
-	var player_owned: Array[Node2D] = []
-	
-	for group_name in groups:
-		for node in get_tree().get_nodes_in_group(group_name):
-			if is_instance_valid(node) and node.get("ownership_type") == "Player":
-				player_owned.append(node)
-				
-	if player_owned.is_empty():
-		var label = Label.new()
-		label.text = "  No owned businesses or real estate yet."
-		label.add_theme_font_size_override("font_size", 11)
-		label.modulate = Color(0.6, 0.6, 0.6, 0.8)
-		business_scroll_list.add_child(label)
-	else:
-		# Group by Province and Settlement
-		var hierarchy = {}
-		for biz in player_owned:
-			var settlement = GameState.get_nearest_settlement(biz)
-			var prov_name = GameState.get_province_of_node(biz)
-			var sett_name = "Rural Lot"
-			
-			if settlement:
-				if settlement is City:
-					sett_name = settlement.city_name
-				elif settlement is Town:
-					sett_name = settlement.town_name
-					
-			if not hierarchy.has(prov_name):
-				hierarchy[prov_name] = {}
-			if not hierarchy[prov_name].has(sett_name):
-				hierarchy[prov_name][sett_name] = []
-				
-			hierarchy[prov_name][sett_name].append(biz)
-			
-		for prov in hierarchy:
-			var prov_label = Label.new()
-			prov_label.text = "  " + prov
-			prov_label.add_theme_font_size_override("font_size", 12)
-			prov_label.add_theme_color_override("font_color", Color(0.8, 0.6, 0.15))
-			business_scroll_list.add_child(prov_label)
-			
-			for sett in hierarchy[prov]:
-				var sett_box = VBoxContainer.new()
-				sett_box.add_theme_constant_override("separation", 4)
-				sett_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				business_scroll_list.add_child(sett_box)
-				
-				var sett_label = Label.new()
-				sett_label.text = "    └─ " + sett
-				sett_label.add_theme_font_size_override("font_size", 11)
-				sett_label.add_theme_color_override("font_color", Color(0.25, 0.7, 0.8))
-				sett_box.add_child(sett_label)
-				
-				for biz in hierarchy[prov][sett]:
-					var card = PanelContainer.new()
-					card.custom_minimum_size = Vector2(0, 36)
-					
-					var style = StyleBoxFlat.new()
-					style.bg_color = Color(0.14, 0.15, 0.2, 0.6)
-					style.set_corner_radius_all(4)
-					style.content_margin_left = 16
-					style.content_margin_right = 16
-					card.add_theme_stylebox_override("panel", style)
-					
-					var hbox = HBoxContainer.new()
-					card.add_child(hbox)
-					
-					var name_lbl = Label.new()
-					name_lbl.text = biz.name
-					if "building_name" in biz and biz.building_name != "":
-						name_lbl.text = biz.building_name
-					name_lbl.add_theme_font_size_override("font_size", 11)
-					name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					hbox.add_child(name_lbl)
-					
-					var strongbox = biz.get_node_or_null("StrongboxComponent")
-					var strongbox_txt = ""
-					if strongbox:
-						strongbox_txt = " (Vault: %d G)" % strongbox.strongbox_gold
-					
-					var status_lbl = Label.new()
-					status_lbl.add_theme_font_size_override("font_size", 10)
-					status_lbl.modulate = Color(0.4, 0.9, 0.4)
-					
-					if "hired_employees" in biz:
-						status_lbl.text = ("Employees Hired: %d" % biz.hired_employees.size()) + strongbox_txt
-					elif "is_occupied" in biz:
-						status_lbl.text = "Occupied (Rent: %d G)" % biz.rent_cost if biz.is_occupied else "Vacant (Rental)"
-					else:
-						status_lbl.text = "Operational" + strongbox_txt
-						
-					hbox.add_child(status_lbl)
-					sett_box.add_child(card)
-					
-					# Render Ledger History under the business
-					if strongbox and strongbox.transaction_ledger.size() > 0:
-						var ledger_vbox = VBoxContainer.new()
-						ledger_vbox.add_theme_constant_override("separation", 2)
-						
-						var indent_margin = MarginContainer.new()
-						indent_margin.add_theme_constant_override("margin_left", 24)
-						indent_margin.add_theme_constant_override("margin_top", 2)
-						indent_margin.add_theme_constant_override("margin_bottom", 6)
-						indent_margin.add_child(ledger_vbox)
-						
-						# Only show last 5 transactions
-						var start_idx = max(0, strongbox.transaction_ledger.size() - 5)
-						for t_idx in range(start_idx, strongbox.transaction_ledger.size()):
-							var entry = strongbox.transaction_ledger[t_idx]
-							var t_lbl = Label.new()
-							t_lbl.text = "• Sold %d %s for %d G (%s)" % [entry["amount"], entry["item_name"], entry["price"], entry["timestamp"]]
-							t_lbl.add_theme_font_size_override("font_size", 9)
-							t_lbl.modulate = Color(0.7, 0.7, 0.75, 0.8)
-							ledger_vbox.add_child(t_lbl)
-							
-						sett_box.add_child(indent_margin)
-
-	# Spacer
-	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 12)
-	business_scroll_list.add_child(spacer)
-	
-	# 2. Active Quests Section Title
-	var quests_section_title = Label.new()
-	quests_section_title.text = "Active Quests"
-	quests_section_title.add_theme_font_size_override("font_size", 13)
-	quests_section_title.add_theme_color_override("font_color", Color(0.3, 0.8, 0.5))
-	quests_section_title.add_theme_constant_override("outline_size", 2)
-	quests_section_title.add_theme_color_override("font_outline_color", Color.BLACK)
-	business_scroll_list.add_child(quests_section_title)
-	
-	if QuestManager.accepted_quests.is_empty():
-		var label = Label.new()
-		label.text = "  No active quests."
-		label.add_theme_font_size_override("font_size", 11)
-		label.modulate = Color(0.6, 0.6, 0.6, 0.8)
-		business_scroll_list.add_child(label)
-	else:
-		# Draw each accepted quest
-		for quest in QuestManager.accepted_quests:
-			var card = PanelContainer.new()
-			card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			
-			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.08, 0.14, 0.18, 0.75) # Deep teal tint for quests
-			style.border_color = Color(0.15, 0.5, 0.4, 0.6) # Sleek teal/green border
-			style.border_width_left = 2
-			style.set_corner_radius_all(4)
-			style.content_margin_left = 12
-			style.content_margin_right = 12
-			style.content_margin_top = 8
-			style.content_margin_bottom = 8
-			card.add_theme_stylebox_override("panel", style)
-			
-			var main_vbox_q = VBoxContainer.new()
-			main_vbox_q.add_theme_constant_override("separation", 4)
-			card.add_child(main_vbox_q)
-			
-			# Header: Title + Reward on the right
-			var q_header = HBoxContainer.new()
-			q_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			main_vbox_q.add_child(q_header)
-			
-			var title_lbl = Label.new()
-			title_lbl.text = quest.get("title", "Active Request")
-			title_lbl.add_theme_font_size_override("font_size", 11)
-			title_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
-			title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			q_header.add_child(title_lbl)
-			
-			var reward_lbl = Label.new()
-			reward_lbl.text = "%d G" % quest.get("reward_gold", 0)
-			reward_lbl.add_theme_font_size_override("font_size", 10)
-			reward_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-			q_header.add_child(reward_lbl)
-			
-			# Description
-			var desc_lbl = Label.new()
-			desc_lbl.text = quest.get("description", "")
-			desc_lbl.add_theme_font_size_override("font_size", 9)
-			desc_lbl.modulate = Color(0.75, 0.8, 0.85, 0.8)
-			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			main_vbox_q.add_child(desc_lbl)
-			
-			# Footer: Progress / Due remaining
-			var q_footer = HBoxContainer.new()
-			q_footer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			main_vbox_q.add_child(q_footer)
-			
-			# Check progress
-			var progress_text = ""
-			var is_complete = false
-			if quest.get("item_id") != "":
-				var required = quest.get("item_amount", 1)
-				var current = GameState.player_inventory.get_item_amount(quest["item_id"])
-				progress_text = "Progress: %d/%d %s" % [current, required, quest.get("item_name", "Items")]
-				if current >= required:
-					is_complete = true
-			else:
-				progress_text = "Status: Ongoing"
-				
-			var progress_lbl = Label.new()
-			progress_lbl.text = progress_text
-			progress_lbl.add_theme_font_size_override("font_size", 9)
-			if is_complete:
-				progress_lbl.add_theme_color_override("font_color", Color(0.3, 0.9, 0.4)) # green
-			else:
-				progress_lbl.add_theme_color_override("font_color", Color(0.9, 0.75, 0.3)) # yellow
-			progress_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			q_footer.add_child(progress_lbl)
-			
-			# Time limit
-			var time_lbl_q = Label.new()
-			time_lbl_q.add_theme_font_size_override("font_size", 9)
-			
-			var due_day = quest.get("due_day", -1)
-			if due_day != -1:
-				var current_day = GameState.time_days
-				var days_left = due_day - current_day
-				if days_left < 0:
-					time_lbl_q.text = "Expired"
-					time_lbl_q.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
-				elif days_left == 0:
-					time_lbl_q.text = "Due Today!"
-					time_lbl_q.add_theme_color_override("font_color", Color(0.9, 0.5, 0.3))
-				else:
-					time_lbl_q.text = "Due in %d day(s)" % days_left
-					time_lbl_q.modulate = Color(0.7, 0.7, 0.75, 0.8)
-			else:
-				time_lbl_q.text = "No Time Limit"
-				time_lbl_q.modulate = Color(0.7, 0.7, 0.75, 0.8)
-			q_footer.add_child(time_lbl_q)
-			
-			business_scroll_list.add_child(card)
-
-func populate_opponents_list() -> void:
-	if not opponents_scroll_list:
-		return
-		
-	for child in opponents_scroll_list.get_children():
-		child.queue_free()
-		
-	var rivals = get_tree().get_nodes_in_group("Rivals")
-	if rivals.is_empty():
-		var label = Label.new()
-		label.text = "No opponent families detected in this region."
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.add_theme_font_size_override("font_size", 12)
-		label.modulate = Color(0.6, 0.6, 0.6, 0.8)
-		opponents_scroll_list.add_child(label)
-		return
-		
-	for rival in rivals:
-		var card = PanelContainer.new()
-		card.custom_minimum_size = Vector2(0, 50)
-		
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.16, 0.16, 0.22, 0.75)
-		style.set_border_width_all(1)
-		style.border_color = Color(0.6, 0.3, 0.3, 0.5) # Reddish border for opponents
-		style.set_corner_radius_all(6)
-		style.content_margin_left = 12
-		style.content_margin_right = 12
-		style.content_margin_top = 8
-		style.content_margin_bottom = 8
-		card.add_theme_stylebox_override("panel", style)
-		
-		var hbox = HBoxContainer.new()
-		card.add_child(hbox)
-		
-		var name_lbl = Label.new()
-		var rival_family = rival.get("family_name") if rival.get("family_name") else rival.name
-		var rival_profession = rival.get("profession") if rival.get("profession") else ""
-		var rival_level = rival.get("level") if rival.get("level") != null else 1
-		if rival_profession != "":
-			name_lbl.text = "%s (%s Lvl %d)" % [rival_family, rival_profession.capitalize(), rival_level]
-		else:
-			name_lbl.text = rival_family
-		name_lbl.add_theme_font_size_override("font_size", 12)
-		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_child(name_lbl)
-		
-		var vbox = VBoxContainer.new()
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		hbox.add_child(vbox)
-		
-		var gold_lbl = Label.new()
-		gold_lbl.text = "Wealth: %d Gold" % rival.gold
-		gold_lbl.add_theme_font_size_override("font_size", 10)
-		gold_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		vbox.add_child(gold_lbl)
-		
-		var standing_lbl = Label.new()
-		var r_standing = rival.get("standing") if rival.get("standing") else "Competitor"
-		standing_lbl.text = "Standing: " + r_standing
-		standing_lbl.add_theme_font_size_override("font_size", 9)
-		standing_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		standing_lbl.modulate = Color(0.9, 0.6, 0.6)
-		vbox.add_child(standing_lbl)
-		
-		opponents_scroll_list.add_child(card)
-
-# ----------------- OTHER INTERFACES & OVERLAYS -----------------
+# ----------------- COORDINATOR & HELPERS -----------------
 
 func _spawn_floating_text(sn_text: String, pos: Vector2) -> void:
 	var label = Label.new()
@@ -1853,6 +1035,9 @@ func _spawn_floating_text(sn_text: String, pos: Vector2) -> void:
 	
 	await tween.finished
 	label.queue_free()
+
+func spawn_floating_text(sn_text: String, pos: Vector2) -> void:
+	_spawn_floating_text(sn_text, pos)
 
 func open_market(stall: CollisionObject2D) -> void:
 	if market_ui and market_ui.has_method("open"):
@@ -1899,6 +1084,9 @@ func open_building_ui(building: Node2D) -> void:
 
 func close_building_ui() -> void:
 	if _building_ui_instance:
+		var focused = get_viewport().gui_get_focus_owner()
+		if focused:
+			focused.release_focus()
 		_building_ui_instance.queue_free()
 		_building_ui_instance = null
 		if _active_player:
@@ -1970,7 +1158,7 @@ func update_interaction_prompt() -> void:
 					text = "Locked (NPC Owned) | [R] Buy (%d G)" % npc_buy_cost
 				else:
 					text = "Locked. Opponent property."
-				var is_workshop = interactable.is_in_group("Bakeries") or interactable.is_in_group("Smelters") or interactable.is_in_group("Inns") or interactable.is_in_group("Looms") or interactable.is_in_group("Mills") or interactable.is_in_group("PaperMakers") or interactable.is_in_group("PrintingPresses") or interactable.is_in_group("Banks")
+				var is_workshop = interactable.is_in_group("Bakeries") or interactable.is_in_group("Smelters") or interactable.is_in_group("Inns") or interactable.is_in_group("Looms") or interactable.is_in_group("Mills") or interactable.is_in_group("PaperMakers") or interactable.is_in_group("PrintingPresses") or interactable.is_in_group("Banks") or interactable.is_in_group("MarketStall")
 				if is_workshop and interactable.has_method("get_interaction_text"):
 					var prompt_text = interactable.get_interaction_text()
 					if prompt_text == "":
@@ -2019,7 +1207,7 @@ func update_interaction_prompt() -> void:
 					if interact_prompt_text != "":
 						normal_text = interact_prompt_text
 				text = "[F] %s" % normal_text
-				if is_buy:
+				if is_buy and target.ownership_type != "Public":
 					text += " | [R] Buy (%d G)" % buy_val
 				if is_rent:
 					var max_rent_days = target.max_rent_days if "max_rent_days" in target else 5
@@ -2081,157 +1269,12 @@ func close_commercial_routes_ui() -> void:
 		update_interaction_prompt()
 		update_hud_values()
 
-
-# Player Title Upgrade Window State
-var _selected_title_index: int = 1
-
-func update_title_upgrade_window() -> void:
-	if not titles_list_container:
-		return
-		
-	# Clear previous buttons
-	for child in titles_list_container.get_children():
-		child.queue_free()
-		
-	var active_title = GameState.title_level
-	
-	# Populate 5 titles
-	var buttons = []
-	for lvl in range(1, 6):
-		var btn = Button.new()
-		btn.text = GameState.get_title_name(lvl)
-		if lvl == active_title:
-			btn.text += " (Current)"
-			btn.modulate = Color(0.4, 1.0, 0.4)
-		elif lvl < active_title:
-			btn.text += " (Unlocked)"
-			btn.modulate = Color(0.7, 0.7, 0.8)
-		else:
-			btn.modulate = Color(1.0, 0.9, 0.6)
-			
-		btn.focus_mode = Control.FOCUS_ALL
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.custom_minimum_size = Vector2(180, 32)
-		_setup_button_hover(btn)
-		
-		# Hook up click
-		var target_lvl = lvl
-		btn.pressed.connect(func():
-			_selected_title_index = target_lvl
-			_refresh_title_details()
-		)
-		
-		titles_list_container.add_child(btn)
-		buttons.append(btn)
-		
-	# Set focus neighbors for title list buttons
-	for i in range(buttons.size()):
-		var btn = buttons[i]
-		btn.focus_neighbor_left = btn.get_path()
-		btn.focus_neighbor_right = upgrade_title_button.get_path() if upgrade_title_button else btn.get_path()
-		btn.focus_neighbor_top = buttons[i - 1].get_path() if i > 0 else btn.get_path()
-		btn.focus_neighbor_bottom = buttons[i + 1].get_path() if i < buttons.size() - 1 else btn.get_path()
-		
-	# Focus on current title button or previously selected one
-	_refresh_title_details()
-
-func _refresh_title_details() -> void:
-	if not selected_title_name_label:
-		return
-		
-	var lvl = _selected_title_index
-	var title_name = GameState.get_title_name(lvl)
-	selected_title_name_label.text = title_name
-	
-	var desc = ""
-	match lvl:
-		1:
-			desc = "Apprentice Guildmaster status.\n\nBenefits:\n • Starting title. Allows construction of Tier 1 basic structures (plaza, beds, crafting benches, general stalls)."
-		2:
-			desc = "Journeyman status.\n\nBenefits:\n • Unlocks Tier 2 advanced production buildings: Mill, Smelter, Loom, Inn, Farmstead, Tavern."
-		3:
-			desc = "Guildmaster status.\n\nBenefits:\n • Unlocks Tier 3 premium shops: Bakery, Paper Maker, and Distillery.\n • Increases overnight crop regrowth speed by 15%."
-		4:
-			desc = "Patrician civic status.\n\nBenefits:\n • Unlocks Tier 4 administrative buildings: Printing Press, Event Hall, and Banks.\n • Reduces employee salary costs by 10%."
-		5:
-			desc = "Guild Baron status.\n\nBenefits:\n • Unlocks Tier 5 luxury upgrade improvements.\n • Passively generates +5 Influence overnight."
-			
-	selected_title_desc_label.text = desc
-	
-	var cost = GameState.get_title_upgrade_cost(lvl)
-	var active_title = GameState.title_level
-	
-	if lvl == active_title:
-		title_upgrade_cost_label.text = "You currently hold this title."
-		title_upgrade_cost_label.modulate = Color(0.4, 1.0, 0.4)
-		upgrade_title_button.disabled = true
-		upgrade_title_button.text = "Current Title"
-	elif lvl < active_title:
-		title_upgrade_cost_label.text = "Already unlocked."
-		title_upgrade_cost_label.modulate = Color(0.7, 0.7, 0.8)
-		upgrade_title_button.disabled = true
-		upgrade_title_button.text = "Unlocked"
-	elif lvl > active_title + 1:
-		title_upgrade_cost_label.text = "Must unlock previous titles first."
-		title_upgrade_cost_label.modulate = Color(0.9, 0.4, 0.4)
-		upgrade_title_button.disabled = true
-		upgrade_title_button.text = "Locked"
-	else:
-		# Next title to unlock
-		title_upgrade_cost_label.text = "Upgrade Cost: %d Gold, %d Influence" % [cost["gold"], cost["influence"]]
-		var can_afford_gold = GameState.gold >= cost["gold"]
-		var can_afford_influence = GameState.influence >= cost["influence"]
-		
-		if can_afford_gold and can_afford_influence:
-			title_upgrade_cost_label.modulate = Color(0.4, 1.0, 0.4)
-			upgrade_title_button.disabled = false
-			upgrade_title_button.text = "Upgrade Title"
-		else:
-			title_upgrade_cost_label.modulate = Color(0.9, 0.4, 0.4)
-			upgrade_title_button.disabled = true
-			var reason = "Lacking: "
-			if not can_afford_gold: reason += "Gold "
-			if not can_afford_influence: reason += "Influence"
-			upgrade_title_button.text = reason
-
-func _on_upgrade_title_pressed() -> void:
-	var target_lvl = GameState.title_level + 1
-	if GameState.upgrade_title():
-		_flash_element(title_upgrade_window, Color(0.4, 1.0, 0.4))
-		_selected_title_index = target_lvl
-		update_hud_values()
-		update_title_upgrade_window()
-	else:
-		_shake_element(title_upgrade_window)
-		_flash_element(title_upgrade_window, Color(1.0, 0.4, 0.4))
-
-# Influence Broker Window State
 func open_influence_broker_ui(_broker: Node2D) -> void:
 	toggle_window(influence_broker_window)
 
-func update_influence_broker_window() -> void:
-	if not influence_broker_window or not influence_broker_window.visible:
-		return
-	if broker_gold_label:
-		broker_gold_label.text = "Current Gold: %d G" % GameState.gold
-	if broker_influence_label:
-		broker_influence_label.text = "Current Influence: %d / %d (Permanent)" % [GameState.influence, GameState.permanent_influence]
-	if exchange_button:
-		var can_afford = GameState.gold >= 100
-		exchange_button.disabled = not can_afford
-		exchange_button.text = "Buy 10 Influence (100 Gold)" if can_afford else "Lacking Gold"
-
-func _on_exchange_influence_pressed() -> void:
-	if GameState.gold >= 100:
-		GameState.gold -= 100
-		GameState.influence += 10
-		GameState.spawn_ui_floating_text("+10 Influence!")
-		_flash_element(influence_broker_window, Color(0.4, 1.0, 0.4))
-		update_hud_values()
-		update_influence_broker_window()
-	else:
-		_shake_element(influence_broker_window)
-		_flash_element(influence_broker_window, Color(1.0, 0.4, 0.4))
+func _open_alert_history_focusing_on(alert_id: String) -> void:
+	if alert_ui_manager:
+		alert_ui_manager.open_alert_history_focusing_on(alert_id)
 
 # Micro-animation helper tweens
 func _shake_element(node: Control) -> void:
@@ -2243,378 +1286,14 @@ func _shake_element(node: Control) -> void:
 	tween.tween_property(node, "position:x", start_pos.x + 4.0, 0.05)
 	tween.tween_property(node, "position:x", start_pos.x, 0.05)
 
+func shake_element(node: Control) -> void:
+	_shake_element(node)
+
 func _flash_element(node: Control, flash_color: Color) -> void:
 	var orig_color = node.modulate
 	var tween = create_tween()
 	tween.tween_property(node, "modulate", flash_color, 0.1)
 	tween.tween_property(node, "modulate", orig_color, 0.15)
 
-
-# ==========================================
-# ALERTS & HISTORY WINDOW MANAGEMENT
-# ==========================================
-
-func _create_alert_containers() -> void:
-	# 1. Create Alert Cards container on the right side of the screen
-	var alert_margin = MarginContainer.new()
-	alert_margin.name = "AlertCards_Margin"
-	alert_margin.layout_mode = 1
-	alert_margin.anchor_left = 1.0
-	alert_margin.anchor_top = 0.15
-	alert_margin.anchor_right = 1.0
-	alert_margin.anchor_bottom = 0.85
-	alert_margin.offset_left = -300.0
-	alert_margin.offset_top = 0.0
-	alert_margin.offset_right = -16.0
-	alert_margin.offset_bottom = 0.0
-	alert_margin.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	alert_margin.grow_vertical = Control.GROW_DIRECTION_BOTH
-	alert_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
-	alert_cards_vbox = VBoxContainer.new()
-	alert_cards_vbox.name = "AlertCards_VBox"
-	alert_cards_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	alert_cards_vbox.add_theme_constant_override("separation", 8)
-	alert_margin.add_child(alert_cards_vbox)
-	
-	var hud_control = get_node("Control")
-	if hud_control:
-		hud_control.add_child(alert_margin)
-		
-	# 2. Create Alert History Window dynamically
-	alert_history_window = PanelContainer.new()
-	alert_history_window.name = "AlertHistory_Window"
-	alert_history_window.visible = false
-	alert_history_window.custom_minimum_size = Vector2(640, 440)
-	alert_history_window.layout_mode = 1
-	alert_history_window.anchors_preset = Control.PRESET_CENTER
-	alert_history_window.anchor_left = 0.5
-	alert_history_window.anchor_top = 0.5
-	alert_history_window.anchor_right = 0.5
-	alert_history_window.anchor_bottom = 0.5
-	alert_history_window.offset_left = -320.0
-	alert_history_window.offset_top = -220.0
-	alert_history_window.offset_right = 320.0
-	alert_history_window.offset_bottom = 220.0
-	alert_history_window.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	alert_history_window.grow_vertical = Control.GROW_DIRECTION_BOTH
-	
-	if inventory_window:
-		var window_style = inventory_window.get_theme_stylebox("panel")
-		alert_history_window.add_theme_stylebox_override("panel", window_style)
-		
-	if windows_container:
-		windows_container.add_child(alert_history_window)
-		
-	var history_vbox = VBoxContainer.new()
-	history_vbox.name = "VBox"
-	history_vbox.add_theme_constant_override("separation", 12)
-	alert_history_window.add_child(history_vbox)
-	
-	# Header
-	var header = HBoxContainer.new()
-	header.name = "Header"
-	history_vbox.add_child(header)
-	
-	var title = Label.new()
-	title.name = "Title"
-	title.text = "Alert History (F7)"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_color_override("font_color", Color(0.88, 0.55, 0.12, 1.0))
-	title.add_theme_font_size_override("font_size", 16)
-	header.add_child(title)
-	
-	# Scroll area for history rows
-	var scroll = ScrollContainer.new()
-	scroll.name = "ScrollContainer"
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	history_vbox.add_child(scroll)
-	
-	var list = VBoxContainer.new()
-	list.name = "HistoryList"
-	list.add_theme_constant_override("separation", 6)
-	scroll.add_child(list)
-	
-	# Footer
-	var footer = HBoxContainer.new()
-	footer.name = "Footer"
-	footer.add_theme_constant_override("separation", 12)
-	history_vbox.add_child(footer)
-	
-	var clear_btn = Button.new()
-	clear_btn.name = "ClearButton"
-	clear_btn.text = "Clear History"
-	clear_btn.custom_minimum_size = Vector2(120, 32)
-	clear_btn.pressed.connect(_on_clear_history_pressed)
-	footer.add_child(clear_btn)
-	_setup_button_hover(clear_btn)
-	
-	var spacer = Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	footer.add_child(spacer)
-	
-	var close_btn = Button.new()
-	close_btn.name = "CloseButton"
-	close_btn.text = "Close"
-	close_btn.custom_minimum_size = Vector2(100, 32)
-	close_btn.pressed.connect(func():
-		toggle_window(alert_history_window)
-	)
-	footer.add_child(close_btn)
-	_setup_button_hover(close_btn)
-
-func _get_alert_stylebox(type: String) -> StyleBoxFlat:
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.1, 0.14, 0.85)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.shadow_color = Color(0, 0, 0, 0.4)
-	style.shadow_size = 4
-	style.shadow_offset = Vector2(0, 2)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	
-	match type:
-		"warning":
-			style.border_color = Color(0.88, 0.55, 0.12, 0.85)
-		"danger":
-			style.border_color = Color(0.86, 0.24, 0.24, 0.85)
-		_:
-			style.border_color = Color(0.24, 0.6, 0.86, 0.85)
-			
-	return style
-
-func _on_alert_added(alert_data: Dictionary) -> void:
-	if not alert_cards_vbox:
-		return
-		
-	if alert_cards_vbox.has_node(alert_data.id):
-		return
-		
-	var card = PanelContainer.new()
-	card.name = alert_data.id
-	card.custom_minimum_size = Vector2(280, 0)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.add_theme_stylebox_override("panel", _get_alert_stylebox(alert_data.type))
-	
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
-	card.add_child(vbox)
-	
-	# Header
-	var header = HBoxContainer.new()
-	vbox.add_child(header)
-	
-	var title = Label.new()
-	title.text = alert_data.title
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 12)
-	match alert_data.type:
-		"warning":
-			title.add_theme_color_override("font_color", Color(0.88, 0.55, 0.12))
-		"danger":
-			title.add_theme_color_override("font_color", Color(0.86, 0.24, 0.24))
-		_:
-			title.add_theme_color_override("font_color", Color(0.24, 0.6, 0.86))
-	header.add_child(title)
-	
-	var close_x = Button.new()
-	close_x.text = "X"
-	close_x.flat = true
-	close_x.custom_minimum_size = Vector2(20, 20)
-	close_x.focus_mode = Control.FOCUS_NONE
-	close_x.add_theme_font_size_override("font_size", 10)
-	close_x.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	close_x.pressed.connect(func():
-		GameState.remove_alert(alert_data.id)
-	)
-	header.add_child(close_x)
-	_setup_button_hover(close_x)
-	
-	# Body
-	var desc = Label.new()
-	desc.text = alert_data.description
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc.add_theme_font_size_override("font_size", 11)
-	desc.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
-	vbox.add_child(desc)
-	
-	# Footer
-	var footer = HBoxContainer.new()
-	vbox.add_child(footer)
-	
-	var time_lbl = Label.new()
-	time_lbl.text = alert_data.time
-	time_lbl.add_theme_font_size_override("font_size", 9)
-	time_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
-	footer.add_child(time_lbl)
-	
-	var spacer = Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	footer.add_child(spacer)
-	
-	if alert_data.get("building") != null and is_instance_valid(alert_data.building):
-		var inspect = Button.new()
-		inspect.text = "Inspect"
-		inspect.custom_minimum_size = Vector2(60, 20)
-		inspect.add_theme_font_size_override("font_size", 10)
-		inspect.pressed.connect(func():
-			_on_inspect_alert(alert_data)
-		)
-		footer.add_child(inspect)
-		_setup_button_hover(inspect)
-		
-	alert_cards_vbox.add_child(card)
-	
-	card.ready.connect(func():
-		card.pivot_offset = card.size / 2.0
-		card.scale = Vector2(0.8, 0.8)
-		card.modulate.a = 0.0
-		var tween = create_tween().set_parallel(true)
-		tween.tween_property(card, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tween.tween_property(card, "modulate:a", 1.0, 0.2)
-	)
-
-func _on_alert_removed(alert_id: String) -> void:
-	if not alert_cards_vbox:
-		return
-		
-	var card = alert_cards_vbox.get_node_or_null(alert_id)
-	if card:
-		_dismiss_card(card)
-
-func _dismiss_card(card: Control) -> void:
-	if not is_instance_valid(card):
-		return
-		
-	card.pivot_offset = card.size / 2.0
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(card, "scale", Vector2(0.8, 0.8), 0.15).set_ease(Tween.EASE_IN)
-	tween.tween_property(card, "modulate:a", 0.0, 0.15)
-	tween.tween_property(card, "custom_minimum_size:y", 0.0, 0.15)
-	tween.chain().tween_callback(card.queue_free)
-
-func _on_inspect_alert(alert_data: Dictionary) -> void:
-	var building = alert_data.get("building")
-	if not is_instance_valid(building):
-		return
-		
-	windows_container.hide()
-	for child in windows_container.get_children():
-		child.hide()
-		
-	open_building_ui(building)
-
-func populate_alert_history() -> void:
-	if not alert_history_window:
-		return
-		
-	var list = alert_history_window.find_child("HistoryList", true, false) as VBoxContainer
-	if not list:
-		return
-		
-	for child in list.get_children():
-		child.queue_free()
-		
-	var past = GameState.past_alerts
-	if past.is_empty():
-		var empty_lbl = Label.new()
-		empty_lbl.text = "No alerts in history."
-		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty_lbl.add_theme_font_size_override("font_size", 12)
-		empty_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		list.add_child(empty_lbl)
-		return
-		
-	for alert in past:
-		var row = PanelContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		
-		var is_active = false
-		for act in GameState.active_alerts:
-			if act.id == alert.id:
-				is_active = true
-				break
-				
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.14, 0.12, 0.16, 0.75)
-		style.set_border_width_all(1)
-		style.set_corner_radius_all(6)
-		style.content_margin_left = 12
-		style.content_margin_right = 12
-		style.content_margin_top = 8
-		style.content_margin_bottom = 8
-		
-		if is_active:
-			match alert.type:
-				"warning":
-					style.border_color = Color(0.88, 0.55, 0.12, 0.8)
-				"danger":
-					style.border_color = Color(0.86, 0.24, 0.24, 0.8)
-				_:
-					style.border_color = Color(0.24, 0.6, 0.86, 0.8)
-		else:
-			style.border_color = Color(0.25, 0.25, 0.3, 0.5)
-			
-		row.add_theme_stylebox_override("panel", style)
-		
-		var hbox = HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 12)
-		row.add_child(hbox)
-		
-		var text_vbox = VBoxContainer.new()
-		text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_child(text_vbox)
-		
-		var title = Label.new()
-		var active_suffix = " (ACTIVE)" if is_active else " (Resolved)"
-		title.text = alert.title + active_suffix
-		title.add_theme_font_size_override("font_size", 12)
-		if is_active:
-			match alert.type:
-				"warning":
-					title.add_theme_color_override("font_color", Color(0.88, 0.55, 0.12))
-				"danger":
-					title.add_theme_color_override("font_color", Color(0.86, 0.24, 0.24))
-				_:
-					title.add_theme_color_override("font_color", Color(0.24, 0.6, 0.86))
-		else:
-			title.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		text_vbox.add_child(title)
-		
-		var desc = Label.new()
-		desc.text = alert.description
-		desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-		desc.add_theme_font_size_override("font_size", 11)
-		desc.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85) if is_active else Color(0.6, 0.6, 0.6))
-		text_vbox.add_child(desc)
-		
-		var time_lbl = Label.new()
-		time_lbl.text = alert.time
-		time_lbl.add_theme_font_size_override("font_size", 9)
-		time_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
-		text_vbox.add_child(time_lbl)
-		
-		var btn_vbox = VBoxContainer.new()
-		btn_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		hbox.add_child(btn_vbox)
-		
-		if alert.get("building") != null and is_instance_valid(alert.building):
-			var inspect = Button.new()
-			inspect.text = "Inspect"
-			inspect.custom_minimum_size = Vector2(80, 24)
-			inspect.add_theme_font_size_override("font_size", 10)
-			inspect.pressed.connect(func():
-				_on_inspect_alert(alert)
-			)
-			btn_vbox.add_child(inspect)
-			_setup_button_hover(inspect)
-			
-		list.add_child(row)
-
-func _on_clear_history_pressed() -> void:
-	GameState.past_alerts = GameState.active_alerts.duplicate()
-	populate_alert_history()
+func flash_element(node: Control, flash_color: Color) -> void:
+	_flash_element(node, flash_color)

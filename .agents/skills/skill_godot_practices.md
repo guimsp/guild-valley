@@ -88,4 +88,21 @@ Whenever modifying existing systems, adding new features, or improving game mech
 - **Horizontal Group Design:** Global management singletons (like game_state.gd) must never maintain hardcoded list checks for explicit sub-categories of nodes (e.g., looping separately through groups named "Bakeries", "Mills", "Smelters" to execute a daily reset).
 - **Architecture Resolution:** All relative entities must join a singular, master structural group (e.g., "production_buildings"). The global manager will trigger generic lifecycle calls (e.g., get_tree().call_group("production_buildings", "clear_daily_stats")), and individual nodes will utilize polymorphism to execute their specific variations locally.
 
+---
 
+## 📏 Systemic Architecture Rules & Project Constraints
+
+### 🛑 1. Code File Constraints & Refactoring Triggers
+- **Absolute File Size Limit:** No single GDScript (`.gd`) file may ever exceed 500 lines of code.
+- **Refactoring Trigger:** If a feature request, bug fix, or modification threatens to push a file past 400 lines, you MUST halt generation immediately. State the structural bottleneck to the user and propose an architectural plan to break the file apart into smaller, decoupled child nodes or standalone components.
+- **Truncation Safety:** Never use shortcut placeholding comments like `// ... rest of the code remains the same ...` or `# ... rest of the code ...` when editing existing scripts. Always provide fully block-parsable scripts or clearly defined method overrides to prevent accidental code erasure.
+
+### 🧱 2. Godot Node Composition Pattern (Game Logic)
+- **Anti-Monolith Rule:** Core simulation actors (NPCs, Buildings, Logistics) must not operate as "God Objects." They must act as lightweight coordinators that delegate specialized work to dedicated child nodes.
+- **Component Separation:** Isolate discrete logical frameworks into lightweight, single-responsibility child component scripts (e.g., `NPCNavigationComponent.gd`, `NPCEconomicBrain.gd`, `WarehouseLogistics.gd`).
+- **Communication Flow:** Sub-components must handle internal states independently and pass critical information upward to parents via custom Godot signals. Parents may invoke methods downward directly.
+
+### 3. Sub-View Separation (UI Windows & Systems)
+- **Procedural UI Generation Ban:** You are strictly forbidden from imperatively constructing complex interface screens via code loops of `.new()` initializations (e.g., loops of `Button.new()`, `StyleBoxFlat.new()`, `PanelContainer.new()`). All custom components, inventory grids, and visual item cards must be mapped as dedicated, editable `.tscn` scene files.
+- **Tab Component Isolation:** Master UI canvas layers (such as multi-tab panels) must perform strictly as top-level view switchers. They must simply toggle the visibility of self-contained sub-scene tab layouts (e.g., `main_data_view.tscn`, `ledger_view.tscn`, `upgrades_view.tscn`).
+- **Context Injection:** Stream clean context references downward to these sub-tab components using initialization methods upon a view toggle, instead of forcing child tabs to poll global game singletons directly.

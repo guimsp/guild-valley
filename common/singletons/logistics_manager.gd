@@ -138,12 +138,22 @@ func collect_rival_worker_yield(worker: Node2D) -> void:
 			var econ_mgr = get_node_or_null("/root/EconomyManager")
 			var item_res = econ_mgr.item_database.get(res_id) if econ_mgr else null
 			if item_res:
-				var rivals = get_tree().get_nodes_in_group("Rivals")
-				if rivals.size() > 0:
-					var rival = rivals[0]
-					if "inventory" in rival:
-						rival.inventory.add_item(item_res, amount)
-						rival._spawn_floating_text("Deposited %d %s!" % [amount, item_res.name])
+				# Try depositing in the home workshop storage if possible
+				var home = worker.get("home_workshop")
+				var deposited = false
+				if is_instance_valid(home) and "building_storage" in home and home.building_storage:
+					home.building_storage.add_item(item_res, amount)
+					if worker.has_method("_spawn_floating_text"):
+						worker.call("_spawn_floating_text", "Deposited %d %s!" % [amount, item_res.name])
+					deposited = true
+					
+				if not deposited:
+					var rivals = get_tree().get_nodes_in_group("Rivals")
+					if rivals.size() > 0:
+						var rival = rivals[0]
+						if "inventory" in rival:
+							rival.inventory.add_item(item_res, amount)
+							rival._spawn_floating_text("Deposited %d %s!" % [amount, item_res.name])
 
 func collect_player_yield(player: Node2D, node: Area2D) -> void:
 	if gathered_buffer.has(player):

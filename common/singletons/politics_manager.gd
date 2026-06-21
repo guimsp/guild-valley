@@ -238,7 +238,7 @@ func resolve_voting_session(province: String, player_votes: Dictionary, player_i
 		}
 		
 	state["votes_history"].append({
-		"day": GameState.time_days if GameState else 1,
+		"day": TimeManager.time_days if GameState else 1,
 		"results": result_details
 	})
 	
@@ -311,6 +311,34 @@ func process_seasonal_taxes() -> void:
 			if is_law_active("hospitality_excise_tax", prov):
 				if workshop.is_in_group("Inns") or workshop.is_in_group("Taverns"):
 					tax = int(tax * 1.4)
+					
+			# Grand Chairman guild subsidy check
+			var building_career = ""
+			if workshop.building_data and workshop.building_data.career != "":
+				building_career = workshop.building_data.career
+			else:
+				var bench = workshop.get_node_or_null("CraftingBench")
+				if bench and "recipes" in bench and not bench.recipes.is_empty():
+					for r in bench.recipes:
+						if r and r.required_career != "":
+							building_career = r.required_career
+							break
+			
+			var gc = get_node_or_null("/root/GuildController")
+			if gc and building_career != "":
+				var gc_holder = gc.call("get_office_holder", prov, "Grand Chairman")
+				var gc_career = gc.call("get_office_career", prov, "Grand Chairman")
+				if gc_holder != "" and gc_career == building_career:
+					var workshop_faction = ""
+					if workshop.ownership_type == "Player":
+						workshop_faction = "Player"
+					elif workshop.ownership_type == "NPC" and workshop.owner_id == "Rival":
+						workshop_faction = "Rival"
+					
+					if workshop_faction == gc_holder:
+						tax = int(tax * 0.85)
+					elif workshop_faction != "" and gc_holder != "Guild Elder":
+						tax = int(tax * 1.05)
 					
 			if workshop.ownership_type == "Player":
 				player_tax += tax

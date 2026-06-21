@@ -5,11 +5,7 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 ---
 
 ## 🎯 Current Task
-- **Simulated Economy, Shop Selection Refinement & Market Balancing** [Completed]
-  - Refactored NPC shop selection utility weights and transaction limits.
-  - Implemented consolidated midnight balancing loops (caravans and background consumption).
-  - Created Warehouse building and minimum stock logistics gating.
-  - Spawned 4 Provincial Guild footprint stubs and custom interior layouts.
+- **Completed Build Menu Focus Polish**: Fixed the focus selector beating/respawning bug on clock ticks by caching and restoring the last focused card on viewport focus changes.
 
 ---
 
@@ -80,6 +76,12 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 
 ## ✅ Completed Features
 
+### 📈 Simulated Economy, Shop Selection Refinement & Market Balancing
+- Refactored NPC shop selection utility weights and transaction limits.
+- Implemented consolidated midnight balancing loops (caravans and background consumption).
+- Created Warehouse building and minimum stock logistics gating.
+- Spawned 4 Provincial Guild footprint stubs and custom interior layouts.
+
 ### 🛡️ Player & Employee Equipment System
 - Developed a complete equipment slot system supporting Head Armor, Main Armor (Body), Gloves, Hand Weapon, Tool, Bag, Necklace, Ring, and Transportation (horse and cart).
 - Equipped items grant corresponding attribute boosts (Armor, Attack, Speed multipliers, Inventory Capacity, and Gathering Yields).
@@ -137,3 +139,32 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 - **Player Warehouses**: Created a 48-slot player-purchasable Warehouse storage depot (placed next to houses under the General construction tab) with custom UI panels enabling minimum retained stock threshold locks that logistics couriers respect.
 - **Provincial Guild Hall Stubs**: Spawned Craftsman, Scholar, Tailor, and Patreon Guild footprints in overworld cities with a custom `900x600` baked navigation interior stub.
 
+### 🏛️ Three-Tier Guild Loops, Breakthrough Quests & Conclave Elections
+- **Professional Rank Hierarchy & Level Locks**: Added Novice (L1-3), Journeyman (L4-6), Expert (L7-9), and Master (L10) career naming tiers with automatic experience hardlocks at levels 3, 6, and 9.
+- **Breakthrough Rank Quests**: Introduced profession-specific Guild Master NPCs (e.g. *Craftsman Guild Master*, *Scholar Guild Master*, *Tailor Guild Master*, *Patreon Guild Master*) inside each guild house, exclusively dedicated to level up breakthrough choices (Novice -> Journeyman -> Expert -> Master).
+- **Seasonal Guild Conclave (Election Loop)**: Added a 4-day loop with blind-bidding, midnight Day 2 voting resolution with Title/Prestige multipliers, term limits, and default neutral Guild Elder fallback.
+- **Guild Office NPCs & Modifiers**: Spawned visual, interactive NPCs inside the guild hall offices representing the Grand Chairman, Donations Overseer (display name; office name: Logistics Overseer), and Materials Steward. Interacting with them opens their designated single-purpose conclave windows (tab buttons hidden, cycling disabled): Elections/Audits for the Chairman, Donations for the Donations Overseer, and Wholesalers/Bundles for the Materials Steward.
+- **Province Prosperity, Donations & Wholesale Store**: Enabled donations of gold or raw materials to advance Province Prosperity (now displayed next to the province name under the minimap radar in brackets). Wholesale store bundles are timed (refreshing every 10 real-world minutes) and locked individually upon purchase.
+- **Bureaucratic Audits**: Implemented competitor audit summons spawning an inspector NPC who applies `is_under_audit = true` for 12 game hours (halting production and clearing storefront inventory), governed by a global 2-day cooldown.
+
+### 🧱 Monolithic Code Decoupling & Component Composition (Milestones 1-4)
+- **Node Composition Pattern for Production**: Extracted monolithic 1680-line `base_production_building.gd` into modular, isolated child component nodes: [BuildingUpgradeComponent](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/components/production/BuildingUpgradeComponent.gd) and [BuildingStaffComponent](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/components/production/BuildingStaffComponent.gd), utilizing GDScript getter/setter proxy redirectors for backward compatibility.
+- **F1-F10 UI Sub-Windows Decoupling**: Decoupled monolithic 2980-line `game_hud.gd` into 6 standalone sub-window scripts ([TitleUpgradeWindow](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/title_upgrade_window.gd), [InfluenceBrokerWindow](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/influence_broker_window.gd), [AlertUiManager](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/alert_ui_manager.gd), [BusinessListWindow](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/business_list_window.gd), [OpponentsListWindow](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/opponents_list_window.gd), [BuildMenuWindow](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/build_menu_window.gd)) cached via master HUD references instead of parent hierarchy pointers.
+- **Main Data Ledger Refactoring**: Modularized 1580-line `main_data_view.gd` into [WorkshopViewController](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/common/ui/workshop_view.gd), [WarehouseViewController](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/common/ui/warehouse_view.gd), and [MainDataViewModalManager](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/common/ui/modal_manager.gd) attached to single common parent nodes.
+- **Player HUD Decoupling**: Decoupled 1580-line `player_hud.gd` into [PlayerInventoryWindow](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/common/ui/player_inventory_window.gd) and [PlayerInteractPrompt](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/common/ui/player_interact_prompt.gd), and deleted duplicate build menu nodes.
+
+### 🕹️ UI Responsiveness, Key Hold & Focus Overhaul
+- **Reactive Player Gold Updating**: Added a new `gold_changed` signal and setter in [GameState](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/common/singletons/game_state.gd), updating HUD gold displays immediately upon transactions.
+- **Build Menu Focus Retention**: Added focus-preservation during build menu card refreshes on time clock ticks, automatically saving and restoring the user's active focused card.
+- **Focus Trapping & Escape Prevention**: Locked focus navigation inside all active popup dialogs (Market UI, Price Adjuster, Transaction Prompt, and Build Menu) via viewport `gui_focus_changed` traps and explicit focus neighbors.
+- **Continuous Slider Adjustment**: Removed echo key restrictions to support holding down `A`/`D`/Left/Right keys for fast slider adjustments.
+- **Build Menu Selector Beat Fix**: Resolved focus selector flickering ("beating" or respawning) on clock ticks by caching `_last_focused_card` and restoring focus to it rather than resetting to the first card when viewport focus briefly escapes or resets.
+- **Milestone 5 - Employee Scheduling & Modal Focus Wrap**:
+  - Automatically route active recipe employees to the workbench if they are idling or outside when their shift starts.
+  - Teleport off-shift employees from the building interior to the doorstep when their shift ends to prevent them from getting stuck.
+  - Enforce off-shift crafting/gathering pause in the building staff component so workers do not work while off-duty.
+  - Reorder the quantity buttons in the job selection modal so "Continuous (Indefinite)" is the first option.
+  - Setup explicit vertical focus wrapping for these quantity selection buttons and trap focus inside the modal overlays to prevent escape to the background view.
+  - Restrict infinite virtual stock checks to public MarketStalls only; private stalls and production buildings require real stock to be sold.
+  - Automatically transfer finished goods from building storage to the storefront stall for Rival/NPC-run production buildings so they can sell crafted goods.
+  - Multiplied NPC necessity demand cooldowns and initial timers by 4x to decrease overall consumption frequency.

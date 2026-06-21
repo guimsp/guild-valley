@@ -101,7 +101,7 @@ func _process(delta: float) -> void:
 			if sbox:
 				var payout = noble_cert * 250
 				sbox.strongbox_gold += payout
-				sbox.add_transaction("Noble Event Service", noble_cert, payout, GameState.get_time_string(), "Guests")
+				sbox.add_transaction("Noble Event Service", noble_cert, payout, TimeManager.get_time_string(), "Guests")
 				GameState.spawn_ui_floating_text("+%d Gold (Noble Event Hall)" % payout)
 				
 		var royal_cert = building_storage.get_item_amount("royal_event_certificate")
@@ -111,5 +111,5 @@ func _process(delta: float) -> void:
 			if sbox:
 				var payout = royal_cert * 600
 				sbox.strongbox_gold += payout
-				sbox.add_transaction("Royal Event Service", royal_cert, payout, GameState.get_time_string(), "Nobles")
+				sbox.add_transaction("Royal Event Service", royal_cert, payout, TimeManager.get_time_string(), "Nobles")
 				GameState.spawn_ui_floating_text("+%d Gold (Royal Event Hall)" % payout)

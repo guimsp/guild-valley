@@ -104,5 +104,5 @@ func _process(delta: float) -> void:
 				var revenue = int(tickets * 50 * mult)
 				sbox.strongbox_gold += revenue
 				var name_tag = "Casino Service" if building_level >= 2 else "Tavern Service"
-				sbox.add_transaction(name_tag, tickets, revenue, GameState.get_time_string(), "Patrons")
+				sbox.add_transaction(name_tag, tickets, revenue, TimeManager.get_time_string(), "Patrons")
 				GameState.spawn_ui_floating_text("+%d Gold (%s)" % [revenue, "Casino" if building_level >= 2 else "Tavern"])

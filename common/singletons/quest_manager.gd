@@ -147,7 +147,7 @@ var quest_templates = [
 var last_checked_day: int = 1
 
 func _ready() -> void:
-	GameState.time_changed.connect(_on_time_changed)
+	TimeManager.time_changed.connect(_on_time_changed)
 	# Initial generation for Day 1
 	call_deferred("generate_quests_for_day", 1)
 
@@ -233,8 +233,8 @@ func accept_quest(quest_id: String, region: String) -> bool:
 	var quest = list[quest_idx]
 	list.remove_at(quest_idx)
 	
-	quest["accepted_day"] = GameState.time_days
-	quest["due_day"] = GameState.time_days + quest.due_days
+	quest["accepted_day"] = TimeManager.time_days
+	quest["due_day"] = TimeManager.time_days + quest.due_days
 	
 	accepted_quests.append(quest)
 	quests_updated.emit()
@@ -372,14 +372,14 @@ func load_save_data(data: Dictionary) -> void:
 	})
 	accepted_quests = data.get("accepted_quests", [])
 	completed_quests_count = data.get("completed_quests_count", 0)
-	last_checked_day = GameState.time_days
+	last_checked_day = TimeManager.time_days
 	
 	# If loaded/active data is empty, populate quests for the current day
 	var total_active = 0
 	for region in active_quests:
 		total_active += active_quests[region].size()
 	if total_active == 0 and accepted_quests.is_empty():
-		generate_quests_for_day(GameState.time_days)
+		generate_quests_for_day(TimeManager.time_days)
 	else:
 		quests_updated.emit()
 

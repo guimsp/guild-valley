@@ -2,7 +2,7 @@ class_name AIRival
 extends CharacterBody2D
 
 @export var speed: float = 80.0
-@export var gold: int = 1000
+@export var gold: int = 1500
 @export var family_name: String = "Fugger Family"
 @export var standing: String = "Competitor"
 var productivity: float:
@@ -11,6 +11,7 @@ var productivity: float:
 var is_harvesting: bool = false
 var is_gathering: bool = false
 var current_mega_node: Node2D = null
+var status_label: Label = null
 
 var active_roads_count: int = 0
 var speed_multiplier: float = 1.0
@@ -20,6 +21,10 @@ var profession: String = "patreon"
 var level: int = 1
 var xp: int = 0
 var career_behavior: RivalCareerBehavior = null
+var active_settlements: Array[Node2D] = []
+
+var _default_gather_resource_id: String = ""
+var _default_final_sell_item_id: String = ""
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var inventory: Node = $InventoryComponent
@@ -74,10 +79,12 @@ func _ready() -> void:
 	nav_agent.target_desired_distance = 16.0
 	add_child(nav_agent)
 	
-	# Select a random starting career
-	var careers = ["patreon", "craftsman", "tailor", "scholar"]
-	profession = careers[randi() % careers.size()]
+	# Force Patreon career as it is the most developed
+	profession = "patreon"
 	career_behavior = RivalCareerBehavior.get_behavior_for_career(profession)
+	if career_behavior:
+		_default_gather_resource_id = career_behavior.gather_resource_id
+		_default_final_sell_item_id = career_behavior.final_sell_item_id
 	
 	# Tint sprite to distinguish from player (e.g. reddish tint)
 	if animated_sprite:
@@ -89,8 +96,16 @@ func _ready() -> void:
 			GameState.rival_ai_active_changed.connect(_on_rival_ai_active_changed)
 		_on_rival_ai_active_changed(GameState.rival_ai_active)
 	
+	_setup_status_label()
+	
 	# Delay finding targets slightly to ensure scenes are fully loaded
 	await get_tree().process_frame
+	
+	# Initialize home settlement
+	var start_sett = GameState.get_nearest_settlement(self)
+	if start_sett:
+		active_settlements.append(start_sett)
+		
 	_route_to_state_target()
 
 func _on_rival_ai_active_changed(active: bool) -> void:
@@ -137,7 +152,9 @@ func _get_grid_for_crop(crop_plot: Node2D) -> Node2D:
 	return null
 
 func _find_raw_resource() -> void:
-	if is_instance_valid(_target_field) and _target_field.is_in_group("MegaNodes"):
+	if is_instance_valid(_target_field) and _target_field.is_in_group("Fountains"):
+		return
+	if is_instance_valid(_target_field) and _target_field.is_in_group("MegaNodes") and _target_field.resource_type_id == career_behavior.gather_resource_id:
 		return
 		
 	var nodes = get_tree().get_nodes_in_group("MegaNodes")
@@ -150,29 +167,28 @@ func _find_refinery() -> void:
 	if is_instance_valid(_target_bench):
 		return
 		
-	var current_settlement = GameState.get_nearest_settlement(self)
 	var stations = get_tree().get_nodes_in_group(career_behavior.refine_station_group)
-	var public_benches = get_tree().get_nodes_in_group("CraftingBenches")
-	
 	var best_station = null
 	var min_dist = INF
 	
+	# 1. Search in active settlements
 	for station in stations:
-		if is_instance_valid(station) and station.ownership_type == "NPC" and station.owner_id == "Rival":
-			if GameState.get_nearest_settlement(station) == current_settlement:
+		if is_instance_valid(station) and is_accessible_by_rival(station):
+			var sett = GameState.get_nearest_settlement(station)
+			if sett in active_settlements:
 				var dist = global_position.distance_to(station.global_position)
 				if dist < min_dist:
 					min_dist = dist
 					best_station = station
 					
+	# 2. Fallback globally
 	if not best_station:
-		# Search public/fallback stations
-		for bench in public_benches:
-			if is_accessible_by_rival(bench):
-				var dist = global_position.distance_to(bench.global_position)
+		for station in stations:
+			if is_instance_valid(station) and is_accessible_by_rival(station):
+				var dist = global_position.distance_to(station.global_position)
 				if dist < min_dist:
 					min_dist = dist
-					best_station = bench
+					best_station = station
 					
 	_target_bench = best_station
 
@@ -180,28 +196,28 @@ func _find_finished_workshop() -> void:
 	if is_instance_valid(_target_finished_bench):
 		return
 		
-	var current_settlement = GameState.get_nearest_settlement(self)
 	var stations = get_tree().get_nodes_in_group(career_behavior.finish_station_group)
-	var public_benches = get_tree().get_nodes_in_group("CraftingBenches")
-	
 	var best_station = null
 	var min_dist = INF
 	
+	# 1. Search in active settlements
 	for station in stations:
-		if is_instance_valid(station) and station.ownership_type == "NPC" and station.owner_id == "Rival":
-			if GameState.get_nearest_settlement(station) == current_settlement:
+		if is_instance_valid(station) and is_accessible_by_rival(station):
+			var sett = GameState.get_nearest_settlement(station)
+			if sett in active_settlements:
 				var dist = global_position.distance_to(station.global_position)
 				if dist < min_dist:
 					min_dist = dist
 					best_station = station
 					
+	# 2. Fallback globally
 	if not best_station:
-		for bench in public_benches:
-			if is_accessible_by_rival(bench):
-				var dist = global_position.distance_to(bench.global_position)
+		for station in stations:
+			if is_instance_valid(station) and is_accessible_by_rival(station):
+				var dist = global_position.distance_to(station.global_position)
 				if dist < min_dist:
 					min_dist = dist
-					best_station = bench
+					best_station = station
 					
 	_target_finished_bench = best_station
 
@@ -209,19 +225,30 @@ func _find_stall() -> void:
 	if is_instance_valid(_target_stall):
 		return
 		
-	var current_settlement = GameState.get_nearest_settlement(self)
 	var stalls = get_tree().get_nodes_in_group("MarketStall")
 	var best_stall = null
 	var min_dist = INF
 	
+	# 1. Search owned stalls in active settlements
 	for stall in stalls:
 		if is_instance_valid(stall) and stall.ownership_type == "NPC" and stall.owner_id == "Rival":
-			if GameState.get_nearest_settlement(stall) == current_settlement:
+			var sett = GameState.get_nearest_settlement(stall)
+			if sett in active_settlements:
 				var dist = global_position.distance_to(stall.global_position)
 				if dist < min_dist:
 					min_dist = dist
 					best_stall = stall
 					
+	# 2. Fallback: Search owned stalls globally
+	if not best_stall:
+		for stall in stalls:
+			if is_instance_valid(stall) and stall.ownership_type == "NPC" and stall.owner_id == "Rival":
+				var dist = global_position.distance_to(stall.global_position)
+				if dist < min_dist:
+					min_dist = dist
+					best_stall = stall
+					
+	# 3. Fallback: Search any accessible stall globally
 	if not best_stall:
 		for stall in stalls:
 			if is_accessible_by_rival(stall):
@@ -233,6 +260,9 @@ func _find_stall() -> void:
 	_target_stall = best_stall
 
 func _physics_process(delta: float) -> void:
+	gold = max(gold, 150)
+	_update_status_label()
+	
 	# Periodic check to buy vacant overworld rental houses
 	_house_buy_check_timer -= delta
 	if _house_buy_check_timer <= 0.0:
@@ -240,7 +270,7 @@ func _physics_process(delta: float) -> void:
 		try_buy_available_house()
 
 	# Periodic check to construct buildings or hire workers
-	_building_check_timer -= delta * GameState.TIME_SPEED
+	_building_check_timer -= delta * TimeManager.TIME_SPEED
 	if _building_check_timer <= 0.0:
 		_building_check_timer = 10.0
 		try_construct_next_building()
@@ -296,10 +326,18 @@ func _physics_process(delta: float) -> void:
 func _process_work_state(delta: float) -> void:
 	match current_state:
 		State.WALKING_TO_RAW:
-			_find_raw_resource()
+			if _check_opportunistic_selling():
+				return
+				
+			if not is_instance_valid(_target_field) or not (_target_field.is_in_group("Fountains") or _target_field.is_in_group("MegaNodes")):
+				_find_raw_resource()
+				
 			if _target_field:
-				if not is_harvesting:
+				var is_fountain = _target_field.is_in_group("Fountains")
+				if not is_fountain and not is_harvesting:
 					if _target_field.active_gatherers.size() >= _target_field.max_slots:
+						log_rival_decision("Raw resource %s is full. Waiting..." % _target_field.node_name)
+						_break_next_state = State.WALKING_TO_RAW
 						_start_work_state(State.IDLE, randf_range(3.0, 6.0))
 						return
 					
@@ -308,15 +346,29 @@ func _process_work_state(delta: float) -> void:
 						gold -= fee
 						is_harvesting = true
 						_spawn_floating_text("Paid Permit: -%d Gold!" % fee)
+						log_rival_decision("Paid permit of %d gold for %s" % [fee, _target_field.node_name])
 					else:
+						log_rival_decision("Not enough gold to pay permit of %d gold for %s (current gold: %d). Waiting..." % [fee, _target_field.node_name, gold])
+						_break_next_state = State.WALKING_TO_RAW
 						_start_work_state(State.IDLE, randf_range(3.0, 6.0))
 						return
 				
 				_walk_towards_target_node(_target_field, delta)
 				var phys_pos = global_position
-				if phys_pos.distance_to(_target_field.global_position) < 48.0:
-					current_state = State.GATHERING
+				if phys_pos.distance_to(_target_field.global_position) < 48.0 or nav_agent.is_navigation_finished():
+					if is_fountain:
+						var econ_mgr = get_node_or_null("/root/EconomyManager")
+						var water_res = econ_mgr.item_database.get("water") if econ_mgr else null
+						if water_res and inventory:
+							inventory.add_item(water_res, 5)
+						_spawn_floating_text("Gathered Water from Fountain!")
+						log_rival_decision("Gathered 5 Water units from Fountain. Transitioning to WALKING_TO_STALL to sell.")
+						_start_work_state(State.WALKING_TO_STALL, 0.5)
+					else:
+						log_rival_decision("Arrived at raw resource %s. Starting GATHERING" % _target_field.node_name)
+						current_state = State.GATHERING
 			else:
+				log_rival_decision("No raw resource found. Transitioning to WALKING_TO_REFINERY")
 				_start_work_state(State.WALKING_TO_REFINERY, 0.1)
 				
 		State.GATHERING:
@@ -327,22 +379,42 @@ func _process_work_state(delta: float) -> void:
 			
 			var lm = get_node_or_null("/root/LogisticsManager")
 			if lm and _target_field:
+				# Safety check: if target field is valid, and we are not in its active_gatherers,
+				# try to join it, or if it is full, reset!
+				if not _target_field.active_gatherers.has(self):
+					if _target_field.active_gatherers.size() < _target_field.max_slots:
+						_target_field.active_gatherers.append(self)
+						is_gathering = true
+						current_mega_node = _target_field
+						lm.start_gathering(self, _target_field)
+						_target_field._spawn_floating_text("%s began harvesting (safely)!" % family_name)
+						log_rival_decision("Safely joined active gatherers list for %s" % _target_field.node_name)
+					else:
+						# Target field is full! We cannot gather here. Reset!
+						log_rival_decision("Cannot gather at %s: Node is full. Resetting to WALKING_TO_RAW" % _target_field.node_name)
+						is_harvesting = false
+						_start_work_state(State.WALKING_TO_RAW, randf_range(3.0, 6.0))
+						return
+
 				var amt = lm.get_buffer_amount(self)
 				var congestion = _target_field.get_congestion_factor()
 				
 				if amt >= 3 or (amt > 0 and congestion < 0.55):
 					is_harvesting = false
+					log_rival_decision("Collected harvest of %d %s from buffer. Transitioning to WALKING_TO_REFINERY" % [amt, _target_field.resource_type_id])
 					lm.collect_rival_worker_yield(self)
 					lm.erase_buffer(self)
 					_target_field._on_body_exited(self)
 					_start_work_state(State.WALKING_TO_REFINERY, 0.5)
 			else:
 				is_harvesting = false
+				log_rival_decision("No LogisticsManager or target field found during GATHERING. Transitioning to WALKING_TO_REFINERY")
 				_start_work_state(State.WALKING_TO_REFINERY, 0.5)
 			
 		State.WALKING_TO_REFINERY:
 			var raw_owned = inventory.get_item_amount(career_behavior.gather_resource_id)
 			if raw_owned < 1:
+				log_rival_decision("No raw materials owned (%s). Heading back to WALKING_TO_RAW" % career_behavior.gather_resource_id)
 				_start_work_state(State.WALKING_TO_RAW, 0.1)
 				return
 				
@@ -350,19 +422,24 @@ func _process_work_state(delta: float) -> void:
 			if _target_bench:
 				_walk_towards_target_node(_target_bench, delta)
 				var phys_pos = global_position + Vector2(0, -34)
-				if phys_pos.distance_to(_target_bench.global_position) < 85.0:
+				if phys_pos.distance_to(_target_bench.global_position) < 85.0 or nav_agent.is_navigation_finished():
+					log_rival_decision("Arrived at refinery %s. Starting REFINING" % _target_bench.name)
 					_start_work_state(State.REFINING, 2.5)
 			else:
+				log_rival_decision("No refinery station found. Transitioning directly to WALKING_TO_STALL")
 				_start_work_state(State.WALKING_TO_STALL, 0.1)
 				
 		State.REFINING:
 			var recipe = load(career_behavior.refining_recipe_path)
 			if recipe:
+				log_rival_decision("Executing refining recipe: %s" % recipe.resource_path.get_file())
 				execute_recipe(recipe, career_behavior.gather_resource_id)
 			
 			if career_behavior.has_finished_product():
+				log_rival_decision("Career has finished product. Transitioning to WALKING_TO_FINISHED")
 				_start_work_state(State.WALKING_TO_FINISHED, 0.5)
 			else:
+				log_rival_decision("No finished product step. Transitioning directly to WALKING_TO_STALL")
 				_start_work_state(State.WALKING_TO_STALL, 0.5)
 				
 		State.WALKING_TO_FINISHED:
@@ -373,6 +450,7 @@ func _process_work_state(delta: float) -> void:
 			
 			var ref_owned = inventory.get_item_amount(refine_output_id)
 			if ref_owned < 1:
+				log_rival_decision("No refined materials owned (%s). Heading back to WALKING_TO_RAW" % refine_output_id)
 				_start_work_state(State.WALKING_TO_RAW, 0.1)
 				return
 				
@@ -380,9 +458,11 @@ func _process_work_state(delta: float) -> void:
 			if _target_finished_bench:
 				_walk_towards_target_node(_target_finished_bench, delta)
 				var phys_pos = global_position + Vector2(0, -34)
-				if phys_pos.distance_to(_target_finished_bench.global_position) < 85.0:
+				if phys_pos.distance_to(_target_finished_bench.global_position) < 85.0 or nav_agent.is_navigation_finished():
+					log_rival_decision("Arrived at finished workshop %s. Starting PRODUCING" % _target_finished_bench.name)
 					_start_work_state(State.PRODUCING, 2.5)
 			else:
+				log_rival_decision("No finished workshop found. Transitioning directly to WALKING_TO_STALL")
 				_start_work_state(State.WALKING_TO_STALL, 0.1)
 				
 		State.PRODUCING:
@@ -393,12 +473,22 @@ func _process_work_state(delta: float) -> void:
 				
 			var recipe = load(career_behavior.finished_recipe_path)
 			if recipe:
+				log_rival_decision("Executing finished product recipe: %s" % recipe.resource_path.get_file())
 				execute_recipe(recipe, refine_output_id)
+			log_rival_decision("Finished production. Transitioning to WALKING_TO_STALL")
 			_start_work_state(State.WALKING_TO_STALL, 0.5)
 			
 		State.WALKING_TO_STALL:
 			var sell_owned = inventory.get_item_amount(career_behavior.final_sell_item_id)
 			if sell_owned < 1:
+				log_rival_decision("No sellable items owned (%s). Heading back to WALKING_TO_RAW" % career_behavior.final_sell_item_id)
+				if career_behavior:
+					if _default_gather_resource_id != "":
+						career_behavior.gather_resource_id = _default_gather_resource_id
+					if _default_final_sell_item_id != "":
+						career_behavior.final_sell_item_id = _default_final_sell_item_id
+				_target_stall = null
+				_target_field = null
 				_start_work_state(State.WALKING_TO_RAW, 0.1)
 				return
 				
@@ -406,9 +496,18 @@ func _process_work_state(delta: float) -> void:
 			if _target_stall:
 				_walk_towards_target_node(_target_stall, delta)
 				var phys_pos = global_position + Vector2(0, -34)
-				if phys_pos.distance_to(_target_stall.global_position) < 85.0:
+				if phys_pos.distance_to(_target_stall.global_position) < 85.0 or nav_agent.is_navigation_finished():
+					log_rival_decision("Arrived at market stall %s. Starting SELLING" % _target_stall.name)
 					_start_work_state(State.SELLING, 2.0)
 			else:
+				log_rival_decision("No market stall found. Heading back to WALKING_TO_RAW")
+				if career_behavior:
+					if _default_gather_resource_id != "":
+						career_behavior.gather_resource_id = _default_gather_resource_id
+					if _default_final_sell_item_id != "":
+						career_behavior.final_sell_item_id = _default_final_sell_item_id
+				_target_stall = null
+				_target_field = null
 				_start_work_state(State.WALKING_TO_RAW, 0.1)
 				
 		State.SELLING:
@@ -429,6 +528,15 @@ func _process_work_state(delta: float) -> void:
 						price = sell_item_res.base_value * sell_owned
 					gold += price
 					_spawn_floating_text("Rival sold %s for %d Gold!" % [sell_item_res.name, price])
+					log_rival_decision("Sold %d %s at %s for %d gold. Total gold now: %d" % [sell_owned, sell_item_res.name, stall.name, price, gold])
+			
+			if career_behavior:
+				if _default_gather_resource_id != "":
+					career_behavior.gather_resource_id = _default_gather_resource_id
+				if _default_final_sell_item_id != "":
+					career_behavior.final_sell_item_id = _default_final_sell_item_id
+			_target_stall = null
+			_target_field = null
 			_start_work_state(State.WALKING_TO_RAW, 2.0)
 
 func execute_recipe(recipe: Resource, primary_input_id: String) -> void:
@@ -454,7 +562,8 @@ func _walk_towards_target_node(target_node: Node2D, _delta: float) -> void:
 	if not is_instance_valid(target_node):
 		return
 		
-	nav_agent.target_position = target_node.global_position
+	if nav_agent.target_position != target_node.global_position:
+		nav_agent.target_position = target_node.global_position
 	
 	if nav_agent.is_navigation_finished():
 		velocity = Vector2.ZERO
@@ -478,7 +587,8 @@ func _walk_towards_target_node(target_node: Node2D, _delta: float) -> void:
 	move_and_slide()
 
 func _walk_towards(target_pos: Vector2, _delta: float) -> void:
-	nav_agent.target_position = target_pos
+	if nav_agent.target_position != target_pos:
+		nav_agent.target_position = target_pos
 	
 	if nav_agent.is_navigation_finished():
 		velocity = Vector2.ZERO
@@ -512,6 +622,103 @@ func _start_work_state(new_state: State, duration: float) -> void:
 			current_state = State.IDLE
 			_state_timer = randf_range(3.0, 6.0)
 			_spawn_floating_text("Rival resting...")
+			log_rival_decision("Decided to rest for %.1fs before heading to %s" % [_state_timer, _get_state_name(_break_next_state)])
+			return
+
+	log_rival_decision("Changed state to %s (duration: %.1fs)" % [_get_state_name(current_state), duration])
+
+func _get_state_name(state: State) -> String:
+	match state:
+		State.IDLE: return "IDLE"
+		State.WALKING_TO_RAW: return "WALKING_TO_RAW"
+		State.GATHERING: return "GATHERING"
+		State.WALKING_TO_REFINERY: return "WALKING_TO_REFINERY"
+		State.REFINING: return "REFINING"
+		State.WALKING_TO_FINISHED: return "WALKING_TO_FINISHED"
+		State.PRODUCING: return "PRODUCING"
+		State.WALKING_TO_STALL: return "WALKING_TO_STALL"
+		State.SELLING: return "SELLING"
+	return "UNKNOWN"
+
+func _setup_status_label() -> void:
+	status_label = Label.new()
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_label.add_theme_font_size_override("font_size", 10)
+	status_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5)) # Golden/yellowish
+	status_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	status_label.add_theme_constant_override("outline_size", 4)
+	status_label.position = Vector2(-75, -55)
+	status_label.size = Vector2(150, 40)
+	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	add_child(status_label)
+
+func _update_status_label() -> void:
+	if not is_instance_valid(status_label):
+		return
+		
+	var state_desc = "Idle"
+	match current_state:
+		State.IDLE:
+			state_desc = "Idle / Resting"
+			if _break_next_state != State.IDLE:
+				state_desc = "Resting (Next: %s)" % _get_state_name(_break_next_state)
+		State.WALKING_TO_RAW:
+			state_desc = "Walking to Raw Node"
+			if _target_field:
+				state_desc += " (%s)" % _target_field.node_name
+		State.GATHERING:
+			state_desc = "Gathering"
+			if _target_field:
+				state_desc += " (%s)" % _target_field.node_name
+		State.WALKING_TO_REFINERY:
+			state_desc = "Walking to Refinery"
+			if _target_bench:
+				state_desc += " (%s)" % _target_bench.name
+		State.REFINING:
+			state_desc = "Refining Materials"
+		State.WALKING_TO_FINISHED:
+			state_desc = "Walking to Workshop"
+			if _target_finished_bench:
+				state_desc += " (%s)" % _target_finished_bench.name
+		State.PRODUCING:
+			state_desc = "Producing Finished Good"
+		State.WALKING_TO_STALL:
+			state_desc = "Walking to Market"
+			if _target_stall:
+				state_desc += " (%s)" % _target_stall.name
+		State.SELLING:
+			state_desc = "Selling Goods"
+
+	var sched_desc = current_schedule.capitalize()
+	status_label.text = "%s (Lvl %d)\nGold: %d\n[%s] %s" % [
+		family_name,
+		level,
+		gold,
+		sched_desc,
+		state_desc
+	]
+
+func log_rival_decision(msg: String) -> void:
+	var timestamp = ""
+	if GameState:
+		timestamp = "[Day %d - %02d:%02d]" % [TimeManager.time_days, TimeManager.time_hours, TimeManager.time_minutes]
+	var log_line = "%s %s: %s" % [timestamp, family_name, msg]
+	print("[Rival AI Log] ", log_line)
+	
+	var file = FileAccess.open("res://rival_log.txt", FileAccess.READ_WRITE)
+	if not file:
+		file = FileAccess.open("res://rival_log.txt", FileAccess.WRITE)
+	else:
+		file.seek_end()
+	if file:
+		file.store_line(log_line)
+		file.flush()
+
+func on_mega_node_full(node: Area2D) -> void:
+	log_rival_decision("Received on_mega_node_full from %s. Resetting state." % node.node_name)
+	is_harvesting = false
+	current_state = State.WALKING_TO_RAW
+	_start_work_state(State.WALKING_TO_RAW, randf_range(3.0, 6.0))
 
 func _route_to_state_target() -> void:
 	match current_state:
@@ -533,7 +740,7 @@ func _route_to_state_target() -> void:
 				nav_agent.target_position = _target_stall.global_position
 
 func _update_schedule() -> void:
-	var hours = GameState.time_hours
+	var hours = TimeManager.time_hours
 	var next_sched = "work"
 	
 	if hours >= 22 or hours < 6:
@@ -546,9 +753,20 @@ func _update_schedule() -> void:
 		next_sched = "evening"
 		
 	if current_schedule != next_sched:
+		var prev_sched = current_schedule
 		current_schedule = next_sched
 		_state_timer = 0.0
 		_break_next_state = State.IDLE
+		log_rival_decision("Schedule transitioned from %s to %s" % [prev_sched, next_sched])
+		
+		if next_sched != "work":
+			if career_behavior:
+				if _default_gather_resource_id != "":
+					career_behavior.gather_resource_id = _default_gather_resource_id
+				if _default_final_sell_item_id != "":
+					career_behavior.final_sell_item_id = _default_final_sell_item_id
+			_target_stall = null
+			log_rival_decision("Schedule shifted away from work. Restored career behavior overrides.")
 		
 		match current_schedule:
 			"sleep":
@@ -632,72 +850,176 @@ func try_buy_available_house() -> void:
 				if house.has_method("_update_door_state"):
 					house._update_door_state()
 				_spawn_floating_text("Rival bought house for %d G!" % cost)
+				log_rival_decision("Bought house %s for %d gold (remaining: %d)" % [house.name if "name" in house else house.get_path(), cost, gold])
 				break
 
-func try_construct_next_building() -> void:
-	var current_settlement = GameState.get_nearest_settlement(self)
-	if not current_settlement:
+func _get_settlement_name(settlement: Node2D) -> String:
+	if not is_instance_valid(settlement):
+		return "Unknown Settlement"
+	if "city_name" in settlement and settlement.city_name != "":
+		return settlement.city_name
+	if "town_name" in settlement and settlement.town_name != "":
+		return settlement.town_name
+	return settlement.name
+
+func _sync_active_settlements_with_buildings() -> void:
+	var production_groups = ["Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Banks", "Inns", "Taverns", "Farmsteads", "Distilleries", "EventHalls"]
+	for grp in production_groups:
+		for b_node in get_tree().get_nodes_in_group(grp):
+			if is_instance_valid(b_node) and b_node.ownership_type == "NPC" and b_node.owner_id == "Rival":
+				var nearest_sett = GameState.get_nearest_settlement(b_node)
+				if nearest_sett and not active_settlements.has(nearest_sett):
+					active_settlements.append(nearest_sett)
+
+func _check_settlement_expansion() -> void:
+	var max_allowed = 1
+	if level >= 6:
+		max_allowed = 3
+	elif level >= 3:
+		max_allowed = 2
+		
+	if active_settlements.size() >= max_allowed:
 		return
 		
-	# Find first unlocked building path from behavior that isn't already built in this settlement
-	for lvl in career_behavior.building_unlocks_by_level:
-		if lvl <= level:
-			var paths = career_behavior.building_unlocks_by_level[lvl]
-			for path in paths:
-				var b_data = load(path) as BuildingData
-				if not b_data:
-					continue
-					
-				var already_built = false
-				var production_groups = ["Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Banks", "Inns", "Taverns", "Farmsteads", "Distilleries", "EventHalls"]
-				for grp in production_groups:
-					for b_node in get_tree().get_nodes_in_group(grp):
-						if is_instance_valid(b_node) and b_node.ownership_type == "NPC" and b_node.owner_id == "Rival":
-							var nearest_sett = GameState.get_nearest_settlement(b_node)
-							if nearest_sett == current_settlement:
-								if b_node.building_data and b_node.building_data.family == b_data.family:
-									already_built = true
-									break
-					if already_built:
-						break
+	var settlements_with_lots = []
+	for lot in get_tree().get_nodes_in_group("BuildingLots"):
+		if is_instance_valid(lot):
+			var s = GameState.get_nearest_settlement(lot)
+			if s and not settlements_with_lots.has(s):
+				settlements_with_lots.append(s)
+				
+	var possible_settlements = []
+	for city in get_tree().get_nodes_in_group("Cities"):
+		if not active_settlements.has(city) and settlements_with_lots.has(city):
+			possible_settlements.append(city)
+	for town in get_tree().get_nodes_in_group("Towns"):
+		if not active_settlements.has(town) and settlements_with_lots.has(town):
+			possible_settlements.append(town)
+			
+	if possible_settlements.is_empty():
+		return
+		
+	var home = active_settlements[0]
+	var best_sett = null
+	var min_dist = INF
+	for sett in possible_settlements:
+		var dist = home.global_position.distance_to(sett.global_position)
+		if dist < min_dist:
+			min_dist = dist
+			best_sett = sett
+			
+	if best_sett:
+		var expansion_fee = 500
+		if gold >= expansion_fee:
+			gold -= expansion_fee
+			active_settlements.append(best_sett)
+			var s_name = _get_settlement_name(best_sett)
+			_spawn_floating_text("Rival expanded to %s!" % s_name)
+			log_rival_decision("Expanded operations to new settlement: %s (Expansion Fee: %d, remaining gold: %d)" % [s_name, expansion_fee, gold])
+
+func try_construct_next_building() -> void:
+	if active_settlements.is_empty():
+		var start_sett = GameState.get_nearest_settlement(self)
+		if start_sett:
+			active_settlements.append(start_sett)
+		else:
+			return
+			
+	_sync_active_settlements_with_buildings()
+	_check_settlement_expansion()
+	
+	for current_settlement in active_settlements:
+		if not is_instance_valid(current_settlement):
+			continue
+			
+		var target_province = GameState.get_province_of_node(current_settlement)
+			
+		for lvl in career_behavior.building_unlocks_by_level:
+			if lvl <= level:
+				var paths = career_behavior.building_unlocks_by_level[lvl]
+				for path in paths:
+					var b_data = load(path) as BuildingData
+					if not b_data:
+						continue
 						
-				if not already_built:
-					# Try to build! Find vacant lot
-					var vacant_lot: BuildingLot = null
-					for lot in get_tree().get_nodes_in_group("BuildingLots"):
-						if is_instance_valid(lot) and not lot.is_occupied:
-							if lot.nearest_settlement == current_settlement:
-								vacant_lot = lot
-								break
+					var already_built = false
+					var is_manufacturing = b_data.family in [
+						"patreon_mill", "patreon_bakery", "patreon_distillery",
+						"craftsman_smelter", "craftsman_forge", "craftsman_workshop", "craftsman_tinker",
+						"tailor_loom", "scholar_paper_maker", "scholar_press"
+					]
+					
+					var production_groups = ["Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Banks", "Inns", "Taverns", "Farmsteads", "Distilleries", "EventHalls"]
+					for grp in production_groups:
+						for b_node in get_tree().get_nodes_in_group(grp):
+							if is_instance_valid(b_node) and b_node.ownership_type == "NPC" and b_node.owner_id == "Rival":
+								if is_manufacturing:
+									if GameState.get_province_of_node(b_node) == target_province:
+										if b_node.building_data and b_node.building_data.family == b_data.family:
+											already_built = true
+											break
+								else:
+									var nearest_sett = GameState.get_nearest_settlement(b_node)
+									if nearest_sett == current_settlement:
+										if b_node.building_data and b_node.building_data.family == b_data.family:
+											already_built = true
+											break
+						if already_built:
+							break
+							
+					# Check construction sites
+					for site in get_tree().get_nodes_in_group("ConstructionSites"):
+						if is_instance_valid(site) and site.builder_owner_id == "Rival":
+							if is_manufacturing:
+								if GameState.get_province_of_node(site) == target_province:
+									if site.building_data and site.building_data.family == b_data.family:
+										already_built = true
+										break
+							else:
+								var site_sett = GameState.get_nearest_settlement(site)
+								if site_sett == current_settlement:
+									if site.building_data and site.building_data.family == b_data.family:
+										already_built = true
+										break
+
+					if not already_built:
+						var vacant_lot: BuildingLot = null
+						for lot in get_tree().get_nodes_in_group("BuildingLots"):
+							if is_instance_valid(lot) and not lot.is_occupied:
+								if lot.nearest_settlement == current_settlement:
+									vacant_lot = lot
+									break
+									
+						if vacant_lot:
+							var total_cost = vacant_lot.calculate_lot_cost() + b_data.cost
+							if gold >= total_cost:
+								gold -= total_cost
 								
-					if vacant_lot:
-						var total_cost = vacant_lot.calculate_lot_cost() + b_data.cost
-						if gold >= total_cost:
-							gold -= total_cost
-							
-							var const_site_scene = load("res://components/placement/construction_site.tscn")
-							var const_site = const_site_scene.instantiate()
-							const_site.global_position = vacant_lot.global_position
-							const_site.building_data = b_data
-							const_site.target_scene_path = b_data.scene_path
-							const_site.build_time = b_data.time
-							const_site.building_name = b_data.name
-							const_site.builder_ownership_type = "NPC"
-							const_site.builder_owner_id = "Rival"
-							
-							vacant_lot.is_occupied = true
-							vacant_lot.occupied_node = const_site
-							
-							get_parent().add_child(const_site)
-							_spawn_floating_text("Rival building %s!" % b_data.name)
-							return # Build one at a time
+								var const_site_scene = load("res://components/placement/construction_site.tscn")
+								var const_site = const_site_scene.instantiate()
+								const_site.global_position = vacant_lot.global_position
+								const_site.building_data = b_data
+								const_site.target_scene_path = b_data.scene_path
+								const_site.build_time = b_data.time
+								const_site.building_name = b_data.name
+								const_site.builder_ownership_type = "NPC"
+								const_site.builder_owner_id = "Rival"
+								
+								vacant_lot.is_occupied = true
+								vacant_lot.occupied_node = const_site
+								
+								get_parent().add_child(const_site)
+								
+								var s_name = _get_settlement_name(current_settlement)
+								_spawn_floating_text("Rival building %s in %s!" % [b_data.name, s_name])
+								log_rival_decision("Initiated construction of %s on vacant lot in %s (Total Cost: %d, remaining gold: %d)" % [b_data.name, s_name, total_cost, gold])
+								return # Build one at a time
+							else:
+								var s_name = _get_settlement_name(current_settlement)
+								log_rival_decision("Wanted to construct %s in %s but lacked gold (Needed: %d, current gold: %d)" % [b_data.name, s_name, total_cost, gold])
 
 func try_hire_employees() -> void:
 	if gold < 500:
-		return
-		
-	var current_settlement = GameState.get_nearest_settlement(self)
-	if not current_settlement:
 		return
 		
 	var production_groups = ["Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Banks", "Inns", "Taverns", "Farmsteads", "Distilleries", "EventHalls"]
@@ -705,7 +1027,7 @@ func try_hire_employees() -> void:
 		for b_node in get_tree().get_nodes_in_group(grp):
 			if is_instance_valid(b_node) and b_node.ownership_type == "NPC" and b_node.owner_id == "Rival":
 				var nearest_sett = GameState.get_nearest_settlement(b_node)
-				if nearest_sett == current_settlement:
+				if nearest_sett in active_settlements:
 					if "hired_employees" in b_node and "max_employees" in b_node:
 						if b_node.hired_employees.size() < b_node.max_employees:
 							if b_node.hireable_candidates.is_empty():
@@ -723,14 +1045,33 @@ func try_hire_employees() -> void:
 									elif grp == career_behavior.finish_station_group:
 										recipe_path = career_behavior.finished_recipe_path
 										
-									candidate["active_recipe_path"] = recipe_path
-									candidate["is_repeating"] = true
-									candidate["craft_timer"] = 5.0
-									candidate["craft_total_time"] = 5.0
+									var emp_dict = {
+										"npc_ref": candidate,
+										"name": candidate.npc_name if "npc_name" in candidate else candidate.name,
+										"salary": candidate.salary if "salary" in candidate else 15,
+										"career": candidate.career if "career" in candidate else "patreon",
+										"levels": {
+											"patreon": candidate.patreon_level if "patreon_level" in candidate else 1,
+											"scholar": candidate.scholar_level if "scholar_level" in candidate else 1,
+											"craftsman": candidate.craftsman_level if "craftsman_level" in candidate else 1,
+											"tailor": candidate.tailor_level if "tailor_level" in candidate else 1
+										},
+										"active_recipe_path": recipe_path,
+										"craft_timer": 5.0,
+										"craft_total_time": 5.0,
+										"is_repeating": true,
+										"auto_gather_on_shortage": false,
+										"is_paused": false
+									}
 									
-									b_node.hired_employees.append(candidate)
-									_spawn_floating_text("Rival hired %s!" % candidate.name)
+									b_node.hired_employees.append(emp_dict)
+									candidate.go_to_workshop(b_node)
+									
+									_spawn_floating_text("Rival hired %s!" % emp_dict.name)
+									log_rival_decision("Hired employee %s for building %s (Fee: %d, remaining gold: %d)" % [emp_dict.name, b_node.name, fee, gold])
 									return
+								else:
+									log_rival_decision("Wanted to hire employee %s for %s but lacked gold (Needed: %d, current gold: %d)" % [candidate.name, b_node.name, fee, gold])
 
 func try_deploy_ai_worker() -> void:
 	if gold < 500:
@@ -754,6 +1095,9 @@ func try_deploy_ai_worker() -> void:
 		gold -= fee
 		_spawn_rival_worker_npc(target_node)
 		_spawn_floating_text("Deployed Worker to %s!" % target_node.node_name)
+		log_rival_decision("Deployed gatherer worker to %s (Permit Fee: %d, remaining gold: %d)" % [target_node.node_name, fee, gold])
+	else:
+		log_rival_decision("Wanted to deploy gatherer worker to %s but lacked gold (Needed: %d, current gold: %d)" % [target_node.node_name, fee, gold])
 
 func _spawn_rival_worker_npc(node: Area2D) -> void:
 	var npc_scene = load("res://entities/npc/npc.tscn")
@@ -781,4 +1125,68 @@ func _spawn_rival_worker_npc(node: Area2D) -> void:
 			
 	worker.global_position = spawn_pos
 	get_parent().add_child(worker)
+
+func _check_opportunistic_selling() -> bool:
+	if not career_behavior:
+		return false
+		
+	# If we are already doing an opportunistic task, don't override again
+	if career_behavior.gather_resource_id == "water" or career_behavior.final_sell_item_id != _default_final_sell_item_id:
+		return false
+		
+	var stalls = get_tree().get_nodes_in_group("MarketStall")
+	var econ_mgr = get_node_or_null("/root/EconomyManager")
+	if not econ_mgr:
+		return false
+		
+	# Find items that are at 0 stock in public markets
+	var zero_stock_items = [] # Array of dictionaries: {"stall": stall, "item": item}
+	for stall in stalls:
+		if is_instance_valid(stall) and stall.ownership_type == "Public" and stall.inventory:
+			for item in stall.target_stock:
+				if stall.inventory.get_item_amount(item.id) == 0:
+					zero_stock_items.append({"stall": stall, "item": item})
+					
+	if zero_stock_items.is_empty():
+		return false
+		
+	# 1. Check if we already have any of these out-of-stock items in our inventory
+	for entry in zero_stock_items:
+		var item = entry["item"]
+		var stall = entry["stall"]
+		if inventory.get_item_amount(item.id) > 0:
+			# Opportunistic Sell: Walk to stall and sell it
+			_target_stall = stall
+			career_behavior.final_sell_item_id = item.id
+			log_rival_decision("Opportunity detected: %s is out of stock at %s. We have %d in inventory. Walking to sell for premium profit!" % [item.id, stall.name, inventory.get_item_amount(item.id)])
+			_start_work_state(State.WALKING_TO_STALL, 0.1)
+			return true
+			
+	# 2. Check if Water is at 0 stock, and we can fetch it from a Fountain
+	for entry in zero_stock_items:
+		var item = entry["item"]
+		var stall = entry["stall"]
+		if item.id == "water":
+			# Locate the nearest Fountain
+			var fountains = get_tree().get_nodes_in_group("Fountains")
+			if not fountains.is_empty():
+				var nearest_fountain = null
+				var min_dist = INF
+				for f in fountains:
+					if is_instance_valid(f):
+						var dist = global_position.distance_to(f.global_position)
+						if dist < min_dist:
+							min_dist = dist
+							nearest_fountain = f
+				if nearest_fountain:
+					_target_field = nearest_fountain
+					_target_stall = stall
+					career_behavior.gather_resource_id = "water"
+					career_behavior.final_sell_item_id = "water"
+					log_rival_decision("Opportunity detected: Water is out of stock at %s. Walking to Fountain %s to gather water!" % [stall.name, nearest_fountain.name])
+					_start_work_state(State.WALKING_TO_RAW, 0.1)
+					return true
+					
+	return false
+
 

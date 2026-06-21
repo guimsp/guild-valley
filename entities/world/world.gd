@@ -14,7 +14,7 @@ func _ready() -> void:
 	
 	# Build the road navigation network
 	if GameState.has_method("rebuild_road_network"):
-		GameState.rebuild_road_network()
+		NavigationManager.rebuild_road_network()
 		
 	# Spawn NPCs for each settlement
 	_spawn_npcs()
@@ -63,6 +63,10 @@ func _ready() -> void:
 	var of = get_node_or_null("OakhavenForest")
 	if of: of.resource_type_id = "standard_timber"
 
+	# Spawn Wheat Fields programmatically
+	_spawn_wheat_field("The Great Wheat Field", Vector2(400, 200))
+	_spawn_wheat_field("Oakhaven Wheat Field", Vector2(5400, 200))
+
 	# Spawn Hunting Grounds programmatically
 	_spawn_hunting_ground("Imperial Hunting Grounds", Vector2(2500, 2200))
 	_spawn_hunting_ground("Oakhaven Hunting Grounds", Vector2(7500, 2200))
@@ -73,9 +77,44 @@ func _ready() -> void:
 	_spawn_guard("Guard Captain Peter", Vector2(5500, 600), false)
 	_spawn_guard("Guard Edmund", Vector2(7000, 1500), true)
 
+	# Spawn Fountains near public markets
+	_spawn_fountains()
+
 	# Ensure all navigation regions are rebaked and completely synced with the final world state
 	if GameState.has_method("rebake_all_navigation_regions"):
-		GameState.rebake_all_navigation_regions()
+		NavigationManager.rebake_all_navigation_regions()
+
+func _spawn_fountains() -> void:
+	var fountain_scene = load("res://entities/fountain/fountain.tscn")
+	if not fountain_scene:
+		push_error("Failed to load fountain scene")
+		return
+		
+	var settlements = []
+	settlements.append_array(get_tree().get_nodes_in_group("Cities"))
+	settlements.append_array(get_tree().get_nodes_in_group("Towns"))
+	
+	for settlement in settlements:
+		var found_market_stall = null
+		for child in settlement.get_children():
+			if child.name.contains("Market"):
+				for grandchild in child.get_children():
+					if grandchild.is_in_group("MarketStall") or grandchild.name.contains("Stall"):
+						found_market_stall = grandchild
+						break
+			if child.is_in_group("MarketStall") or child.name.contains("Stall"):
+				found_market_stall = child
+				break
+			if found_market_stall:
+				break
+				
+		if found_market_stall:
+			var fountain = fountain_scene.instantiate()
+			# Position near the public market stall: 120 pixels to the left
+			fountain.global_position = found_market_stall.global_position + Vector2(-120, 0)
+			fountain.name = "Fountain_" + settlement.name
+			add_child(fountain)
+			print("[World] Programmatically spawned Fountain near market stall at settlement: %s at position: %s" % [settlement.name, fountain.global_position])
 
 func _setup_collision_exceptions() -> void:
 	var players = get_tree().get_nodes_in_group("Player")
@@ -101,6 +140,22 @@ func _setup_collision_exceptions() -> void:
 	print("[World] Configured collision exceptions between %d characters." % all_characters.size())
 
 
+func _get_spawn_positions_for_settlement(settlement: Node2D) -> Array[Vector2]:
+	var positions: Array[Vector2] = []
+	for child in settlement.get_children():
+		if child.name.contains("Market"):
+			for grandchild in child.get_children():
+				if grandchild.is_in_group("MarketStall") or grandchild.name.contains("Stall"):
+					positions.append(grandchild.global_position)
+		if child.is_in_group("MarketStall") or child.name.contains("Stall"):
+			positions.append(child.global_position)
+		if child.name.contains("PublicHall") or child.name.contains("CityCouncil") or child.name.contains("QuestBoard") or child.name.contains("Guild"):
+			positions.append(child.global_position)
+			
+	if positions.is_empty():
+		positions.append(settlement.global_position)
+	return positions
+
 func _spawn_npcs() -> void:
 	var npc_scene = load("res://entities/npc/npc.tscn")
 	if not npc_scene:
@@ -109,35 +164,38 @@ func _spawn_npcs() -> void:
 		
 	# Spawn in Cities
 	for city in get_tree().get_nodes_in_group("Cities"):
+		var spawn_centers = _get_spawn_positions_for_settlement(city)
 		# Spawn 3 NPCs per city
 		for i in range(3):
 			var npc = npc_scene.instantiate()
-			# Spawn offset to avoid overlap
-			var offset = Vector2(randf_range(-100, 100), randf_range(-100, 100))
-			npc.global_position = city.global_position + offset
+			var center_pos = spawn_centers.pick_random()
+			var offset = Vector2(randf_range(-60, 60), randf_range(-60, 60))
+			npc.global_position = center_pos + offset
 			_initialize_npc_profile(npc, true)
 			add_child(npc)
 			print("[World] Spawned NPC at City %s: %s" % [city.city_name if "city_name" in city else city.name, npc.global_position])
 			
 	# Spawn in Towns
 	for town in get_tree().get_nodes_in_group("Towns"):
+		var spawn_centers = _get_spawn_positions_for_settlement(town)
 		# Spawn 2 NPCs per town
 		for i in range(2):
 			var npc = npc_scene.instantiate()
-			var offset = Vector2(randf_range(-100, 100), randf_range(-100, 100))
-			npc.global_position = town.global_position + offset
+			var center_pos = spawn_centers.pick_random()
+			var offset = Vector2(randf_range(-60, 60), randf_range(-60, 60))
+			npc.global_position = center_pos + offset
 			_initialize_npc_profile(npc, false)
 			add_child(npc)
 			print("[World] Spawned NPC at Town %s: %s" % [town.town_name if "town_name" in town else town.name, npc.global_position])
 
-	# Spawn 4 Relation NPCs near Valley City start area
+	# Spawn 4 Relation NPCs at thematic public structures in Valley City
 	var relation_specs = [
 		{
 			"name": "Elena",
 			"quest_npc_id": "elena",
 			"career": "tailor",
 			"social_class": NPCProfile.SocialClass.PEASANT,
-			"pos": Vector2(1600.0, 380.0),
+			"pos": Vector2(620.0, 1090.0), # Near Valley City Market
 			"likes": ["spool_thread", "red_dye", "blue_dye"]
 		},
 		{
@@ -145,7 +203,7 @@ func _spawn_npcs() -> void:
 			"quest_npc_id": "aldous",
 			"career": "scholar",
 			"social_class": NPCProfile.SocialClass.CITIZEN,
-			"pos": Vector2(1650.0, 300.0),
+			"pos": Vector2(770.0, 970.0), # Near Scholar Guild
 			"likes": ["ancient_manuscript", "ink", "paper"]
 		},
 		{
@@ -153,7 +211,7 @@ func _spawn_npcs() -> void:
 			"quest_npc_id": "valeria",
 			"career": "scholar",
 			"social_class": NPCProfile.SocialClass.NOBLE,
-			"pos": Vector2(1720.0, 380.0),
+			"pos": Vector2(830.0, 820.0), # Near City Council
 			"likes": ["confidential_documents", "gold_ring", "silver_necklace"]
 		},
 		{
@@ -161,7 +219,7 @@ func _spawn_npcs() -> void:
 			"quest_npc_id": "gideon",
 			"career": "craftsman",
 			"social_class": NPCProfile.SocialClass.CITIZEN,
-			"pos": Vector2(1550.0, 440.0),
+			"pos": Vector2(430.0, 970.0), # Near Craftsman Guild
 			"likes": ["standard_timber", "iron_ingot", "iron_ore"]
 		}
 	]
@@ -178,9 +236,9 @@ func _spawn_npcs() -> void:
 		var profile = NPCProfile.new()
 		profile.social_class = spec["social_class"]
 		profile.demand_profiles["bread"] = {
-			"cooldown_min": 40.0,
-			"cooldown_max": 80.0,
-			"timer": randf_range(10.0, 30.0)
+			"cooldown_min": 160.0,
+			"cooldown_max": 320.0,
+			"timer": randf_range(40.0, 120.0)
 		}
 		npc.profile = profile
 		npc.npc_type = NPCAIController.NPCType.TYPE_RELATION_TARGET
@@ -206,7 +264,7 @@ func _spawn_npcs() -> void:
 				rel_comp.load_save_data(GameState.relationship_db[spec["quest_npc_id"]])
 			
 		print("[World] Spawned Relation NPC %s at %s" % [spec["name"], spec["pos"]])
-
+ 
 func _initialize_npc_profile(npc: CharacterBody2D, is_city: bool) -> void:
 	var profile = NPCProfile.new()
 	
@@ -230,35 +288,36 @@ func _initialize_npc_profile(npc: CharacterBody2D, is_city: bool) -> void:
 			profile.social_class = NPCProfile.SocialClass.NOBLE
 			
 	# Give item demand timers (shorter timers for quick testing)
-	# Bread: all classes, requests bread every 30 to 60 seconds
+	# Bread: all classes, requests bread every 120 to 240 seconds
 	profile.demand_profiles["bread"] = {
-		"cooldown_min": 30.0,
-		"cooldown_max": 60.0,
-		"timer": randf_range(5.0, 25.0)
+		"cooldown_min": 120.0,
+		"cooldown_max": 240.0,
+		"timer": randf_range(20.0, 100.0)
 	}
-	# Ale: all classes, requests ale every 45 to 90 seconds
+	# Ale: all classes, requests ale every 180 to 360 seconds
 	profile.demand_profiles["ale"] = {
-		"cooldown_min": 45.0,
-		"cooldown_max": 90.0,
-		"timer": randf_range(10.0, 40.0)
+		"cooldown_min": 180.0,
+		"cooldown_max": 360.0,
+		"timer": randf_range(40.0, 160.0)
 	}
 	
 	# Nobles and Citizens want premium items like cloth
 	if profile.social_class != NPCProfile.SocialClass.PEASANT:
 		profile.demand_profiles["cloth"] = {
-			"cooldown_min": 60.0,
-			"cooldown_max": 120.0,
-			"timer": randf_range(15.0, 55.0)
+			"cooldown_min": 240.0,
+			"cooldown_max": 480.0,
+			"timer": randf_range(60.0, 220.0)
 		}
 	else:
 		# Peasants want wheat for raw food
 		profile.demand_profiles["wheat"] = {
-			"cooldown_min": 50.0,
-			"cooldown_max": 100.0,
-			"timer": randf_range(10.0, 50.0)
+			"cooldown_min": 200.0,
+			"cooldown_max": 400.0,
+			"timer": randf_range(40.0, 200.0)
 		}
 		
 	npc.profile = profile
+	npc.npc_type = NPCAIController.NPCType.TYPE_CONSUMER
 
 
 func _setup_global_ground_navigation() -> void:
@@ -329,3 +388,22 @@ func _spawn_guard(guard_name: String, start_pos: Vector2, is_roaming: bool) -> v
 	guard.global_position = start_pos
 	add_child(guard)
 	print("[World] Spawned Guard: ", guard_name, " at ", start_pos, " (roaming: ", is_roaming, ")")
+
+func _spawn_wheat_field(node_name: String, pos: Vector2) -> void:
+	var mega_script = load("res://components/gathering/mega_node.gd")
+	var node = Area2D.new()
+	node.name = node_name.replace(" ", "")
+	node.set_script(mega_script)
+	node.node_name = node_name
+	node.resource_type_id = "wheat"
+	node.base_fee = 50
+	node.global_position = pos
+	
+	var col = CollisionShape2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 96.0
+	col.shape = shape
+	node.add_child(col)
+	
+	add_child(node)
+	print("[World] Programmatically spawned wheat field: ", node_name, " at ", pos)

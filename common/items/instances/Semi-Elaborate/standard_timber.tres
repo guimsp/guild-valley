@@ -10,6 +10,7 @@ base_value = 15
 weight = 1.0
 category = "Material"
 market_category = "Semi-Elaborate"
+is_raw_material = true
 item_type = "Raw Material"
 is_tradable = true
 is_stackable = true

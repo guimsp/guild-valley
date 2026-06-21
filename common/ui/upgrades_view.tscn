@@ -1,0 +1,184 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://common/ui/upgrades_view.gd" id="1_view"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dark"]
+bg_color = Color(0.14, 0.12, 0.18, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 12
+content_margin_top = 10
+content_margin_right = 12
+content_margin_bottom = 10
+
+[node name="UpgradesView" type="Control"]
+layout_mode = 2
+script = ExtResource("1_view")
+
+[node name="Columns" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="LeftColumn" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="LevelingLeft" type="VBoxContainer" parent="Columns/LeftColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Structure Renovation"
+
+[node name="InfoPanel" type="PanelContainer" parent="Columns/LeftColumn/LevelingLeft"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dark")
+
+[node name="VBox" type="VBoxContainer" parent="Columns/LeftColumn/LevelingLeft/InfoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CurrentLevelLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Current Building Level: Level 1"
+
+[node name="UpgradingLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "Status: Renovating Structure..."
+
+[node name="RenovationPbar" type="ProgressBar" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="RenovationLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+
+[node name="RequirementsVBox" type="VBoxContainer" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ReqTitleLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox/RequirementsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Requirements for Next Level:"
+
+[node name="GoldCostLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox/RequirementsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="CareerReqLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox/RequirementsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="DowntimeLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox/RequirementsVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 11
+text = " • Downtime"
+
+[node name="MaxLevelLabel" type="Label" parent="Columns/LeftColumn/LevelingLeft/InfoPanel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.34, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "Structure is at maximum level."
+
+[node name="ImprovementsLeft" type="VBoxContainer" parent="Columns/LeftColumn"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Columns/LeftColumn/ImprovementsLeft"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Warehouse & Crafting Improvements"
+
+[node name="Scroll" type="ScrollContainer" parent="Columns/LeftColumn/ImprovementsLeft"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Columns/LeftColumn/ImprovementsLeft/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="RightColumn" type="VBoxContainer" parent="Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="LevelingRight" type="VBoxContainer" parent="Columns/RightColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Columns/RightColumn/LevelingRight"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Renovation Buffs & Execution"
+
+[node name="RunPanel" type="PanelContainer" parent="Columns/RightColumn/LevelingRight"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dark")
+
+[node name="VBox" type="VBoxContainer" parent="Columns/RightColumn/LevelingRight/RunPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BuffDesc" type="Label" parent="Columns/RightColumn/LevelingRight/RunPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "Upgrading the building advances its structural capacity:
+ • Increases base employee crafting slot capacity.
+ • Unlocks high-tier recipe categories inside the building.
+ • Increases maximum income parameters."
+autowrap_mode = 3
+
+[node name="BeginUpgradeButton" type="Button" parent="Columns/RightColumn/LevelingRight/RunPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Begin Renovation"
+
+[node name="ImprovementsRight" type="VBoxContainer" parent="Columns/RightColumn"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Columns/RightColumn/ImprovementsRight"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Workforce & Security Improvements"
+
+[node name="Scroll" type="ScrollContainer" parent="Columns/RightColumn/ImprovementsRight"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Columns/RightColumn/ImprovementsRight/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
