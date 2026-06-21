@@ -797,6 +797,8 @@ func _show_waypoint_config_popup(building: Node2D) -> void:
 		_position_popup_next_to_node(building)
 	else:
 		add_child(popup)
+		popup.set_as_top_level(true)
+		popup.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	
 	popup_step = 0
 	_render_popup_step(building)
@@ -1211,7 +1213,8 @@ func _show_employee_selection_popup() -> void:
 	employee_popup.add_theme_stylebox_override("panel", style)
 	
 	add_child(employee_popup)
-	employee_popup.anchors_preset = Control.PRESET_CENTER
+	employee_popup.set_as_top_level(true)
+	employee_popup.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	
 	var vbox = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
