@@ -1153,6 +1153,37 @@ function getMacroNodesList() {
   });
 }
 
+function getNodeProfession(node) {
+  if (node.type === 'profession') {
+    return null;
+  }
+  if (node.type === 'building') {
+    const activeIdx = node.activeLevelIdx || 0;
+    const levels = node.levels || [];
+    const activeLvl = levels[activeIdx] || node;
+    
+    if (activeLvl.profession && activeLvl.profession !== 'any') {
+      return activeLvl.profession;
+    }
+    if (node.profession && node.profession !== 'any') {
+      return node.profession;
+    }
+    return null;
+  }
+  
+  const isItem = ['raw_material', 'semi_elaborate', 'finished_good', 'equipment', 'skill_item'].includes(node.type);
+  if (isItem) {
+    const data = window.INITIAL_GAME_DATA;
+    if (data && data.recipes) {
+      const recipe = data.recipes.find(r => r.output.id === node.refId);
+      if (recipe && recipe.profession && recipe.profession !== 'any') {
+        return recipe.profession;
+      }
+    }
+  }
+  return null;
+}
+
 function renderNodes() {
   nodeContainerEl.innerHTML = '';
   
@@ -1272,10 +1303,20 @@ function renderNodes() {
     else if (node.type === 'mechanic') subTextShort = 'Mechanic';
     else if (node.type === 'macro') subTextShort = 'Macro';
 
+    const nodeProf = getNodeProfession(node);
+    let profHTML = '';
+    if (nodeProf) {
+      const profDisplayName = nodeProf.charAt(0).toUpperCase() + nodeProf.slice(1);
+      profHTML = `<span class="prof-text ${nodeProf.toLowerCase()}">${profDisplayName}</span>`;
+    }
+
     nodeEl.innerHTML = `
       ${isMacro ? '' : '<div class="port input-port" data-node="' + node.id + '" data-type="input"></div>'}
       <div class="node-header-row">
-        <div class="node-badge ${node.type}">${subTextShort}</div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div class="node-badge ${node.type}">${subTextShort}</div>
+          ${profHTML}
+        </div>
         <button type="button" class="node-toggle-btn ${isCollapsed ? 'collapsed' : ''}" data-node="${node.id}">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"></polyline>
