@@ -155,6 +155,9 @@ window.INITIAL_GAME_DATA = {
   recipes: [
     // Craftsman Recipes
     { name: "Smelt Iron Ore", inputs: [{ id: "iron_ore", qty: 3 }], output: { id: "iron_ingot", qty: 1 }, profession: "craftsman", level: 1, building: "craftsman_smelter_l1" },
+    { name: "Craft Aging Barrels", inputs: [{ id: "iron_ingot", qty: 1 }], output: { id: "aging_barrel", qty: 1 }, profession: "craftsman", level: 3, building: "craftsman_tinker_l1" },
+    { name: "Craft Premium Flasks", inputs: [{ id: "iron_ingot", qty: 1 }], output: { id: "premium_flask", qty: 1 }, profession: "craftsman", level: 2, building: "craftsman_tinker_l1" },
+    { name: "Assemble Cargo Cart", inputs: [{ id: "iron_ingot", qty: 2 }, { id: "cloth", qty: 1 }], output: { id: "cart", qty: 1 }, profession: "craftsman", level: 4, building: "craftsman_tinker_l1" },
     
     // Patreon Recipes
     { name: "Grind Wheat", inputs: [{ id: "wheat", qty: 1 }], output: { id: "flour", qty: 1 }, profession: "patreon", level: 1, building: "patreon_mill_l1" },

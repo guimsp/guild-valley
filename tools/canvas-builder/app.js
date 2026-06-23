@@ -628,6 +628,95 @@ function layoutItemSupplyChain() {
   updateCanvasTransform();
 }
 
+function layoutMixedProductions() {
+  const mixedItemIds = new Set();
+  const items = state.nodes.filter(n => ['raw_material', 'semi_elaborate', 'finished_good', 'equipment', 'skill_item'].includes(n.type));
+  
+  items.forEach(item => {
+    const outConns = state.connections.filter(c => c.to === item.id && c.from.startsWith('build_'));
+    const inConns = state.connections.filter(c => c.from === item.id && c.to.startsWith('build_'));
+
+    if (outConns.length > 0 && inConns.length > 0) {
+      const prodProfs = new Set();
+      outConns.forEach(c => {
+        const bNode = state.nodes.find(n => n.id === c.from);
+        if (bNode && bNode.profession && bNode.profession !== 'any') {
+          prodProfs.add(bNode.profession);
+        }
+      });
+
+      const consProfs = new Set();
+      inConns.forEach(c => {
+        const bNode = state.nodes.find(n => n.id === c.to);
+        if (bNode && bNode.profession && bNode.profession !== 'any') {
+          consProfs.add(bNode.profession);
+        }
+      });
+
+      let isMixed = false;
+      for (let p1 of prodProfs) {
+        for (let p2 of consProfs) {
+          if (p1 !== p2) {
+            isMixed = true;
+            break;
+          }
+        }
+        if (isMixed) break;
+      }
+
+      if (isMixed) {
+        mixedItemIds.add(item.id);
+      }
+    }
+  });
+
+  const producers = new Set();
+  const consumers = new Set();
+
+  state.connections.forEach(c => {
+    if (mixedItemIds.has(c.to) && c.from.startsWith('build_')) {
+      producers.add(c.from);
+    }
+    if (mixedItemIds.has(c.from) && c.to.startsWith('build_')) {
+      consumers.add(c.to);
+    }
+  });
+
+  // Place nodes in three columns: Producer Buildings, Mixed Items, Consumer Buildings
+  const leftCol = Array.from(producers);
+  const midCol = Array.from(mixedItemIds);
+  const rightCol = Array.from(consumers).filter(id => !leftCol.includes(id));
+
+  leftCol.forEach((id, idx) => {
+    const node = state.nodes.find(n => n.id === id);
+    if (node) {
+      node.x = 100;
+      node.y = 100 + (idx * 160);
+    }
+  });
+
+  midCol.forEach((id, idx) => {
+    const node = state.nodes.find(n => n.id === id);
+    if (node) {
+      node.x = 450;
+      node.y = 100 + (idx * 160);
+    }
+  });
+
+  rightCol.forEach((id, idx) => {
+    const node = state.nodes.find(n => n.id === id);
+    if (node) {
+      node.x = 800;
+      node.y = 100 + (idx * 160);
+    }
+  });
+
+  state.zoom = 0.75;
+  state.panX = 100;
+  state.panY = 50;
+  updateCanvasTransform();
+}
+
 function getItemType(itemId) {
   const tools = ['bronze_pickaxe', 'heavy_steel_tools'];
   const armor = ['iron_chestplate', 'iron_helmet', 'leather_gloves'];
@@ -708,10 +797,58 @@ function showNotification(message, type = 'info') {
 function applyViewFilters() {
   const viewMode = state.currentViewMode;
   
+  const mixedItemIds = new Set();
+  const mixedBuildingIds = new Set();
+
+  if (viewMode === 'mixed') {
+    const items = state.nodes.filter(n => ['raw_material', 'semi_elaborate', 'finished_good', 'equipment', 'skill_item'].includes(n.type));
+    items.forEach(item => {
+      const outConns = state.connections.filter(c => c.to === item.id && c.from.startsWith('build_'));
+      const inConns = state.connections.filter(c => c.from === item.id && c.to.startsWith('build_'));
+
+      if (outConns.length > 0 && inConns.length > 0) {
+        const prodProfs = new Set();
+        outConns.forEach(c => {
+          const bNode = state.nodes.find(n => n.id === c.from);
+          if (bNode && bNode.profession && bNode.profession !== 'any') {
+            prodProfs.add(bNode.profession);
+          }
+        });
+
+        const consProfs = new Set();
+        inConns.forEach(c => {
+          const bNode = state.nodes.find(n => n.id === c.to);
+          if (bNode && bNode.profession && bNode.profession !== 'any') {
+            consProfs.add(bNode.profession);
+          }
+        });
+
+        let isMixed = false;
+        for (let p1 of prodProfs) {
+          for (let p2 of consProfs) {
+            if (p1 !== p2) {
+              isMixed = true;
+              break;
+            }
+          }
+          if (isMixed) break;
+        }
+
+        if (isMixed) {
+          mixedItemIds.add(item.id);
+          outConns.forEach(c => mixedBuildingIds.add(c.from));
+          inConns.forEach(c => mixedBuildingIds.add(c.to));
+        }
+      }
+    });
+  }
+  
   if (viewMode === 'profession') {
     layoutProfessionFlow();
   } else if (viewMode === 'item') {
     layoutItemSupplyChain();
+  } else if (viewMode === 'mixed') {
+    layoutMixedProductions();
   } else {
     state.nodes.forEach(n => {
       if (state.customPositions[n.id]) {
@@ -798,6 +935,8 @@ function applyViewFilters() {
         if (state.itemTypeFilter !== 'all' && getItemType(node.refId) !== state.itemTypeFilter) visible = false;
         if (state.itemLevelFilter !== 'all' && getItemRecipeLevel(node.refId) !== Number(state.itemLevelFilter)) visible = false;
       }
+    } else if (viewMode === 'mixed') {
+      visible = mixedItemIds.has(node.id) || mixedBuildingIds.has(node.id);
     } else {
       const depth = state.drillLevel;
       if (depth === 'professions') {
