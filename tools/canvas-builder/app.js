@@ -1259,18 +1259,18 @@ function renderNodes() {
 
     const isCollapsed = node.collapsed !== false;
     
-    // Short category label for badge
-    let subTextShort = 'OTHER';
-    if (node.type === 'profession') subTextShort = 'PROF';
-    else if (node.type === 'building') subTextShort = 'BUILD';
-    else if (node.type === 'raw_material') subTextShort = 'RAW';
-    else if (node.type === 'semi_elaborate') subTextShort = 'SEMI';
-    else if (node.type === 'finished_good') subTextShort = 'FIN';
-    else if (node.type === 'equipment') subTextShort = 'EQUIP';
-    else if (node.type === 'skill_item') subTextShort = 'SKILL';
-    else if (node.type === 'law') subTextShort = 'LAW';
-    else if (node.type === 'mechanic') subTextShort = 'MECH';
-    else if (node.type === 'macro') subTextShort = 'MACRO';
+    // Full category label for badge
+    let subTextShort = 'Other';
+    if (node.type === 'profession') subTextShort = 'Profession';
+    else if (node.type === 'building') subTextShort = 'Building';
+    else if (node.type === 'raw_material') subTextShort = 'Raw Material';
+    else if (node.type === 'semi_elaborate') subTextShort = 'Semi-Elaborate';
+    else if (node.type === 'finished_good') subTextShort = 'Finished Good';
+    else if (node.type === 'equipment') subTextShort = 'Equipment';
+    else if (node.type === 'skill_item') subTextShort = 'Skill';
+    else if (node.type === 'law') subTextShort = 'Law';
+    else if (node.type === 'mechanic') subTextShort = 'Mechanic';
+    else if (node.type === 'macro') subTextShort = 'Macro';
 
     nodeEl.innerHTML = `
       ${isMacro ? '' : '<div class="port input-port" data-node="' + node.id + '" data-type="input"></div>'}
