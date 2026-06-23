@@ -10,6 +10,7 @@ let state = {
   panY: 50,
   isDraggingCanvas: false,
   draggedNodeId: null,
+  isDraggingNode: false,
   dragOffset: { x: 0, y: 0 },
   connecting: null, // { nodeId, portType, startX, startY }
   tempLine: null,
@@ -1313,7 +1314,8 @@ function renderNodes() {
 
     // --- Node Dragging ---
     nodeEl.addEventListener('pointerdown', (e) => {
-      if (e.target.classList.contains('port')) return;
+      // Exclude interactive buttons/elements inside the card from starting a drag
+      if (e.target.closest('.port') || e.target.closest('.node-toggle-btn') || e.target.closest('.lvl-btn')) return;
 
       state.activeNodeId = node.id;
       
@@ -1324,6 +1326,7 @@ function renderNodes() {
       }
 
       state.draggedNodeId = node.id;
+      state.isDraggingNode = false;
       
       state.dragStartPositions = {};
       state.selectedNodeIds.forEach(id => {
@@ -1350,34 +1353,42 @@ function renderNodes() {
         const dx = (e.clientX / state.zoom) - state.dragMouseStart.x;
         const dy = (e.clientY / state.zoom) - state.dragMouseStart.y;
         
-        state.selectedNodeIds.forEach(id => {
-          const targetNode = isMacro ? getMacroNodesList().find(n => n.id === id) : state.nodes.find(n => n.id === id);
-          const startPos = state.dragStartPositions[id];
-          if (targetNode && startPos) {
-            targetNode.x = startPos.x + dx;
-            targetNode.y = startPos.y + dy;
-            
-            const cardEl = document.getElementById(targetNode.id);
-            if (cardEl) {
-              cardEl.style.left = `${targetNode.x}px`;
-              cardEl.style.top = `${targetNode.y}px`;
-            }
+        // Only trigger drag movement if mouse has actually moved more than 3 pixels
+        if (!state.isDraggingNode && Math.sqrt(dx*dx + dy*dy) > 3) {
+          state.isDraggingNode = true;
+        }
 
-            if (isMacro) {
-              state.macroPositions[targetNode.id] = { x: targetNode.x, y: targetNode.y };
-            } else {
-              state.customPositions[targetNode.id] = { x: targetNode.x, y: targetNode.y };
+        if (state.isDraggingNode) {
+          state.selectedNodeIds.forEach(id => {
+            const targetNode = isMacro ? getMacroNodesList().find(n => n.id === id) : state.nodes.find(n => n.id === id);
+            const startPos = state.dragStartPositions[id];
+            if (targetNode && startPos) {
+              targetNode.x = startPos.x + dx;
+              targetNode.y = startPos.y + dy;
+              
+              const cardEl = document.getElementById(targetNode.id);
+              if (cardEl) {
+                cardEl.style.left = `${targetNode.x}px`;
+                cardEl.style.top = `${targetNode.y}px`;
+              }
+
+              if (isMacro) {
+                state.macroPositions[targetNode.id] = { x: targetNode.x, y: targetNode.y };
+              } else {
+                state.customPositions[targetNode.id] = { x: targetNode.x, y: targetNode.y };
+              }
             }
-          }
-        });
-        
-        drawConnections();
+          });
+          
+          drawConnections();
+        }
       }
     });
 
     nodeEl.addEventListener('pointerup', (e) => {
       if (state.draggedNodeId === node.id) {
         state.draggedNodeId = null;
+        state.isDraggingNode = false;
         nodeEl.releasePointerCapture(e.pointerId);
         saveCurrentState();
       }
