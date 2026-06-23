@@ -1050,13 +1050,19 @@ function setupViewportEvents() {
       const x2 = x1 + w;
       const y2 = y1 + h;
 
+      const isMacro = state.currentViewMode === 'macro';
+      const nodesToCheck = isMacro ? getMacroNodesList() : state.nodes;
+
       state.selectedNodeIds = [];
-      state.nodes.forEach(node => {
+      nodesToCheck.forEach(node => {
         const nodeEl = document.getElementById(node.id);
         if (!nodeEl || nodeEl.style.display === 'none') return;
 
-        const overlapX = Math.max(x1, node.x) < Math.min(x2, node.x + 220);
-        const overlapY = Math.max(y1, node.y) < Math.min(y2, node.y + 110);
+        const nw = nodeEl.offsetWidth || 270;
+        const nh = nodeEl.offsetHeight || 40;
+
+        const overlapX = Math.max(x1, node.x) < Math.min(x2, node.x + nw);
+        const overlapY = Math.max(y1, node.y) < Math.min(y2, node.y + nh);
 
         if (overlapX && overlapY) {
           state.selectedNodeIds.push(node.id);
@@ -1250,16 +1256,60 @@ function renderNodes() {
       `;
     }
 
+    const isCollapsed = node.collapsed !== false;
+    
+    // Short category label for badge
+    let subTextShort = 'OTHER';
+    if (node.type === 'profession') subTextShort = 'PROF';
+    else if (node.type === 'building') subTextShort = 'BUILD';
+    else if (node.type === 'raw_material') subTextShort = 'RAW';
+    else if (node.type === 'semi_elaborate') subTextShort = 'SEMI';
+    else if (node.type === 'finished_good') subTextShort = 'FIN';
+    else if (node.type === 'equipment') subTextShort = 'EQUIP';
+    else if (node.type === 'skill_item') subTextShort = 'SKILL';
+    else if (node.type === 'law') subTextShort = 'LAW';
+    else if (node.type === 'mechanic') subTextShort = 'MECH';
+    else if (node.type === 'macro') subTextShort = 'MACRO';
+
     nodeEl.innerHTML = `
       ${isMacro ? '' : '<div class="port input-port" data-node="' + node.id + '" data-type="input"></div>'}
-      <div class="node-header">${subText}</div>
-      <div class="node-title" title="${titleText}">${titleText}</div>
-      <div class="node-subtitle">${node.refId || node.id}</div>
-      <div class="node-details">
+      <div class="node-header-row">
+        <div class="node-badge ${node.type}">${subTextShort}</div>
+        <button type="button" class="node-toggle-btn ${isCollapsed ? 'collapsed' : ''}" data-node="${node.id}">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
+      <div class="node-title-row">
+        <div class="node-title-group">
+          <span class="node-title" title="${titleText}">${titleText}</span>
+          <span class="node-subtitle" title="${node.refId || node.id}">(${node.refId || node.id})</span>
+        </div>
+      </div>
+      
+      <div class="node-details ${isCollapsed ? 'collapsed' : ''}">
         ${detailsHTML}
       </div>
       ${isMacro ? '' : '<div class="port output-port" data-node="' + node.id + '" data-type="output"></div>'}
     `;
+
+    // Toggle collapse handlers
+    nodeEl.querySelector('.node-toggle-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      node.collapsed = !isCollapsed;
+      saveCurrentState();
+      applyViewFilters();
+      drawConnections();
+    });
+
+    nodeEl.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      node.collapsed = !isCollapsed;
+      saveCurrentState();
+      applyViewFilters();
+      drawConnections();
+    });
 
     // --- Node Dragging ---
     nodeEl.addEventListener('pointerdown', (e) => {
@@ -1533,15 +1583,18 @@ function drawConnections() {
 }
 
 function drawBezierPath(fromNode, toNode, type, label, connId, isFaded = false) {
-  const fromWidth = 220; 
-  const fromHeight = 110; 
-  const toWidth = 220;
-  const toHeight = 110;
+  const fromEl = document.getElementById(fromNode.id);
+  const toEl = document.getElementById(toNode.id);
+
+  const fromWidth = 270; 
+  const toWidth = 270;
+  const fromHeight = fromEl ? fromEl.offsetHeight : 40; 
+  const toHeight = toEl ? toEl.offsetHeight : 40; 
 
   const x1 = fromNode.x + fromWidth;
-  const y1 = fromNode.y + (fromHeight / 2) + 20;
+  const y1 = fromNode.y + (fromHeight / 2);
   const x2 = toNode.x;
-  const y2 = toNode.y + (toHeight / 2) + 20;
+  const y2 = toNode.y + (toHeight / 2);
 
   const dx = Math.abs(x2 - x1) * 0.45;
   const pathD = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
@@ -1919,8 +1972,11 @@ function spawnSelectedNode() {
       state.activeNodeId = exists.id;
       
       // Center view around existing node
-      state.panX = (viewportRect.width / 2) - (exists.x * state.zoom) - 110 * state.zoom;
-      state.panY = (viewportRect.height / 2) - (exists.y * state.zoom) - 55 * state.zoom;
+      const nodeEl = document.getElementById(exists.id);
+      const nw = nodeEl ? nodeEl.offsetWidth : 270;
+      const nh = nodeEl ? nodeEl.offsetHeight : 40;
+      state.panX = (viewportRect.width / 2) - (exists.x * state.zoom) - (nw / 2) * state.zoom;
+      state.panY = (viewportRect.height / 2) - (exists.y * state.zoom) - (nh / 2) * state.zoom;
       updateCanvasTransform();
       applyViewFilters();
       populatePropertiesPanel(exists);

@@ -187,15 +187,18 @@
     /* --- Node Cards Styling --- */
     .node {
       position: absolute;
-      width: 220px;
-      background: rgba(17, 24, 39, 0.85);
+      width: 270px;
+      background: rgba(17, 24, 39, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      padding: 6px 8px;
       cursor: move;
       pointer-events: auto;
       transition: box-shadow 0.15s ease, border-color 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .node:hover {
@@ -208,52 +211,107 @@
       box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
     }
 
-    .node-header {
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      text-align: center;
-      color: #ffffff;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    .node-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      min-height: 16px;
     }
 
-    .node.profession .node-header { background: var(--grad-profession); }
-    .node.building .node-header { background: var(--grad-building); }
-    .node.raw_material .node-header { background: var(--grad-raw); }
-    .node.semi_elaborate .node-header { background: var(--grad-semi); }
-    .node.finished_good .node-header { background: var(--grad-finished); }
-    .node.equipment .node-header { background: var(--grad-equipment); }
-    .node.skill_item .node-header { background: var(--grad-skill); }
-    .node.law .node-header { background: var(--grad-law); }
-    .node.mechanic .node-header { background: var(--grad-mechanic); }
-    .node.macro .node-header { background: var(--grad-macro); }
+    .node-title-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 18px;
+    }
+
+    .node-title-group {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      overflow: hidden;
+      white-space: nowrap;
+      flex: 1;
+    }
 
     .node-title {
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-main);
-      margin-bottom: 4px;
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .node-subtitle {
-      font-size: 0.75rem;
+      font-size: 0.65rem;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90px;
     }
+
+    .node-badge {
+      font-size: 0.52rem;
+      font-weight: 700;
+      padding: 1px 3px;
+      border-radius: 3px;
+      color: #ffffff;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+    }
+
+    .node-badge.profession { background: var(--grad-profession); }
+    .node-badge.building { background: var(--grad-building); }
+    .node-badge.raw_material { background: var(--grad-raw); }
+    .node-badge.semi_elaborate { background: var(--grad-semi); }
+    .node-badge.finished_good { background: var(--grad-finished); }
+    .node-badge.equipment { background: var(--grad-equipment); }
+    .node-badge.skill_item { background: var(--grad-skill); }
+    .node-badge.law { background: var(--grad-law); }
+    .node-badge.mechanic { background: var(--grad-mechanic); }
+    .node-badge.macro { background: var(--grad-macro); }
 
     .node-details {
       font-size: 0.7rem;
       border-top: 1px solid var(--border-color);
-      padding-top: 6px;
+      padding-top: 4px;
       color: var(--text-muted);
       line-height: 1.3;
+    }
+    
+    .node-details.collapsed {
+      display: none !important;
+    }
+
+    .node-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px;
+      border-radius: 3px;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .node-toggle-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .node-toggle-btn svg {
+      transition: transform 0.2s ease;
+      transform: rotate(0deg);
+    }
+
+    .node-toggle-btn.collapsed svg {
+      transform: rotate(-90deg);
     }
 
     .lvl-btn-group {
@@ -302,7 +360,6 @@
 
     .port:hover {
       background: var(--border-focus);
-      transform: scale(1.3);
     }
 
     .port.input-port {
@@ -311,10 +368,18 @@
       transform: translateY(-50%);
     }
 
+    .port.input-port:hover {
+      transform: translateY(-50%) scale(1.3);
+    }
+
     .port.output-port {
       right: -6px;
       top: 50%;
       transform: translateY(-50%);
+    }
+
+    .port.output-port:hover {
+      transform: translateY(-50%) scale(1.3);
     }
 
     /* --- Connection Lines Styling --- */
