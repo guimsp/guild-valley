@@ -146,11 +146,30 @@ var hireable_candidates: Array = []:
 			hireable_candidates = val
 
 # Player manual crafting variables
+@export var max_concurrent_slots: int = 3
 var is_player_working_here: bool = false
 var player_crafting_recipe_path: String = ""
 var player_craft_timer: float = 0.0
 var player_craft_total_time: float = 0.0
 var player_service_slots: Array[float] = []
+
+func is_recipe_permitted(recipe: Recipe) -> bool:
+	if building_level > 1:
+		return true
+	if not recipe:
+		return true
+	if recipe.required_level == 1:
+		for input_item in recipe.inputs:
+			if not input_item.is_raw_material:
+				return false
+	var econ = get_node_or_null("/root/EconomyManager")
+	if econ:
+		for input_item in recipe.inputs:
+			if not input_item.is_raw_material:
+				var input_career = econ.get_item_career(input_item.id)
+				if input_career != recipe.required_career:
+					return false
+	return true
 
 
 # Core production stats (abandoned get/set metadata)
@@ -274,8 +293,15 @@ func _on_law_changed(prov: String, law_id: String, is_active: bool) -> void:
 
 func get_single_buy_price(item: ItemData, temp_stock: int) -> int:
 	var base_val: int = item.base_value
-	var target: int = target_stock.get(item, 10)
-	if target <= 0: target = 10
+	var target: float = target_stock.get(item, 10)
+	
+	# Scale target stock based on settlement prosperity level
+	var settlement = GameState.get_nearest_settlement(self) if GameState else null
+	if settlement and "prosperity_level" in settlement:
+		var p_lvl = settlement.prosperity_level
+		target *= (1.0 + (p_lvl - 1) * 0.5)
+		
+	if target <= 0.0: target = 10.0
 	var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
 	multiplier = clamp(multiplier, 0.2, 3.0)
 	
@@ -307,10 +333,16 @@ func get_sell_price(item: ItemData) -> int:
 		
 	var base_val: int = item.base_value
 	var current_stock: int = inventory.get_item_amount(item.id)
-	var target: int = target_stock.get(item, 10)
+	var target: float = target_stock.get(item, 10)
 	
-	if target <= 0:
-		target = 10
+	# Scale target stock based on settlement prosperity level
+	var settlement = GameState.get_nearest_settlement(self) if GameState else null
+	if settlement and "prosperity_level" in settlement:
+		var p_lvl = settlement.prosperity_level
+		target *= (1.0 + (p_lvl - 1) * 0.5)
+		
+	if target <= 0.0:
+		target = 10.0
 		
 	var multiplier: float = 1.0 + (float(target - current_stock) / target) * sensitivity
 	multiplier = clamp(multiplier, 0.2, 3.0)
@@ -322,9 +354,16 @@ func get_single_sell_price(item: ItemData, temp_stock: int) -> int:
 		return int(custom_prices[item.id] * 0.8)
 		
 	var base_val: int = item.base_value
-	var target: int = target_stock.get(item, 10)
-	if target <= 0:
-		target = 10
+	var target: float = target_stock.get(item, 10)
+	
+	# Scale target stock based on settlement prosperity level
+	var settlement = GameState.get_nearest_settlement(self) if GameState else null
+	if settlement and "prosperity_level" in settlement:
+		var p_lvl = settlement.prosperity_level
+		target *= (1.0 + (p_lvl - 1) * 0.5)
+		
+	if target <= 0.0:
+		target = 10.0
 		
 	var multiplier: float = 1.0 + (float(target - temp_stock) / target) * sensitivity
 	multiplier = clamp(multiplier, 0.2, 3.0)
@@ -347,11 +386,8 @@ func buy_item(item: ItemData, amount: int) -> bool:
 			inventory.remove_item(item.id, amount)
 		return true
 		
-	var total_price: int = 0
-	var temp_stock: int = current_stock
-	for i in range(amount):
-		total_price += get_single_buy_price(item, temp_stock)
-		temp_stock -= 1
+	var unit_price: int = get_buy_price(item)
+	var total_price: int = unit_price * amount
 		
 	if GameState.gold < total_price:
 		return false
@@ -362,15 +398,17 @@ func buy_item(item: ItemData, amount: int) -> bool:
 		if accepted <= 0:
 			return false
 			
-		total_price = 0
-		temp_stock = current_stock
-		for i in range(accepted):
-			total_price += get_single_buy_price(item, temp_stock)
-			temp_stock -= 1
-			
+		total_price = unit_price * accepted
+		
+		# Set change attribution
+		GameState.next_change_reason = "Shop Purchase"
+		GameState.next_change_detail = item.name
 		GameState.gold -= total_price
 		inventory.remove_item(item.id, accepted)
 	else:
+		# Set change attribution
+		GameState.next_change_reason = "Shop Purchase"
+		GameState.next_change_detail = item.name
 		GameState.gold -= total_price
 		inventory.remove_item(item.id, amount)
 		
@@ -397,12 +435,8 @@ func sell_item(item: ItemData, amount: int) -> bool:
 			GameState.player_inventory.remove_item(item.id, amount)
 		return true
 		
-	var current_stock: int = inventory.get_item_amount(item.id)
-	var total_revenue: int = 0
-	var temp_stock: int = current_stock
-	for i in range(amount):
-		total_revenue += get_single_sell_price(item, temp_stock)
-		temp_stock += 1
+	var unit_price: int = get_sell_price(item)
+	var total_revenue: int = unit_price * amount
 		
 	var remainder: int = inventory.add_item(item, amount)
 	if remainder > 0:
@@ -410,11 +444,7 @@ func sell_item(item: ItemData, amount: int) -> bool:
 		if accepted <= 0:
 			return false
 			
-		total_revenue = 0
-		temp_stock = current_stock
-		for i in range(accepted):
-			total_revenue += get_single_sell_price(item, temp_stock)
-			temp_stock += 1
+		total_revenue = unit_price * accepted
 			
 		if ownership_type == "NPC" and owner_id == "Rival":
 			var rivals = get_tree().get_nodes_in_group("Rivals")
@@ -424,6 +454,9 @@ func sell_item(item: ItemData, amount: int) -> bool:
 					return false
 				rivals[0].gold -= total_revenue
 			
+		# Set change attribution
+		GameState.next_change_reason = "Shop Sales"
+		GameState.next_change_detail = item.name
 		GameState.gold += total_revenue
 		GameState.player_inventory.remove_item(item.id, accepted)
 	else:
@@ -435,6 +468,9 @@ func sell_item(item: ItemData, amount: int) -> bool:
 					return false
 				rivals[0].gold -= total_revenue
 				
+		# Set change attribution
+		GameState.next_change_reason = "Shop Sales"
+		GameState.next_change_detail = item.name
 		GameState.gold += total_revenue
 		GameState.player_inventory.remove_item(item.id, amount)
 		
@@ -626,6 +662,11 @@ func start_player_crafting(recipe_path: String) -> void:
 	if not recipe:
 		return
 		
+	if not recipe.is_service and not is_recipe_permitted(recipe):
+		if GameState:
+			GameState.spawn_ui_floating_text("Cross-class/refinement requires building level 2!")
+		return
+		
 	if recipe.get("is_service") == true:
 		var player = get_tree().get_first_node_in_group("Player")
 		if player:
@@ -729,6 +770,9 @@ func start_player_crafting(recipe_path: String) -> void:
 			craft_time *= 1.25
 		if pm.is_law_active("labor_welfare_mandate", b_prov):
 			craft_time *= 1.176
+			
+	if GameState:
+		craft_time = GameState.apply_macro_modifier(self, "crafting_time", craft_time)
 			
 	is_player_working_here = true
 	player_crafting_recipe_path = recipe_path
@@ -881,6 +925,24 @@ func _tick_player_crafting(delta: float) -> void:
 						out_qty *= 2
 						double_harvest_triggered = true
 						
+				var player = get_tree().get_first_node_in_group("Player")
+				var miracle_artisan_triggered = false
+				if player and "character_resource" in player and player.character_resource != null:
+					var ma_lvl = 0
+					for trait_id in player.character_resource.active_mods:
+						if trait_id.begins_with("Miracle Artisan_Lvl"):
+							ma_lvl = int(trait_id.replace("Miracle Artisan_Lvl", ""))
+							break
+					if ma_lvl > 0:
+						var ma_chance = 0.0
+						if ma_lvl == 1: ma_chance = 0.03
+						elif ma_lvl == 2: ma_chance = 0.07
+						elif ma_lvl == 3: ma_chance = 0.15
+						
+						if randf() <= ma_chance:
+							out_qty *= 2
+							miracle_artisan_triggered = true
+							
 				var artisan_efficiency_triggered = level >= 8 and out_item.get("is_luxury_product") == true
 					
 				if target_b_storage and target_b_storage.get_free_space_for_item(out_item) >= out_qty:
@@ -892,6 +954,8 @@ func _tick_player_crafting(delta: float) -> void:
 					if hud and hud.has_method("_spawn_floating_text"):
 						if double_harvest_triggered:
 							hud._spawn_floating_text("Double Harvest!", global_position)
+						if miracle_artisan_triggered:
+							hud._spawn_floating_text("Miracle Artisan!", global_position)
 						if artisan_efficiency_triggered:
 							hud._spawn_floating_text("Masterwork Efficiency!", global_position)
 							
@@ -952,7 +1016,7 @@ func _tick_player_crafting(delta: float) -> void:
 					if inputs_ok and next_has_space:
 						for item in recipe.inputs:
 							target_b_storage.remove_item(item.id, recipe.inputs[item])
-						var player = get_tree().get_first_node_in_group("Player")
+						player = get_tree().get_first_node_in_group("Player")
 						var craft_time = recipe.get_base_craft_time()
 						var prod = player.get("productivity") if player else 1.0
 						if prod > 0.0:
@@ -966,6 +1030,9 @@ func _tick_player_crafting(delta: float) -> void:
 								craft_time *= 1.25
 							if pm.is_law_active("labor_welfare_mandate", b_prov):
 								craft_time *= 1.176
+								
+						if GameState:
+							craft_time = GameState.apply_macro_modifier(self, "crafting_time", craft_time)
 								
 						player_craft_timer = craft_time
 						player_craft_total_time = craft_time
@@ -1033,23 +1100,22 @@ func get_any_active_service_provider() -> Dictionary:
 				var provider = get_active_service_provider(recipe.resource_path)
 				if provider["offered"]:
 					var slots = player_service_slots if provider["is_player"] else provider["employee"].get("service_slots", [])
-					if slots.size() < 3:
+					if slots.size() < max_concurrent_slots:
 						provider["recipe"] = recipe
 						return provider
 	return {"offered": false, "level": 1, "is_player": false, "recipe": null}
 
 func get_service_price(recipe: Recipe) -> int:
-	var base_price = 20
-	if is_in_group("Inns"):
-		match building_level:
-			1: base_price = 35
-			2: base_price = 75
-			3: base_price = 120
-			_: base_price = 120
-	elif is_in_group("Taverns"):
-		match building_level:
-			1: base_price = 20
-			2: base_price = 50
-			3: base_price = 90
-			_: base_price = 90
-	return base_price
+	if not recipe:
+		return 20
+	var main_loop = Engine.get_main_loop()
+	if main_loop and main_loop.root:
+		var econ = main_loop.root.get_node_or_null("EconomyManager")
+		if econ and econ.has_method("get_algorithmic_craft_time"):
+			var duration = econ.get_algorithmic_craft_time(recipe)
+			var career = recipe.required_career
+			var type = econ.CAREER_TO_PROFESSION.get(career, econ.ProfessionType.PATREON)
+			var profile = econ.PROFESSION_PROFILES[type]
+			var base_service_fee = (duration * profile.labor_base) * profile.scalar * 1.5
+			return int(round(base_service_fee))
+	return 20

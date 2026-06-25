@@ -17,6 +17,7 @@ signal relationship_changed(new_value: float)
 
 # List of item IDs this NPC likes
 @export var hidden_preferences: Array = []
+@export var disliked_preferences: Array = []
 @export var profession_type: String = "patreon"
 @export var profession_level: int = 1
 
@@ -162,12 +163,18 @@ func gift(item: ItemData) -> Dictionary:
 	daily_interaction_slots -= 1
 	
 	var is_preferred = item.id in hidden_preferences
+	var is_disliked = item.id in disliked_preferences
 	var is_profession_exclusive = _is_profession_exclusive(item)
 	
 	var points = 0
 	var msg = ""
+	var status = "success"
 	
-	if is_preferred:
+	if is_disliked:
+		points = randi_range(-8, -4)
+		msg = get_custom_message("gift", "dislike")
+		status = "dislike"
+	elif is_preferred:
 		points = randi_range(15, 22)
 		msg = "Oh my! How did you know I love %s? This is absolutely perfect!" % item.name
 		if not (item.id in discovered_likes):
@@ -181,7 +188,7 @@ func gift(item: ItemData) -> Dictionary:
 		
 	relationship_value += points
 	return {
-		"status": "success",
+		"status": status,
 		"points": points,
 		"message": msg
 	}
@@ -197,6 +204,8 @@ func _is_profession_exclusive(item: ItemData) -> bool:
 			return item.id in ["corrosive_acid", "confidential_documents"]
 		"woodworker":
 			return item.id in ["standard_timber", "heavy_steel_tools"]
+		"craftsman":
+			return item.id in ["iron_ingot", "iron_nails", "sheet_metal", "simple_iron_tools", "heavy_steel_tools"]
 	return false
 
 func propose_marriage(npc_id: String, npc_name: String) -> Dictionary:
@@ -209,7 +218,7 @@ func propose_marriage(npc_id: String, npc_name: String) -> Dictionary:
 	# Enforce personal home requirement
 	var player_house = null
 	for house in get_tree().get_nodes_in_group("Houses"):
-		if is_instance_valid(house) and house.ownership_type == "Player" and not house.is_rental:
+		if is_instance_valid(house) and house.get("ownership_type") == "Player" and not house.get("is_rental"):
 			player_house = house
 			break
 	if not player_house:
@@ -239,8 +248,12 @@ func propose_marriage(npc_id: String, npc_name: String) -> Dictionary:
 				
 	# Unlock profession type and level permanently for player
 	if GameState.career_levels.has(profession_type):
-		GameState.career_levels[profession_type] = max(GameState.career_levels[profession_type], profession_level)
-		GameState.recalculate_career_stats()
+		if GameState.career_levels[profession_type] > 0 or GameState.get_active_careers_count() < GameState.max_profession_slots:
+			GameState.career_levels[profession_type] = max(GameState.career_levels[profession_type], profession_level)
+			GameState.recalculate_career_stats()
+		else:
+			if GameState:
+				GameState.spawn_ui_floating_text("Career slots full! Spouse career not unlocked.")
 		
 	return {
 		"status": "success",
@@ -287,7 +300,8 @@ func get_custom_message(action: String, status: String) -> String:
 		"chat_crit_fail": "Oh no! A misunderstanding caused offense. I feel irritated.",
 		"flirt_success": "A spark flares between you! They smile and lean in closer.",
 		"flirt_fail": "They politely brush off your advances.",
-		"flirt_crit_fail": "That was terribly awkward! They felt highly uncomfortable and irritated."
+		"flirt_crit_fail": "That was terribly awkward! They felt highly uncomfortable and irritated.",
+		"gift_dislike": "I don't really care for this gift..."
 	}
 	
 	var custom_db = {
@@ -298,7 +312,8 @@ func get_custom_message(action: String, status: String) -> String:
 			"chat_crit_fail": "A needle prick! Oh, you distracted me. Please, I need to focus on my tailoring.",
 			"flirt_success": "Oh! That's... very sweet of you to say. It makes my cheeks match this red dye.",
 			"flirt_fail": "Ah, please, let's keep things professional. I have order sheets to fill.",
-			"flirt_crit_fail": "That was highly inappropriate! I am a respectable tailor, not a tavern flirt."
+			"flirt_crit_fail": "That was highly inappropriate! I am a respectable tailor, not a tavern flirt.",
+			"gift_dislike": "Oh... this is rather dirty and unpleasant. I have no use for such things."
 		},
 		"aldous": {
 			"greeting": "Ah, a visitor! I was just translating an ancient text on early commerce in Valley Province...",
@@ -307,7 +322,8 @@ func get_custom_message(action: String, status: String) -> String:
 			"chat_crit_fail": "You spilled my ink! No, no, years of research... please, just leave me be for today.",
 			"flirt_success": "A spark between us? Well, the poetry of the ancient sages does mention unexpected affinity...",
 			"flirt_fail": "I'm afraid my heart is currently pledged to the archives. Let us focus on the texts.",
-			"flirt_crit_fail": "How preposterous! I am a scholar of history, not some cheap romance subject."
+			"flirt_crit_fail": "How preposterous! I am a scholar of history, not some cheap romance subject.",
+			"gift_dislike": "A most unrefined offering. I have absolutely no interest in this."
 		},
 		"valeria": {
 			"greeting": "Good day. What brings you to the estate? Please, try not to track dirt on the rugs.",
@@ -316,7 +332,8 @@ func get_custom_message(action: String, status: String) -> String:
 			"chat_crit_fail": "What insolence! How dare you speak to a member of the council in such a manner.",
 			"flirt_success": "Hmph, you have a bold tongue. I must admit, it is rather... intriguing.",
 			"flirt_fail": "Know your place. I do not tolerate such familiarities from just anyone.",
-			"flirt_crit_fail": "Guards! ...Ah, they aren't here. Regardless, leave my sight immediately."
+			"flirt_crit_fail": "Guards! ...Ah, they aren't here. Regardless, leave my sight immediately.",
+			"gift_dislike": "Are you insulting me with this common trash? Keep it away from my estate."
 		},
 		"gideon": {
 			"greeting": "Hey! Mind the wood shavings. I'm building a sturdier roof beam today.",
@@ -325,7 +342,8 @@ func get_custom_message(action: String, status: String) -> String:
 			"chat_crit_fail": "Hey, watch out! You almost knocked over my toolbox. Go bother someone else.",
 			"flirt_success": "Haha, you're pretty charming, aren't you? Let's go get a drink at the tavern sometime!",
 			"flirt_fail": "Haha, very funny. But I'm too busy with these raw materials to play games.",
-			"flirt_crit_fail": "Woah, hold on. That's a bit too forward. Let's stick to carpentry."
+			"flirt_crit_fail": "Woah, hold on. That's a bit too forward. Let's stick to carpentry.",
+			"gift_dislike": "What am I supposed to do with this? I can't build anything with papers or rubbish."
 		}
 	}
 	

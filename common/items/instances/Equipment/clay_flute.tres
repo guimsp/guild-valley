@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "clay_flute"
+name = "Clay Flute"
+item_level = 1
+base_value = 25
+weight = 0.4
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Tool"
+is_tool = true
+description = "A clay flute, equippable as a tool and used to boost street performance recitals."

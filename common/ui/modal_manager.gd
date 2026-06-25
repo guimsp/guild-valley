@@ -371,6 +371,10 @@ func _on_job_selected_direct(emp_idx: int, task: Object, is_indefinite: bool, am
 			npc.call("_generate_path", _building.get_interaction_position())
 		return
 	if task is Recipe:
+		if not task.is_service and not _building.is_recipe_permitted(task):
+			var hud = get_tree().get_first_node_in_group("PlayerHUD")
+			if hud: hud._spawn_floating_text("Complexity requires Building Level 2!", _building.global_position)
+			return
 		if task.get("is_service") == true:
 			var active_crafters = 0
 			if _building.get("is_player_working_here") == true: active_crafters += 1

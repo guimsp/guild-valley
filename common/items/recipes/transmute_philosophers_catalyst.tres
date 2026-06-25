@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/pure_sulfur.tres" id="2_sulfur"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/corrosive_acid.tres" id="3_acid"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/monumental_truss.tres" id="4_truss"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/philosophers_stone.tres" id="5_stone"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Transmute Philosopher's Catalyst"
+required_career = "herbalist"
+required_level = 10
+inputs = {
+ExtResource("2_sulfur"): 5,
+ExtResource("3_acid"): 5,
+ExtResource("4_truss"): 1
+}
+output_item = ExtResource("5_stone")
+output_amount = 1
+xp_reward = 400

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/refined_hardwood.tres" id="2_refined_hardwood"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/iron_bands.tres" id="3_bands"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/reinforced_wheel.tres" id="4_wheel"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Build Reinforced Wheel"
+required_career = "woodworker"
+required_level = 4
+inputs = {
+ExtResource("2_refined_hardwood"): 2,
+ExtResource("3_bands"): 1
+}
+output_item = ExtResource("4_wheel")
+output_amount = 1
+xp_reward = 20

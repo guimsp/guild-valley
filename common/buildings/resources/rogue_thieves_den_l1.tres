@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rogue_thieves_den_l1"
+name = "Thieves' Den L1"
+family = "rogue_thieves_den"
+building_level = 1
+career = "rogue"
+tier = 1
+level = 1
+cost = 150
+time = 6.0
+scene_path = "res://components/production/thieves_den.tscn"
+type = "production"
+description = "A low-profile den for crafting street cudgels and concealed pouches."

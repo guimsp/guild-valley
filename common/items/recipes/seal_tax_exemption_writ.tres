@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/parchment_sheet.tres" id="2_parchment"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/signed_affidavit.tres" id="3_affidavit"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/tax_exemption_writ.tres" id="4_writ"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Seal Tax Exemption Writ"
+required_career = "scholar"
+required_level = 5
+inputs = {
+ExtResource("2_parchment"): 2,
+ExtResource("3_affidavit"): 1
+}
+output_item = ExtResource("4_writ")
+output_amount = 1
+xp_reward = 50

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "poisoned_dagger"
+name = "Poisoned Dagger"
+item_level = 7
+base_value = 120
+weight = 0.5
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Weapon"
+attack_stat = 15
+description = "A weighted poisoned stiletto that guarantees a 100% escape rate in low-to-mid security zones."

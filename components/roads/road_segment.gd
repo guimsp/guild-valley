@@ -9,6 +9,15 @@ extends Area2D
 
 @export var road_color: Color = Color(0.38, 0.38, 0.42) # Solid rock gray
 
+@export var is_paved: bool = false:
+	set(val):
+		is_paved = val
+		queue_redraw()
+		if not Engine.is_editor_hint() and is_inside_tree():
+			for body in get_overlapping_bodies():
+				if "active_roads_count" in body:
+					body.speed_multiplier = 1.13 if is_paved else 1.10
+
 func _ready() -> void:
 	z_index = -1
 	y_sort_enabled = false
@@ -33,12 +42,32 @@ func _update_size() -> void:
 		add_child(col)
 
 func _draw() -> void:
-	draw_rect(Rect2(-size / 2.0, size), road_color)
+	if is_paved:
+		# Draw cobblestone background
+		draw_rect(Rect2(-size / 2.0, size), Color(0.24, 0.24, 0.26))
+		
+		# Draw grid cobblestone pattern lines
+		var step = 16.0
+		var half = size / 2.0
+		
+		# Horizontal lines
+		var y = -half.y + step
+		while y < half.y:
+			draw_line(Vector2(-half.x, y), Vector2(half.x, y), Color(0.35, 0.35, 0.38), 1.0)
+			y += step
+			
+		# Vertical lines
+		var x = -half.x + step
+		while x < half.x:
+			draw_line(Vector2(x, -half.y), Vector2(x, half.y), Color(0.35, 0.35, 0.38), 1.0)
+			x += step
+	else:
+		draw_rect(Rect2(-size / 2.0, size), road_color)
 
 func _on_body_entered(body: Node2D) -> void:
 	if "active_roads_count" in body:
 		body.active_roads_count += 1
-		body.speed_multiplier = 1.10
+		body.speed_multiplier = 1.13 if is_paved else 1.10
 
 func _on_body_exited(body: Node2D) -> void:
 	if "active_roads_count" in body:

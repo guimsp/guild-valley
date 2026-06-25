@@ -1,12 +1,50 @@
 class_name AIRival
 extends CharacterBody2D
 
-@export var speed: float = 112.0
+@export var speed: float = 112.0:
+	get:
+		var base_speed = speed
+		if character_resource:
+			var bonus = 0.0
+			for trait_id in character_resource.active_mods:
+				if trait_id.begins_with("Fleet-Footed_Lvl"):
+					var lvl = int(trait_id.replace("Fleet-Footed_Lvl", ""))
+					if lvl == 1: bonus += 0.05
+					elif lvl == 2: bonus += 0.10
+					elif lvl == 3: bonus += 0.15
+			base_speed *= (1.0 + bonus)
+		if GameState:
+			base_speed = GameState.apply_macro_modifier(self, "movement_speed", base_speed)
+		return base_speed
+	set(val):
+		speed = val
 @export var gold: int = 1500
 @export var family_name: String = "Fugger Family"
 @export var standing: String = "Competitor"
+var character_resource: CharacterResource = null:
+	get:
+		if not character_resource:
+			character_resource = CharacterResource.new()
+			character_resource.character_id = "char_rival_" + family_name.to_lower().replace(" ", "_")
+			character_resource.profession_level = level
+			character_resource.update_daily_wage()
+		return character_resource
+
 var productivity: float:
-	get: return 1.0 + (level * 0.02)
+	get:
+		var base_prod = 1.0 + (level * 0.02)
+		if character_resource:
+			var bonus = 0.0
+			for trait_id in character_resource.active_mods:
+				if trait_id.begins_with("Diligent Master_Lvl"):
+					var lvl_mod = int(trait_id.replace("Diligent Master_Lvl", ""))
+					if lvl_mod == 1: bonus += 0.03
+					elif lvl_mod == 2: bonus += 0.06
+					elif lvl_mod == 3: bonus += 0.10
+			base_prod *= (1.0 + bonus)
+		if GameState:
+			base_prod = GameState.apply_macro_modifier(self, "productivity", base_prod)
+		return base_prod
 	set(val): pass
 var is_harvesting: bool = false
 var is_gathering: bool = false

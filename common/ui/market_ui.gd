@@ -438,20 +438,10 @@ func _get_stall_inventory_space(item: ItemData) -> int:
 func _calculate_max_affordable(item: ItemData) -> int:
 	if not _current_stall or not _current_stall.inventory:
 		return 0
-	var current_stock = _current_stall.inventory.get_item_amount(item.id)
-	var max_affordable = 0
-	var temp_stock = current_stock
-	var current_gold = GameState.gold
-	var accumulated_cost = 0
-	for i in range(current_stock):
-		var price = _current_stall.get_single_buy_price(item, temp_stock)
-		if accumulated_cost + price <= current_gold:
-			accumulated_cost += price
-			max_affordable += 1
-			temp_stock -= 1
-		else:
-			break
-	return max_affordable
+	var price = _current_stall.get_buy_price(item)
+	if price <= 0:
+		return _current_stall.inventory.get_item_amount(item.id)
+	return int(GameState.gold / price)
 
 func _open_transaction_prompt(item: ItemData, card_node: Control) -> void:
 	var focused = get_viewport().gui_get_focus_owner()
@@ -917,24 +907,12 @@ func _close_slider_popup() -> void:
 func _calculate_total_buy_cost(item: ItemData, amount: int) -> int:
 	if not _current_stall:
 		return 0
-	var current_stock: int = _current_stall.inventory.get_item_amount(item.id)
-	var total_price: int = 0
-	var temp_stock: int = current_stock
-	for i in range(amount):
-		total_price += _current_stall.get_single_buy_price(item, temp_stock)
-		temp_stock -= 1
-	return total_price
+	return _current_stall.get_buy_price(item) * amount
 
 func _calculate_total_sell_revenue(item: ItemData, amount: int) -> int:
 	if not _current_stall:
 		return 0
-	var current_stock: int = _current_stall.inventory.get_item_amount(item.id)
-	var total_revenue: int = 0
-	var temp_stock: int = current_stock
-	for i in range(amount):
-		total_revenue += _current_stall.get_single_sell_price(item, temp_stock)
-		temp_stock += 1
-	return total_revenue
+	return _current_stall.get_sell_price(item) * amount
 
 func _animate_success(node: Control) -> void:
 	var tween = create_tween()

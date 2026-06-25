@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/sheet_metal.tres" id="2_sheet"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/tumbler_locks.tres" id="3_lock"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/monumental_truss.tres" id="4_truss"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/imperial_vault_safe.tres" id="5_safe"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Forge Masterwork Vault Safe"
+required_career = "craftsman"
+required_level = 10
+inputs = {
+ExtResource("2_sheet"): 4,
+ExtResource("3_lock"): 4,
+ExtResource("4_truss"): 1
+}
+output_item = ExtResource("5_safe")
+output_amount = 1
+xp_reward = 300

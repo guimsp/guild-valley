@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Equipment/clay_flute.tres" id="2_booster"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/busking_ticket.tres" id="3_output"]
+
+[resource]
+script = ExtResource("1_script")
+is_service = true
+service_type = 2
+booster_item = ExtResource("2_booster")
+recipe_name = "Local Busking Service"
+required_career = "showman"
+required_level = 1
+inputs = {}
+output_item = ExtResource("3_output")
+output_amount = 1
+xp_reward = 20

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/berries.tres" id="2_berries"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flora_oil.tres" id="3_oil"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Press Flora Oil"
+required_career = "herbalist"
+required_level = 1
+inputs = {
+ExtResource("2_berries"): 2
+}
+output_item = ExtResource("3_oil")
+output_amount = 1
+xp_reward = 10

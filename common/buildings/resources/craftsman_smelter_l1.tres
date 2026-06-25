@@ -1,14 +1,18 @@
 [gd_resource type="Resource" script_class="BuildingData" format=3]
 
-[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_30akf"]
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_smelter"]
 
 [resource]
-script = ExtResource("1_30akf")
+script = ExtResource("1_smelter")
 id = "craftsman_smelter_l1"
-name = "Smelter"
+name = "Bloomery Smelter"
 family = "craftsman_smelter"
 career = "craftsman"
-cost = 140
+tier = 1
+level = 1
+cost = 120
 time = 6.0
-scene_path = "res://components/production/smelter.tscn"
-description = "Turn raw iron ore into solid iron ingots."
+scene_path = "res://components/production/bloomery.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 1: Smelt raw iron ore into iron bars, cast nails, and roll sheet metal."

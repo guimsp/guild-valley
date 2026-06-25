@@ -36,10 +36,8 @@ func _ready() -> void:
 		bench.bench_name = "Flour Mill"
 		bench.recipes.clear()
 		var r1 = load("res://common/items/recipes/grind_wheat.tres")
-		var r2 = load("res://common/items/recipes/press_oil.tres")
 		var r3 = load("res://common/items/recipes/grind_feed.tres")
 		if r1: bench.recipes.append(r1)
-		if r2: bench.recipes.append(r2)
 		if r3: bench.recipes.append(r3)
 			
 		# Remove the bench's own interaction area

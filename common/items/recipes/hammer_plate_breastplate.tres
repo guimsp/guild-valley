@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/steel_ingot.tres" id="2_steel"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/heavy_chain.tres" id="3_chain"]
+[ext_resource type="Resource" path="res://common/items/instances/Equipment/reinforced_breastplate.tres" id="4_armor"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Hammer Plate Breastplate"
+required_career = "craftsman"
+required_level = 5
+inputs = {
+ExtResource("2_steel"): 3,
+ExtResource("3_chain"): 1
+}
+output_item = ExtResource("4_armor")
+output_amount = 1
+xp_reward = 50

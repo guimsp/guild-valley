@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/advanced_structural_beam.tres" id="2_beam"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/imperial_vault_safe.tres" id="3_safe"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/masterwork_vault_door.tres" id="4_door"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Forge Vault Door"
+required_career = "woodworker"
+required_level = 10
+inputs = {
+ExtResource("2_beam"): 5,
+ExtResource("3_safe"): 2
+}
+output_item = ExtResource("4_door")
+output_amount = 1
+xp_reward = 250

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "loom_frame"
+item_level = 2
+name = "Loom Frame"
+base_value = 60
+weight = 3.0
+category = "Material"
+market_category = "Semi-Elaborate"
+item_type = "Raw Material"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "A heavy wooden frame designed for weaving looms."

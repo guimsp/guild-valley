@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Equipment/gilded_rapier.tres" id="2_rapier"]
+[ext_resource type="Resource" path="res://common/items/instances/Equipment/ceremonial_noble_armor.tres" id="3_armor"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/fine_ledger.tres" id="4_ledger"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/honor_guard_uniform_contract.tres" id="5_contract"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Contract B: Royal Palace Honor Guard Uniforming"
+required_career = "craftsman"
+required_level = 8
+inputs = {
+ExtResource("2_rapier"): 3,
+ExtResource("3_armor"): 3,
+ExtResource("4_ledger"): 1
+}
+output_item = ExtResource("5_contract")
+output_amount = 1
+xp_reward = 180

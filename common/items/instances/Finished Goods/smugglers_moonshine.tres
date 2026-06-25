@@ -6,9 +6,10 @@
 script = ExtResource("1_script")
 id = "smugglers_moonshine"
 name = "Smuggler's Moonshine"
-base_value = 65
-min_price = 10
-max_price = 650
+item_level = 7
+base_value = 90
+min_price = 45
+max_price = 180
 weight = 0.5
 category = "Food"
 market_category = "Finished Goods"

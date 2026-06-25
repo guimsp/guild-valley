@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "tailor_dyers_vat_l1"
+name = "Dyer's Vat"
+family = "tailor_dyers_vat"
+building_level = 1
+career = "tailor"
+tier = 1
+level = 2
+cost = 250
+time = 6.0
+scene_path = "res://components/production/loom.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "A workshop with large dye pots to color spun fabrics and threads."

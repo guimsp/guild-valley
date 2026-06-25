@@ -19,11 +19,13 @@ func process_hired_worker(delta: float) -> void:
 		
 	var active_recipe_path = ""
 	var active_gathering_node_path = ""
+	var target_emp: Dictionary = {}
 	if is_instance_valid(npc.hired_by_building):
 		for emp in npc.hired_by_building.hired_employees:
 			if emp.get("npc_ref") == npc:
 				active_recipe_path = emp.get("active_recipe_path", "")
 				active_gathering_node_path = str(emp.get("active_gathering_node_path", ""))
+				target_emp = emp
 				break
 				
 	if active_gathering_node_path != "":
@@ -78,12 +80,39 @@ func process_hired_worker(delta: float) -> void:
 			npc.worker_state = "traveling_to_workbench"
 			
 	if active_recipe_path == "" and active_gathering_node_path == "":
-		if npc.global_position.y > 9000.0:
-			if is_instance_valid(npc.hired_by_building):
-				npc._teleport(npc.hired_by_building.get_interaction_position())
-			npc.worker_state = "idle_at_workshop"
+		if npc.worker_state not in ["traveling_to_pickpocket", "pickpocketing"]:
+			if npc.global_position.y > 9000.0:
+				if is_instance_valid(npc.hired_by_building):
+					npc._teleport(npc.hired_by_building.get_interaction_position())
+				npc.worker_state = "idle_at_workshop"
 			
 	match npc.worker_state:
+		"traveling_to_pickpocket":
+			if npc.has_meta("target_settlement"):
+				var target_settlement = npc.get_meta("target_settlement")
+				if is_instance_valid(target_settlement):
+					var target_pos = target_settlement.global_position
+					if npc.nav_motor and npc.nav_motor.nav_agent.target_position != target_pos:
+						npc.navigation.generate_path(target_pos)
+					var dist = npc.global_position.distance_to(target_pos)
+					var nav_finished = false
+					if npc.nav_motor and npc.nav_motor.nav_agent:
+						nav_finished = npc.nav_motor.nav_agent.is_navigation_finished()
+					if dist <= 48.0 or nav_finished:
+						npc.worker_state = "pickpocketing"
+						npc.wait_timer = 5.0
+						npc.velocity = Vector2.ZERO
+						npc.navigation.update_movement_animation(Vector2.ZERO)
+				else:
+					npc.worker_state = "traveling_to_workshop"
+			else:
+				npc.worker_state = "traveling_to_workshop"
+				
+		"pickpocketing":
+			npc.velocity = Vector2.ZERO
+			npc.navigation.update_movement_animation(Vector2.ZERO)
+			_execute_pickpocket_tick(npc, delta)
+			
 		"traveling_to_workshop":
 			if is_instance_valid(npc.hired_by_building):
 				var target_pos = npc.hired_by_building.get_interaction_position()
@@ -148,6 +177,44 @@ func process_hired_worker(delta: float) -> void:
 				if is_instance_valid(npc.target_mega_node):
 					var dist = npc.global_position.distance_to(npc.target_mega_node.global_position)
 					if dist <= 48.0:
+						# Tool Level Gate Check
+						if "resource_type_id" in npc.target_mega_node:
+							var res_id = npc.target_mega_node.resource_type_id
+							var item_res = EconomyManager.item_database.get(res_id)
+							if item_res:
+								var res_lvl = item_res.item_level
+								var tool_lvl = 0
+								var eq = npc.get_node_or_null("EquipmentComponent")
+								if eq:
+									var equipped_tool = eq.get_equipped_item("tool")
+									if equipped_tool:
+										tool_lvl = equipped_tool.item_level
+								
+								var is_insufficient = false
+								if res_lvl >= 4 and tool_lvl < 3:
+									is_insufficient = true
+								elif res_lvl >= 2 and tool_lvl < 2:
+									is_insufficient = true
+								elif res_lvl >= 1 and tool_lvl < 1:
+									is_insufficient = true
+								
+								if is_insufficient:
+									if is_instance_valid(npc.hired_by_building) and npc.hired_by_building.staff_component and not target_emp.is_empty():
+										npc.hired_by_building.staff_component.cancel_employee_gathering(target_emp, "Tool Level Insufficient")
+									
+									var b_name = npc.hired_by_building.building_name if is_instance_valid(npc.hired_by_building) else "Workshop"
+									AlertManager.add_alert(
+										"Tool Level Insufficient",
+										"Employee %s lacks the required tool level to harvest %s (requires Level %d, has Level %d)." % [
+											npc.npc_name,
+											item_res.name,
+											3 if res_lvl >= 4 else (2 if res_lvl >= 2 else 1),
+											tool_lvl
+										],
+										"danger",
+										npc.hired_by_building if is_instance_valid(npc.hired_by_building) else null
+									)
+									return
 						npc.target_mega_node._on_body_entered(npc)
 		
 		"gathering_at_node":
@@ -282,7 +349,7 @@ func process_employee_leisure(delta: float) -> void:
 		npc.navigation.update_movement_animation(Vector2.ZERO)
 		if npc.wait_timer <= 0.0:
 			var targets = []
-			for grp in ["Taverns", "Inns"]:
+			for grp in ["Taverns", "Inns", "Armories", "Wheelwrights", "Infirmaries", "CutpurseApartments", "MusicSalons"]:
 				targets.append_array(npc.get_tree().get_nodes_in_group(grp))
 			if targets.is_empty():
 				npc.navigation.choose_new_wander_target()
@@ -296,7 +363,7 @@ func process_employee_leisure(delta: float) -> void:
 
 	if not is_instance_valid(npc.leisure_spot_building):
 		var targets = []
-		for grp in ["Taverns", "Inns"]:
+		for grp in ["Taverns", "Inns", "Armories", "Wheelwrights", "Infirmaries", "CutpurseApartments", "MusicSalons"]:
 			targets.append_array(npc.get_tree().get_nodes_in_group(grp))
 			
 		if targets.is_empty():
@@ -328,12 +395,22 @@ func execute_leisure_transaction() -> void:
 		return
 		
 	var is_player_owned = npc.leisure_spot_building.ownership_type == "Player" or (npc.leisure_spot_building.ownership_type == "Rented" and npc.leisure_spot_building.owner_id == "Player")
-	var is_service_building = npc.leisure_spot_building.is_in_group("Taverns") or npc.leisure_spot_building.is_in_group("Inns")
+	var is_service_building = npc.leisure_spot_building.is_in_group("Taverns") or npc.leisure_spot_building.is_in_group("Inns") or npc.leisure_spot_building.is_in_group("Armories") or npc.leisure_spot_building.is_in_group("Wheelwrights") or npc.leisure_spot_building.is_in_group("Infirmaries") or npc.leisure_spot_building.is_in_group("CutpurseApartments") or npc.leisure_spot_building.is_in_group("MusicSalons")
 	
 	var cost = 12
 	var item_name = "Tavern Service"
 	if npc.leisure_spot_building.is_in_group("Inns"):
 		item_name = "Room Rental"
+	elif npc.leisure_spot_building.is_in_group("Armories"):
+		item_name = "Garrison Service"
+	elif npc.leisure_spot_building.is_in_group("Wheelwrights"):
+		item_name = "Hauling Service"
+	elif npc.leisure_spot_building.is_in_group("Infirmaries"):
+		item_name = "Medical Service"
+	elif npc.leisure_spot_building.is_in_group("CutpurseApartments"):
+		item_name = "Security Service"
+	elif npc.leisure_spot_building.is_in_group("MusicSalons"):
+		item_name = "Music Salon Service"
 		
 	var active_service = null
 	if is_player_owned and is_service_building:
@@ -349,8 +426,18 @@ func execute_leisure_transaction() -> void:
 		var provider_level = active_service["level"]
 		var recipe = active_service["recipe"]
 		
+		var provider_node = null
+		if is_player:
+			provider_node = npc.get_tree().get_first_node_in_group("Player")
+		else:
+			provider_node = active_service["employee"].get("npc_ref")
+			
 		var slots = npc.leisure_spot_building.player_service_slots if is_player else active_service["employee"].get("service_slots", [])
-		if slots.size() >= 3:
+		var max_slots = npc.leisure_spot_building.get("max_concurrent_slots")
+		if max_slots == null:
+			max_slots = 3
+			
+		if slots.size() >= max_slots:
 			npc.spawn_debug_emote("Busy!", Color.ORANGE)
 			npc.leisure_spot_building = null
 			return
@@ -358,6 +445,52 @@ func execute_leisure_transaction() -> void:
 		cost = npc.leisure_spot_building.call("get_service_price", recipe)
 		item_name = recipe.recipe_name
 		
+		var storage = npc.leisure_spot_building.get("building_storage")
+		if not storage:
+			storage = npc.leisure_spot_building.get("inventory")
+			
+		# Booster Multi-Payment Rule
+		var has_booster = false
+		var used_booster_item = null
+		if recipe.get("service_type") == 2: # ServiceType.DYNAMIC_BOOST
+			if recipe.recipe_name.findn("concert") != -1:
+				if storage:
+					if storage.get_item_amount("masterwork_lute") >= 1:
+						has_booster = true
+						used_booster_item = load("res://common/items/instances/Equipment/masterwork_lute.tres")
+					elif storage.get_item_amount("brass_horn") >= 1:
+						has_booster = true
+						used_booster_item = load("res://common/items/instances/Equipment/brass_horn.tres")
+			elif recipe.get("booster_item") != null:
+				if storage and storage.get_item_amount(recipe.booster_item.id) >= 1:
+					has_booster = true
+					used_booster_item = recipe.booster_item
+				
+		if has_booster and used_booster_item != null:
+			storage.remove_item(used_booster_item.id, 1)
+			var booster_price = used_booster_item.base_value # mid price
+			var mult = 1.5
+			if recipe.recipe_name.findn("casino") != -1 or recipe.recipe_name.findn("concert") != -1:
+				mult = 1.75
+			elif recipe.recipe_name.findn("tutoring") != -1:
+				mult = 1.6
+			cost = int(cost + (booster_price * mult))
+			item_name = recipe.recipe_name + " (+ " + used_booster_item.name + ")"
+		else:
+			if storage and recipe.inputs.size() > 0:
+				var inputs_ok = true
+				for item in recipe.inputs:
+					if storage.get_item_amount(item.id) < recipe.inputs[item]:
+						inputs_ok = false
+						break
+				if inputs_ok:
+					for item in recipe.inputs:
+						storage.remove_item(item.id, recipe.inputs[item])
+				else:
+					npc.spawn_debug_emote("No Materials!", Color.RED)
+					npc.leisure_spot_building = null
+					return
+
 		var is_tipped = false
 		if provider_level >= 3:
 			var tip_chance = float(provider_level) * 0.05
@@ -367,35 +500,24 @@ func execute_leisure_transaction() -> void:
 				
 		if is_tipped:
 			item_name += " (Tipped)"
-			
-		var storage = npc.leisure_spot_building.get("building_storage")
-		if not storage:
-			storage = npc.leisure_spot_building.get("inventory")
-		if storage and recipe.inputs.size() > 0:
-			var inputs_ok = true
-			for item in recipe.inputs:
-				if storage.get_item_amount(item.id) < recipe.inputs[item]:
-					inputs_ok = false
-					break
-			if inputs_ok:
-				for item in recipe.inputs:
-					storage.remove_item(item.id, recipe.inputs[item])
-			else:
-				npc.spawn_debug_emote("No Materials!", Color.RED)
-				npc.leisure_spot_building = null
-				return
 
 		if npc.npc_gold < cost:
 			npc.spawn_debug_emote("No Gold!", Color.RED)
+			if has_booster and used_booster_item != null:
+				storage.add_item(used_booster_item, 1)
 			npc.leisure_spot_building = null
 			return
 			
+		var service_time = 60.0
+		if GameState and npc.leisure_spot_building:
+			service_time = GameState.apply_macro_modifier(npc.leisure_spot_building, "service_time", service_time)
+			
 		if is_player:
-			npc.leisure_spot_building.player_service_slots.append(60.0)
+			npc.leisure_spot_building.player_service_slots.append(service_time)
 		else:
 			var emp = active_service["employee"]
 			var emp_slots = emp.get("service_slots", [])
-			emp_slots.append(60.0)
+			emp_slots.append(service_time)
 			emp["service_slots"] = emp_slots
 			
 		var xp = recipe.xp_reward
@@ -410,6 +532,9 @@ func execute_leisure_transaction() -> void:
 				
 		npc.npc_gold -= cost
 		npc.spawn_debug_emote("Served: %s (-%d G)" % [item_name, cost], Color.GREEN)
+		
+		if has_booster and recipe.output_item != null and storage:
+			storage.add_item(recipe.output_item, 1)
 		
 		var strongbox = npc.leisure_spot_building.get_node_or_null("StrongboxComponent")
 		if strongbox:
@@ -440,3 +565,97 @@ func execute_leisure_transaction() -> void:
 				rivals[0].gold += cost
 				
 	npc.leisure_spot_building = null
+
+func _execute_pickpocket_tick(npc: CharacterBody2D, delta: float) -> void:
+	if not npc.has_meta("target_settlement"):
+		npc.worker_state = "traveling_to_workshop"
+		return
+	var target_settlement = npc.get_meta("target_settlement")
+	if not is_instance_valid(target_settlement):
+		npc.worker_state = "traveling_to_workshop"
+		return
+		
+	if npc.wait_timer > 0.0:
+		npc.wait_timer -= delta
+		return
+		
+	npc.wait_timer = 5.0 # Ticks every 5 seconds
+	
+	var w = target_settlement.get("wealth_level") if "wealth_level" in target_settlement else 0.5
+	var s = target_settlement.get("security_level") if "security_level" in target_settlement else 0.8
+	
+	# Payout
+	var payout = int(randf_range(10.0, 30.0) * w)
+	# Risk
+	var risk = s * 0.15
+	
+	if randf() < risk:
+		# Caught! Check escape gear
+		var eq = npc.get_node_or_null("EquipmentComponent")
+		var escaped = false
+		var escape_reason = ""
+		
+		if eq:
+			var tool_item = eq.get_equipped_item("tool")
+			if tool_item and tool_item.id == "flash_powder_bomb":
+				escaped = true
+				escape_reason = "Flash Powder Bomb"
+				eq.unequip_item("tool")
+				
+			if not escaped:
+				var weapon_item = eq.get_equipped_item("weapon")
+				if weapon_item and weapon_item.id == "poisoned_dagger":
+					escaped = true
+					escape_reason = "Poisoned Dagger"
+					
+		if escaped:
+			if "criminal_heat" in target_settlement:
+				target_settlement.criminal_heat = min(1.0, target_settlement.criminal_heat + 0.2)
+			AlertManager.add_alert(
+				"Narrow Escape",
+				"Employee %s was nearly arrested pickpocketing in %s but escaped using a %s!" % [
+					npc.npc_name,
+					target_settlement.city_name if "city_name" in target_settlement else target_settlement.town_name,
+					escape_reason
+				],
+				"warning",
+				npc.hired_by_building if is_instance_valid(npc.hired_by_building) else null
+			)
+		else:
+			# Arrested!
+			AlertManager.add_alert(
+				"Employee Arrested",
+				"Employee %s was arrested pickpocketing in %s and jailed for 24 hours!" % [
+					npc.npc_name,
+					target_settlement.city_name if "city_name" in target_settlement else target_settlement.town_name
+				],
+				"danger",
+				npc.hired_by_building if is_instance_valid(npc.hired_by_building) else null
+			)
+			
+			npc.worker_state = "idle_at_workshop"
+			npc.velocity = Vector2.ZERO
+			npc.navigation.update_movement_animation(Vector2.ZERO)
+			
+			if is_instance_valid(npc.hired_by_building):
+				for emp in npc.hired_by_building.hired_employees:
+					if emp.get("npc_ref") == npc:
+						emp["is_paused"] = true
+						emp["is_arrested"] = true
+						emp["arrest_timer"] = 24.0
+						break
+				npc._teleport(npc.hired_by_building.get_interaction_position())
+	else:
+		# Successful steal!
+		if "criminal_heat" in target_settlement:
+			target_settlement.criminal_heat = min(1.0, target_settlement.criminal_heat + 0.05)
+			
+		GameState.next_change_reason = "Pickpocket Payout"
+		GameState.next_change_detail = npc.npc_name
+		GameState.gold += payout
+		
+		# Gain Rogue XP
+		if GameState:
+			GameState.add_xp("rogue", 15)
+			
+		GameState.spawn_ui_floating_text("+%d Gold (Pickpocket)!" % payout)

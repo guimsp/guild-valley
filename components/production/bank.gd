@@ -30,11 +30,17 @@ func _ready() -> void:
 	if marker:
 		marker.position = Vector2(32, 52)
 	
-	# Clear recipes inside the bank bench by default
+	# Load bank recipes
 	var bench = get_node_or_null("CraftingBench")
 	if bench:
 		bench.bench_name = "Bank Counter"
 		bench.recipes.clear()
+		var loan_recipe = load("res://common/items/recipes/issue_high_interest_loan.tres")
+		var share_recipe = load("res://common/items/recipes/underwrite_corporate_share.tres")
+		if loan_recipe:
+			bench.recipes.append(loan_recipe)
+		if share_recipe:
+			bench.recipes.append(share_recipe)
 		
 		# Remove the bench's own interaction area
 		var bench_interact = bench.get_node_or_null("InteractionArea")
@@ -85,6 +91,57 @@ func _ready() -> void:
 	
 	counter_area.body_entered.connect(_on_front_body_entered)
 	counter_area.body_exited.connect(_on_front_body_exited)
+
+func start_player_crafting(recipe_path: String) -> void:
+	var recipe = load(recipe_path)
+	if recipe and recipe.recipe_name == "Issue High-Interest Loan":
+		# Check gold availability (100 G required)
+		var sbox = get_node_or_null("StrongboxComponent")
+		var sbox_gold = sbox.strongbox_gold if sbox else 0
+		var player_gold = GameState.gold if GameState else 0
+		var total_available = sbox_gold + player_gold
+		if total_available < 100:
+			if GameState:
+				GameState.spawn_ui_floating_text("Cannot issue loan: Need 100 Gold!")
+			return
+		
+		# Deduct 100 G (prioritizing strongbox gold)
+		var deducted_from_sbox = min(100, sbox_gold)
+		var deducted_from_player = 100 - deducted_from_sbox
+		
+		if sbox:
+			sbox.strongbox_gold -= deducted_from_sbox
+		if GameState:
+			GameState.gold -= deducted_from_player
+			
+		super.start_player_crafting(recipe_path)
+		
+		# If the start failed (e.g., missing items in storage), refund the gold
+		if not is_player_working_here:
+			if sbox:
+				sbox.strongbox_gold += deducted_from_sbox
+			if GameState:
+				GameState.gold += deducted_from_player
+		return
+	super.start_player_crafting(recipe_path)
+
+func _tick_player_crafting(delta: float) -> void:
+	if is_player_working_here and player_crafting_recipe_path == "res://common/items/recipes/issue_high_interest_loan.tres":
+		var next_timer = player_craft_timer - delta
+		if next_timer <= 0.0:
+			# Recipe is completing! Add 180 G payout to the strongbox/wallet
+			var sbox = get_node_or_null("StrongboxComponent")
+			if sbox:
+				var space = sbox.max_gold_capacity - sbox.strongbox_gold
+				var to_sbox = min(180, space)
+				var to_player = 180 - to_sbox
+				sbox.strongbox_gold += to_sbox
+				if GameState and to_player > 0:
+					GameState.gold += to_player
+			elif GameState:
+				GameState.gold += 180
+	
+	super._tick_player_crafting(delta)
 
 func _process(delta: float) -> void:
 	_tick_employees(delta)

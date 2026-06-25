@@ -31,6 +31,7 @@ func _process(delta: float) -> void:
 			time_hours = 0
 			time_days += 1
 			_clear_daily_production_stats()
+			_decay_criminal_heat()
 			_deduct_salaries()
 			if time_days % 4 == 0:
 				if has_node("/root/PoliticsManager"):
@@ -46,6 +47,14 @@ func _clear_daily_production_stats() -> void:
 	for node in get_tree().get_nodes_in_group("production_buildings"):
 		if node.has_method("clear_daily_stats"):
 			node.clear_daily_stats()
+
+func _decay_criminal_heat() -> void:
+	for city in get_tree().get_nodes_in_group("Cities"):
+		if is_instance_valid(city) and "criminal_heat" in city:
+			city.criminal_heat = max(0.0, city.criminal_heat - 0.1)
+	for town in get_tree().get_nodes_in_group("Towns"):
+		if is_instance_valid(town) and "criminal_heat" in town:
+			town.criminal_heat = max(0.0, town.criminal_heat - 0.1)
 
 func _check_politics_cycle_ticks() -> void:
 	if not has_node("/root/PoliticsManager"):
@@ -95,10 +104,16 @@ func advance_day() -> void:
 	time_minutes = 0.0
 	_last_emitted_minute = 0
 	_clear_daily_production_stats()
+	_decay_criminal_heat()
 	
 	# Emit immediate update
 	time_changed.emit(time_hours, 0, time_days)
 	
+	# overnight city expansion check
+	for city in get_tree().get_nodes_in_group("Cities"):
+		if is_instance_valid(city) and city.has_method("check_and_execute_expansion"):
+			city.check_and_execute_expansion()
+			
 	# overnight economy simulation
 	var stalls = get_tree().get_nodes_in_group("MarketStall")
 	for stall in stalls:
@@ -143,9 +158,10 @@ func advance_day() -> void:
 	var inns = get_tree().get_nodes_in_group("Inns")
 	for inn in inns:
 		if is_instance_valid(inn) and inn.ownership_type == "Player":
-			var prosperity = 20
-			if inn.get("nearest_settlement"):
-				prosperity = inn.nearest_settlement.prosperity if "prosperity" in inn.nearest_settlement else 20
+			var prosperity = 20.0
+			if inn.get("nearest_settlement") and is_instance_valid(inn.nearest_settlement):
+				var prov = inn.nearest_settlement.get("ownership_province")
+				prosperity = ProsperityManager.province_prosperity.get(prov, 20.0)
 			var base_rev = inn.base_revenue if "base_revenue" in inn else 50
 			if inn.get("building_level") != null and inn.building_level >= 2:
 				base_rev = 120 # Premium luxury hotel lodging
@@ -156,12 +172,15 @@ func advance_day() -> void:
 				sbox.strongbox_gold += rev
 				sbox.add_transaction("Lodging Rent", 1, rev, "Overnight", "Guests")
 			else:
+				GameState.next_change_reason = "Inn Revenue"
+				GameState.next_change_detail = inn.custom_name if "custom_name" in inn else "Inn"
 				GameState.gold += rev
 			GameState.spawn_ui_floating_text("Inn Revenue: +%d Gold!" % rev)
 		elif is_instance_valid(inn) and inn.ownership_type == "NPC" and inn.owner_id == "Rival":
-			var prosperity = 20
-			if inn.get("nearest_settlement"):
-				prosperity = inn.nearest_settlement.prosperity if "prosperity" in inn.nearest_settlement else 20
+			var prosperity = 20.0
+			if inn.get("nearest_settlement") and is_instance_valid(inn.nearest_settlement):
+				var prov = inn.nearest_settlement.get("ownership_province")
+				prosperity = ProsperityManager.province_prosperity.get(prov, 20.0)
 			var base_rev = inn.base_revenue if "base_revenue" in inn else 50
 			if inn.get("building_level") != null and inn.building_level >= 2:
 				base_rev = 120
@@ -181,6 +200,9 @@ func advance_day() -> void:
 				# Add rent income to owner
 				var rent_earned = house.rent_cost
 				if house.ownership_type == "Player":
+					house.total_income_generated += rent_earned
+					GameState.next_change_reason = "House Rent"
+					GameState.next_change_detail = house.custom_name if house.custom_name != "" else "Rental House"
 					GameState.gold += rent_earned
 					GameState.spawn_ui_floating_text("Received %d Gold in Rent!" % rent_earned)
 				elif house.ownership_type == "NPC" and house.owner_id == "Rival":
@@ -198,11 +220,12 @@ func advance_day() -> void:
 						GameState.spawn_ui_floating_text("Tenant moved out!")
 			else:
 				# Roll for new tenant
-				var prosperity = 20
+				var prosperity = 20.0
 				var dist_to_market = 800.0
 				
-				if house.get("nearest_settlement"):
-					prosperity = house.nearest_settlement.prosperity if "prosperity" in house.nearest_settlement else 20
+				if house.get("nearest_settlement") and is_instance_valid(house.nearest_settlement):
+					var prov = house.nearest_settlement.get("ownership_province")
+					prosperity = ProsperityManager.province_prosperity.get(prov, 20.0)
 					var market_node = null
 					if "market_node_path" in house.nearest_settlement and house.nearest_settlement.market_node_path:
 						market_node = house.nearest_settlement.get_node_or_null(house.nearest_settlement.market_node_path)
@@ -269,13 +292,23 @@ func _deduct_salaries() -> void:
 	for grp in production_groups:
 		for node in get_tree().get_nodes_in_group(grp):
 			if is_instance_valid(node) and "hired_employees" in node:
-				if node.ownership_type == "Player":
-					for emp in node.hired_employees:
+				for emp in node.hired_employees:
+					var npc_node = emp.get("npc_ref")
+					if is_instance_valid(npc_node) and "character_resource" in npc_node and npc_node.character_resource:
+						npc_node.character_resource.update_daily_wage()
+						var new_wage = npc_node.character_resource.daily_wage
+						emp["salary"] = new_wage
+						emp["wage"] = new_wage
+						if "salary" in npc_node:
+							npc_node.salary = new_wage
+							
+					if node.ownership_type == "Player":
 						employee_salary_cost += int(emp.get("salary", 15))
-				elif node.ownership_type == "NPC" and node.owner_id == "Rival":
-					for emp in node.hired_employees:
+					elif node.ownership_type == "NPC" and node.owner_id == "Rival":
 						rival_salary_cost += int(emp.get("salary", 15))
 	if employee_salary_cost > 0:
+		GameState.next_change_reason = "Salaries Paid"
+		GameState.next_change_detail = "All Employees"
 		GameState.gold -= employee_salary_cost
 		GameState.spawn_ui_floating_text("Paid Employee Salaries: -%d Gold!" % employee_salary_cost)
 	if rival_salary_cost > 0:

@@ -105,6 +105,23 @@ func _on_time_changed(hours: int, minutes: int, days: int) -> void:
 							stall.is_under_audit = false
 					if GameState:
 						GameState.spawn_ui_floating_text("%s Audit ended!" % building.name)
+			
+			if "hired_employees" in building:
+				for emp in building.hired_employees:
+					if emp.get("is_arrested") == true:
+						var timer = emp.get("arrest_timer", 0.0)
+						emp["arrest_timer"] = max(0.0, timer - elapsed_hours)
+						if emp["arrest_timer"] <= 0.0:
+							emp["is_arrested"] = false
+							emp["is_paused"] = false
+							var npc_node = emp.get("npc_ref")
+							if is_instance_valid(npc_node):
+								AlertManager.add_alert(
+									"Employee Released",
+									"Employee %s has finished serving their jail time and is released!" % npc_node.npc_name,
+									"info",
+									building
+								)
 						
 	# Check day advance for cooldowns and loop state
 	if days != last_checked_day:

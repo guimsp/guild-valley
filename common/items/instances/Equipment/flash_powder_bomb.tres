@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "flash_powder_bomb"
+name = "Flash Powder Bomb"
+item_level = 4
+base_value = 80
+weight = 0.5
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Tool"
+is_tool = true
+description = "An equippable tool automatically consumed to escape arrest if caught during pickpocketing."

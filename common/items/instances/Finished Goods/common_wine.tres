@@ -5,10 +5,11 @@
 [resource]
 script = ExtResource("1_script")
 id = "common_wine"
-name = "Common Wine"
-base_value = 38
-min_price = 6
-max_price = 380
+name = "Common Wine Roll"
+item_level = 7
+base_value = 80
+min_price = 40
+max_price = 150
 weight = 0.6
 category = "Food"
 market_category = "Finished Goods"

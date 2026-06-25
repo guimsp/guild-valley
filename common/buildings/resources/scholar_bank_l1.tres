@@ -7,12 +7,13 @@ script = ExtResource("1_lfgi1")
 id = "scholar_bank_l1"
 name = "Provincial Bank"
 family = "scholar_bank"
+building_level = 1
 career = "scholar"
 tier = 3
-level = 5
-cost = 500
+level = 7
+cost = 1500
 time = 10.0
 scene_path = "res://components/production/bank.tscn"
+type = "production"
 allowed_settlement = "city"
-description = "Safely deposit gold and earn 5% daily interest."
-
+description = "Safely deposit gold, issue high-interest loans, and manage bonds."

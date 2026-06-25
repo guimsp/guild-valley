@@ -19,6 +19,18 @@ func _ready() -> void:
 	# Spawn NPCs for each settlement
 	_spawn_npcs()
 	
+	# Setup ambient population scaling
+	update_ambient_population()
+	
+	# Connect signals for prosperity changes and new days
+	ProsperityManager.prosperity_updated.connect(func(_prov, _val): update_ambient_population())
+	var last_day = TimeManager.time_days
+	TimeManager.time_changed.connect(func(_hrs, _mins, days):
+		if days != last_day:
+			last_day = days
+			update_ambient_population()
+	)
+	
 	# Spawn Influence Broker near Player's start location
 	var broker_scene = load("res://entities/npc/influence_broker.tscn")
 	if broker_scene:
@@ -59,9 +71,9 @@ func _ready() -> void:
 
 	# Setup Forest nodes yields
 	var gf = get_node_or_null("GreatForest")
-	if gf: gf.resource_type_id = "standard_timber"
+	if gf: gf.resource_type_id = "raw_log"
 	var of = get_node_or_null("OakhavenForest")
-	if of: of.resource_type_id = "standard_timber"
+	if of: of.resource_type_id = "raw_log"
 
 	# Spawn Wheat Fields programmatically
 	_spawn_wheat_field("The Great Wheat Field", Vector2(400, 200))
@@ -74,6 +86,48 @@ func _ready() -> void:
 
 	# Spawn Fountains near public markets
 	_spawn_fountains()
+
+	# Spawn Coal Nuggets, Copper Ore, Zinc Ore programmatically
+	_spawn_mega_node("The Black Coal Vein", "coal_nugget", Vector2(1000, 2500))
+	_spawn_mega_node("Mineville Coal Deposit", "coal_nugget", Vector2(6000, 2500))
+	
+	_spawn_mega_node("Valley Copper Ridge", "copper_ore", Vector2(2500, 500))
+	_spawn_mega_node("Mineville Copper Pit", "copper_ore", Vector2(7000, 500))
+	
+	_spawn_mega_node("Zinc Hollows", "zinc_ore", Vector2(3000, 1500))
+	_spawn_mega_node("Mineville Zinc Quarry", "zinc_ore", Vector2(6500, 1500))
+
+	# Spawn Hardwood Groves programmatically
+	_spawn_mega_node("Valley Hardwood Grove", "raw_hardwood_log", Vector2(1500, 1200))
+	_spawn_mega_node("Mineville Hardwood Forest", "raw_hardwood_log", Vector2(5800, 1200))
+
+	# Spawn Herbalist Gathering Nodes programmatically
+	_spawn_mega_node("Valley Herb Fields", "raw_wild_herbs", Vector2(2000, 1800))
+	_spawn_mega_node("Mineville Herb Slopes", "raw_wild_herbs", Vector2(6200, 1800))
+	_spawn_mega_node("Valley Root Grove", "overworld_root", Vector2(1200, 2200))
+	_spawn_mega_node("Oakhaven Root Glade", "overworld_root", Vector2(5200, 2200))
+	_spawn_mega_node("Underground Fungi Cave", "underground_fungi", Vector2(3500, 2600))
+	_spawn_mega_node("Mineville Deep Caves", "underground_fungi", Vector2(6800, 2600))
+
+	# Spawn Scholar Gathering Nodes programmatically
+	_spawn_mega_node("Oakhaven Flax Field", "wild_flax", Vector2(5600, 1800))
+	_spawn_mega_node("Valley Reed Banks", "river_reeds", Vector2(2800, 2500))
+
+	# Spawn Rogue Gathering Nodes programmatically
+	_spawn_mega_node("Valley Scrap Pile", "scraped_metal", Vector2(1800, 2800))
+	_spawn_mega_node("Oakhaven Scrap Heap", "scraped_metal", Vector2(5800, 2800))
+	_spawn_mega_node("Valley Bone Pit", "wild_animal_bones", Vector2(3200, 800))
+	_spawn_mega_node("Oakhaven Bone Field", "wild_animal_bones", Vector2(7200, 800))
+	_spawn_mega_node("Valley Twig Patch", "deadwood_twigs", Vector2(1100, 1600))
+	_spawn_mega_node("Oakhaven Twig Copse", "deadwood_twigs", Vector2(5100, 1600))
+
+	# Spawn Showman Gathering Nodes programmatically
+	_spawn_mega_node("Valley Clay Bank", "clay_mud", Vector2(2100, 2900))
+	_spawn_mega_node("Oakhaven Clay Bank", "clay_mud", Vector2(6100, 2900))
+	_spawn_mega_node("Valley Stone Quarry", "raw_stone", Vector2(1400, 700))
+	_spawn_mega_node("Oakhaven Stone Quarry", "raw_stone", Vector2(5400, 700))
+	_spawn_mega_node("Mineville Marble Deposit", "marble_block", Vector2(6200, 600))
+	_spawn_mega_node("Valley Marble Deposit", "marble_block", Vector2(2200, 600))
 
 	# Ensure all navigation regions are rebaked and completely synced with the final world state
 	if GameState.has_method("rebake_all_navigation_regions"):
@@ -166,6 +220,7 @@ func _spawn_npcs() -> void:
 			var center_pos = spawn_centers.pick_random()
 			var offset = Vector2(randf_range(-60, 60), randf_range(-60, 60))
 			npc.global_position = center_pos + offset
+			npc.province = city.ownership_province
 			_initialize_npc_profile(npc, true)
 			add_child(npc)
 			print("[World] Spawned NPC at City %s: %s" % [city.city_name if "city_name" in city else city.name, npc.global_position])
@@ -179,6 +234,7 @@ func _spawn_npcs() -> void:
 			var center_pos = spawn_centers.pick_random()
 			var offset = Vector2(randf_range(-60, 60), randf_range(-60, 60))
 			npc.global_position = center_pos + offset
+			npc.province = town.ownership_province
 			_initialize_npc_profile(npc, false)
 			add_child(npc)
 			print("[World] Spawned NPC at Town %s: %s" % [town.town_name if "town_name" in town else town.name, npc.global_position])
@@ -191,7 +247,8 @@ func _spawn_npcs() -> void:
 			"career": "tailor",
 			"social_class": NPCProfile.SocialClass.PEASANT,
 			"pos": Vector2(620.0, 1090.0), # Near Valley City Market
-			"likes": ["spool_thread", "red_dye", "blue_dye"]
+			"likes": ["spool_thread", "red_dye", "blue_dye"],
+			"dislikes": ["iron_ore", "corrosive_acid", "animal_feed", "smugglers_moonshine"]
 		},
 		{
 			"name": "Aldous",
@@ -199,7 +256,8 @@ func _spawn_npcs() -> void:
 			"career": "scholar",
 			"social_class": NPCProfile.SocialClass.CITIZEN,
 			"pos": Vector2(770.0, 970.0), # Near Scholar Guild
-			"likes": ["ancient_manuscript", "ink", "paper"]
+			"likes": ["ancient_manuscript", "ink", "paper"],
+			"dislikes": ["smugglers_moonshine", "animal_feed", "iron_ore", "corrosive_acid"]
 		},
 		{
 			"name": "Valeria",
@@ -207,7 +265,8 @@ func _spawn_npcs() -> void:
 			"career": "scholar",
 			"social_class": NPCProfile.SocialClass.NOBLE,
 			"pos": Vector2(830.0, 820.0), # Near City Council
-			"likes": ["confidential_documents", "gold_ring", "silver_necklace"]
+			"likes": ["confidential_documents", "gold_ring", "silver_necklace"],
+			"dislikes": ["animal_feed", "iron_ore", "wheat", "cotton", "smugglers_moonshine"]
 		},
 		{
 			"name": "Gideon",
@@ -215,7 +274,8 @@ func _spawn_npcs() -> void:
 			"career": "craftsman",
 			"social_class": NPCProfile.SocialClass.CITIZEN,
 			"pos": Vector2(430.0, 970.0), # Near Craftsman Guild
-			"likes": ["standard_timber", "iron_ingot", "iron_ore"]
+			"likes": ["standard_timber", "iron_ingot", "iron_ore"],
+			"dislikes": ["ancient_manuscript", "confidential_documents", "paper", "smugglers_moonshine"]
 		}
 	]
 	
@@ -245,10 +305,8 @@ func _spawn_npcs() -> void:
 		var rel_comp = npc.get_node_or_null("RelationshipComponent")
 		if rel_comp:
 			rel_comp.hidden_preferences = spec["likes"]
-			if spec["career"] == "craftsman":
-				rel_comp.profession_type = "woodworker"
-			else:
-				rel_comp.profession_type = spec["career"]
+			rel_comp.disliked_preferences = spec["dislikes"]
+			rel_comp.profession_type = spec["career"]
 			
 			if spec["name"] == "Valeria":
 				rel_comp.profession_level = 5
@@ -390,3 +448,139 @@ func _spawn_wheat_field(node_name: String, pos: Vector2) -> void:
 	
 	add_child(node)
 	print("[World] Programmatically spawned wheat field: ", node_name, " at ", pos)
+
+func update_ambient_population() -> void:
+	var npc_scene = load("res://entities/npc/npc.tscn")
+	if not npc_scene:
+		return
+		
+	for city in get_tree().get_nodes_in_group("Cities"):
+		var province_name = city.ownership_province
+		if province_name == "":
+			continue
+			
+		# Find all active consumer NPCs belonging to this city's province
+		var city_npcs = []
+		for npc in get_tree().get_nodes_in_group("NPCs"):
+			if is_instance_valid(npc) and npc.npc_type == NPCAIController.NPCType.TYPE_CONSUMER:
+				if npc.province == province_name and not npc.is_hired:
+					city_npcs.append(npc)
+					
+		# Determine target count based on city's prosperity level
+		var target_count = 3 + (city.prosperity_level - 1) * 2
+		
+		# Spawn if below target
+		if city_npcs.size() < target_count:
+			var spawn_centers = _get_spawn_positions_for_settlement(city)
+			var needed = target_count - city_npcs.size()
+			for i in range(needed):
+				var npc = npc_scene.instantiate()
+				var center_pos = spawn_centers.pick_random()
+				var offset = Vector2(randf_range(-60, 60), randf_range(-60, 60))
+				npc.global_position = center_pos + offset
+				npc.province = province_name
+				add_child(npc)
+				city_npcs.append(npc)
+				
+		# Despawn if above target
+		while city_npcs.size() > target_count:
+			var extra_npc = city_npcs.pop_back()
+			extra_npc.queue_free()
+			
+		# Construct target classes array, guaranteeing at least 1 Citizen and 1 Noble
+		var target_classes = []
+		target_classes.append(NPCProfile.SocialClass.CITIZEN)
+		target_classes.append(NPCProfile.SocialClass.NOBLE)
+		
+		var remaining_slots = target_count - 2
+		for idx in range(remaining_slots):
+			var roll = randf()
+			if city.prosperity_level == 1:
+				if roll <= 0.70:
+					target_classes.append(NPCProfile.SocialClass.PEASANT)
+				elif roll <= 0.90:
+					target_classes.append(NPCProfile.SocialClass.CITIZEN)
+				else:
+					target_classes.append(NPCProfile.SocialClass.NOBLE)
+			elif city.prosperity_level == 2:
+				if roll <= 0.40:
+					target_classes.append(NPCProfile.SocialClass.PEASANT)
+				elif roll <= 0.80:
+					target_classes.append(NPCProfile.SocialClass.CITIZEN)
+				else:
+					target_classes.append(NPCProfile.SocialClass.NOBLE)
+			elif city.prosperity_level == 3:
+				if roll <= 0.20:
+					target_classes.append(NPCProfile.SocialClass.PEASANT)
+				elif roll <= 0.70:
+					target_classes.append(NPCProfile.SocialClass.CITIZEN)
+				else:
+					target_classes.append(NPCProfile.SocialClass.NOBLE)
+			else: # Level 4+
+				if roll <= 0.10:
+					target_classes.append(NPCProfile.SocialClass.PEASANT)
+				elif roll <= 0.60:
+					target_classes.append(NPCProfile.SocialClass.CITIZEN)
+				else:
+					target_classes.append(NPCProfile.SocialClass.NOBLE)
+					
+		target_classes.shuffle()
+		
+		# Assign classes and update profile details
+		for i in range(city_npcs.size()):
+			var npc = city_npcs[i]
+			var s_class = target_classes[i]
+			
+			if not npc.profile:
+				npc.profile = NPCProfile.new()
+			npc.profile.social_class = s_class
+			npc.npc_type = NPCAIController.NPCType.TYPE_CONSUMER
+			
+			# Re-apply item demand timers
+			npc.profile.demand_profiles["bread"] = {
+				"cooldown_min": 120.0,
+				"cooldown_max": 240.0,
+				"timer": randf_range(20.0, 100.0)
+			}
+			npc.profile.demand_profiles["ale"] = {
+				"cooldown_min": 180.0,
+				"cooldown_max": 360.0,
+				"timer": randf_range(40.0, 160.0)
+			}
+			if s_class != NPCProfile.SocialClass.PEASANT:
+				npc.profile.demand_profiles["cloth"] = {
+					"cooldown_min": 240.0,
+					"cooldown_max": 480.0,
+					"timer": randf_range(60.0, 220.0)
+				}
+				if npc.profile.demand_profiles.has("wheat"):
+					npc.profile.demand_profiles.erase("wheat")
+			else:
+				npc.profile.demand_profiles["wheat"] = {
+					"cooldown_min": 200.0,
+					"cooldown_max": 400.0,
+					"timer": randf_range(40.0, 200.0)
+				}
+				if npc.profile.demand_profiles.has("cloth"):
+					npc.profile.demand_profiles.erase("cloth")
+					
+	print("[World] Ambient population updated for all cities.")
+
+func _spawn_mega_node(node_name: String, resource_id: String, pos: Vector2) -> void:
+	var mega_script = load("res://components/gathering/mega_node.gd")
+	var node = Area2D.new()
+	node.name = node_name.replace(" ", "")
+	node.set_script(mega_script)
+	node.node_name = node_name
+	node.resource_type_id = resource_id
+	node.base_fee = 50
+	node.global_position = pos
+	
+	var col = CollisionShape2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 96.0
+	col.shape = shape
+	node.add_child(col)
+	
+	add_child(node)
+	print("[World] Programmatically spawned mega node: ", node_name, " (", resource_id, ") at ", pos)

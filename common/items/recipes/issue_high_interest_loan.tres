@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/unsigned_bond.tres" id="2_bond"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/active_debt_ledger.tres" id="3_ledger"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Issue High-Interest Loan"
+required_career = "scholar"
+required_level = 7
+inputs = {
+ExtResource("2_bond"): 1
+}
+output_item = ExtResource("3_ledger")
+output_amount = 1
+xp_reward = 40

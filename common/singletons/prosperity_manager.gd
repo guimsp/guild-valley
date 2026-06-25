@@ -8,17 +8,67 @@ var province_prosperity: Dictionary = {
 	"Oakhaven Province": 100.0
 }
 
+var prosperity_thresholds: Array = [250.0, 500.0, 750.0, 1000.0]
+
+func _ready() -> void:
+	# Load thresholds from JSON if available
+	var file = FileAccess.open("res://common/singletons/prosperity_config.json", FileAccess.READ)
+	if file:
+		var json_text = file.get_as_text()
+		var json = JSON.new()
+		var error = json.parse(json_text)
+		if error == OK:
+			if json.data is Dictionary and json.data.has("thresholds") and json.data["thresholds"] is Array:
+				prosperity_thresholds = json.data["thresholds"]
+			else:
+				print("[ProsperityManager] JSON format invalid, using defaults.")
+		else:
+			print("[ProsperityManager] Failed to parse prosperity_config.json: ", json.get_error_message())
+	else:
+		print("[ProsperityManager] prosperity_config.json not found, using default thresholds.")
+
 func add_prosperity(province: String, amount: float) -> void:
 	if not province_prosperity.has(province):
 		province_prosperity[province] = 100.0
 	province_prosperity[province] = max(0.0, province_prosperity[province] + amount)
 	prosperity_updated.emit(province, province_prosperity[province])
 	print("[ProsperityManager] Added %.1f Prosperity to %s. Total: %.1f" % [amount, province, province_prosperity[province]])
-	
-	# Sync prosperity with all City and Town nodes in the province
-	for city in get_tree().get_nodes_in_group("Cities"):
-		if city.get("ownership_province") == province:
-			city.prosperity = int(max(0, city.prosperity + amount))
-	for town in get_tree().get_nodes_in_group("Towns"):
-		if town.get("ownership_province") == province:
-			town.prosperity = int(max(0, town.prosperity + amount))
+	sync_settlements()
+
+func get_level_for_prosperity(val: float) -> int:
+	if val < prosperity_thresholds[0]:
+		return 1
+	elif val < prosperity_thresholds[1]:
+		return 2
+	elif val < prosperity_thresholds[2]:
+		return 3
+	elif val < prosperity_thresholds[3]:
+		return 4
+	else:
+		return 5
+
+func sync_settlements() -> void:
+	for province in province_prosperity:
+		var val = province_prosperity[province]
+		var level = get_level_for_prosperity(val)
+		var sec_rating = 100.0 + (level - 1) * 20.0
+		
+		for city in get_tree().get_nodes_in_group("Cities"):
+			if city.get("ownership_province") == province:
+				city.prosperity = int(val)
+				city.set("prosperity_level", level)
+				city.set("security_rating", sec_rating)
+		for town in get_tree().get_nodes_in_group("Towns"):
+			if town.get("ownership_province") == province:
+				town.prosperity = int(val)
+				town.set("prosperity_level", level)
+				town.set("security_rating", sec_rating)
+
+func pave_province_roads(province: String) -> void:
+	for road in get_tree().get_nodes_in_group("Roads"):
+		if is_instance_valid(road):
+			var settlement = GameState.get_nearest_settlement(road)
+			if settlement and settlement.get("ownership_province") == province:
+				road.set("is_paved", true)
+
+

@@ -439,10 +439,14 @@ func _on_gift_pressed() -> void:
 		child.queue_free()
 		
 	var items_in_inv = []
+	var unique_ids = {}
 	if GameState.player_inventory:
 		for slot in GameState.player_inventory.slots:
 			if slot.get("item"):
-				items_in_inv.append(slot["item"])
+				var item = slot["item"]
+				if not unique_ids.has(item.id):
+					unique_ids[item.id] = true
+					items_in_inv.append(item)
 				
 	var first_btn = null
 	for item in items_in_inv:
@@ -673,7 +677,8 @@ func _on_marry_pressed() -> void:
 		# Apply dynastic marriage speed buff (+15% movement speed)
 		var player = get_tree().get_first_node_in_group("Player")
 		if player:
-			player.speed_multiplier *= 1.15
+			var speed_buff = GameState.balance_config.get("dynastic_marriage_speed_buff", 0.15)
+			player.speed_multiplier *= (1.0 + speed_buff)
 			
 		dialog_lbl.text = "Oh, heavens! Yes! Yes, a thousand times yes! I would be honored to marry you and combine our futures!"
 		GameState.spawn_ui_floating_text("Married to %s! Dynastic Speed Buff Unlocked (+15% speed)" % target_npc.npc_name)

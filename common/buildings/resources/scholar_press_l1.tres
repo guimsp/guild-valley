@@ -5,12 +5,14 @@
 [resource]
 script = ExtResource("1_n2bsq")
 id = "scholar_press_l1"
-name = "Printing Press"
-family = "scholar_printing_press"
+name = "Type-Setting Press"
+family = "scholar_press"
+building_level = 1
 career = "scholar"
 tier = 2
-level = 3
-cost = 300
+level = 4
+cost = 600
 time = 8.0
 scene_path = "res://components/production/printing_press.tscn"
-description = "A printing workshop to press ink onto paper and bind books."
+type = "production"
+description = "A printing workshop with type-setting presses."

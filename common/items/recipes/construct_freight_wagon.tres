@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/refined_hardwood.tres" id="2_refined_hardwood"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/reinforced_wheel.tres" id="3_wheel"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/heavy_chain.tres" id="4_heavy_chain"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/freight_wagon.tres" id="5_freight_wagon"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Construct Freight Wagon"
+required_career = "woodworker"
+required_level = 7
+inputs = {
+ExtResource("2_refined_hardwood"): 4,
+ExtResource("3_wheel"): 4,
+ExtResource("4_heavy_chain"): 2
+}
+output_item = ExtResource("5_freight_wagon")
+output_amount = 1
+xp_reward = 50

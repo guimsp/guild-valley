@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "trade_passport"
+name = "Regional Trade Passport"
+item_level = 6
+base_value = 200
+weight = 0.2
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Necklace"
+description = "An elite passport bypassing automated border tolls for logistics."

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "woodworker_hardwood_kiln"
+name = "Hardwood Kiln"
+family = "woodworker_hardwood_kiln"
+building_level = 1
+career = "woodworker"
+tier = 2
+level = 4
+cost = 600
+time = 6.0
+scene_path = "res://components/production/hardwood_kiln.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 2: Cure hardwood logs and burn industrial charcoal."

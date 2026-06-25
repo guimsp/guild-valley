@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = "venison"
-name = "Venison Meat"
+name = "Game Venison"
+item_level = 3
 base_value = 10
 min_price = 2
 max_price = 100

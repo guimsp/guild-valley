@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rogue_crime_syndicate_hq_l1"
+name = "Crime Syndicate HQ L1"
+family = "rogue_crime_syndicate_hq"
+building_level = 1
+career = "rogue"
+tier = 3
+level = 7
+cost = 1200
+time = 10.0
+scene_path = "res://components/production/crime_syndicate_hq.tscn"
+type = "production"
+description = "A headquarters launching player strongbox heist extraction operations."

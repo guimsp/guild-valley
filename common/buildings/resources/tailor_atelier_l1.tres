@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "tailor_atelier_l1"
+name = "Tailor's Atelier"
+family = "tailor_atelier"
+building_level = 1
+career = "tailor"
+tier = 2
+level = 4
+cost = 800
+time = 8.0
+scene_path = "res://components/production/loom.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "A premium workshop dedicated to sewing bespoke garments and drapery."

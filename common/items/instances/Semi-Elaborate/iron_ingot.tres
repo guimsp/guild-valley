@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = "iron_ingot"
-name = "Iron Ingot"
+item_level = 1
+name = "Iron Bar"
 base_value = 40
 weight = 5.0
 category = "Material"

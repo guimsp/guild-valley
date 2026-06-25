@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/advanced_structural_beam.tres" id="2_beam"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/heavy_scaffolding.tres" id="3_scaffolding"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/monumental_truss.tres" id="4_truss"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Erect Monumental Trusses"
+required_career = "woodworker"
+required_level = 10
+inputs = {
+ExtResource("2_beam"): 10,
+ExtResource("3_scaffolding"): 4
+}
+output_item = ExtResource("4_truss")
+output_amount = 1
+xp_reward = 300

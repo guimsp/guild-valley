@@ -16,6 +16,7 @@ extends StaticBody2D
 
 @export var is_occupied: bool = false
 @export var rent_days_remaining: int = 0
+@export var total_income_generated: int = 0
 
 @onready var col_door: CollisionShape2D = get_node_or_null("ColDoor")
 @onready var fade_trigger: Area2D = get_node_or_null("FadeTrigger")
@@ -158,11 +159,11 @@ func _on_front_body_exited(body: Node2D) -> void:
 func get_interaction_text() -> String:
 	if is_guild:
 		return "Enter %s" % custom_name
-	if ownership_type == "NPC":
+	if ownership_type == "NPC" and not is_guild:
 		return "Buy House (%d G)" % (buy_cost * 3)
 	elif ownership_type == "Player":
 		if is_rental:
-			return "Occupied" if is_occupied else "Vacant Rental"
+			return "Manage Rental"
 		else:
 			return "Personal Home (Enter)"
 	return "Enter"
@@ -170,8 +171,12 @@ func get_interaction_text() -> String:
 func interact(player: CharacterBody2D) -> void:
 	if ownership_type == "NPC" and not is_guild:
 		player.spawn_floating_text("Press [R] to buy this house!")
-	elif ownership_type == "Player" and is_rental and is_occupied:
-		player.spawn_floating_text("This rental house is occupied!")
+	elif ownership_type == "Player" and is_rental:
+		var hud = get_tree().get_first_node_in_group("PlayerHUD")
+		if hud and hud.has_method("open_rental_ui"):
+			hud.open_rental_ui(self)
+		else:
+			player.spawn_floating_text("Rental House: %s (Rent: %d G)" % ["Occupied" if is_occupied else "Vacant", rent_cost])
 	else:
 		if entry_door:
 			entry_door._teleport()

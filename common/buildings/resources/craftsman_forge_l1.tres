@@ -1,16 +1,19 @@
 [gd_resource type="Resource" script_class="BuildingData" format=3]
 
-[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_fy50o"]
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_forge"]
 
 [resource]
-script = ExtResource("1_fy50o")
+script = ExtResource("1_forge")
 id = "craftsman_forge_l1"
 name = "Blacksmith Forge"
 family = "craftsman_blacksmith"
+building_level = 1
 career = "craftsman"
-tier = 2
-level = 3
-cost = 400
+tier = 1
+level = 1
+cost = 150
 time = 10.0
-scene_path = "res://components/production/smelter.tscn"
-description = "Forge advanced iron tools and hardware."
+scene_path = "res://components/production/forge.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 1 Blacksmith Forge. Hammer iron bands and forge pitons/construction spikes."

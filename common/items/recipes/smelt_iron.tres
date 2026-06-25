@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
 [ext_resource type="Resource" path="res://common/items/instances/Raw Materials/iron_ore.tres" id="2_iron_ore"]
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/iron_ingot.tres" id="3_iron_ingot"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/coal_nugget.tres" id="4_coal"]
 
 [resource]
 script = ExtResource("1_script")
@@ -10,8 +11,9 @@ recipe_name = "Smelt Iron Ore"
 required_career = "craftsman"
 required_level = 1
 inputs = {
-ExtResource("2_iron_ore"): 3
+ExtResource("2_iron_ore"): 2,
+ExtResource("4_coal"): 1
 }
 output_item = ExtResource("3_iron_ingot")
-output_amount = 1
-xp_reward = 12
+output_amount = 2
+xp_reward = 10

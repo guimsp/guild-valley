@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guild Valley - Game Data Editor</title>
+    <!-- Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #070b13;
+            --panel-bg: rgba(16, 22, 37, 0.65);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.3);
+            --accent-amber: #f59e0b;
+            --accent-amber-glow: rgba(245, 158, 11, 0.25);
+            --accent-emerald: #10b981;
+            --accent-emerald-glow: rgba(16, 185, 129, 0.25);
+            --accent-red: #ef4444;
+            --accent-red-glow: rgba(239, 68, 68, 0.25);
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --radius-sm: 4px;
+            --transition-speed: 0.2s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-sm);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        header {
+            padding: 20px 40px;
+            background: rgba(10, 15, 28, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .header-title-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-amber));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+            box-shadow: 0 0 15px var(--accent-blue-glow);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 60%, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .badge-count {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Tabs Navigation */
+        .tabs-nav-container {
+            padding: 0 40px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--panel-border);
+            background: rgba(10, 15, 28, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            border-bottom: 2px solid transparent;
+            font-family: inherit;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            text-shadow: 0 0 10px var(--accent-blue-glow);
+        }
+
+        main {
+            flex: 1;
+            padding: 24px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-lg);
+            padding: 16px 24px;
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .filter-group.search {
+            flex: 2;
+            min-width: 250px;
+        }
+
+        .filter-group.range-group {
+            flex-direction: row;
+            gap: 10px;
+            min-width: 220px;
+            align-items: flex-end;
+        }
+
+        .filter-range-sub {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .input-control {
+            background: rgba(10, 15, 28, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: all var(--transition-speed);
+            width: 100%;
+        }
+
+        .input-control:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 10px var(--accent-blue-glow);
+            background: rgba(10, 15, 28, 0.9);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            align-self: flex-end;
+            height: 40px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Table Area */
+        .table-container {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-lg);
+            overflow: auto;
+            flex: 1;
+            max-height: calc(100vh - 340px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(16px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+            table-layout: fixed; /* Crucial for column resizing */
+        }
+
+        th {
+            background: rgba(10, 15, 28, 0.95);
+            padding: 14px 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.75px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--panel-border);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            user-select: none;
+            position: relative; /* For resizer */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        th.sortable {
+            cursor: pointer;
+        }
+
+        th.sortable:hover {
+            color: var(--text-primary);
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        th.sortable::after {
+            content: ' ↕';
+            opacity: 0.3;
+        }
+        th.sort-asc::after {
+            content: ' ▲';
+            opacity: 0.9;
+            color: var(--accent-blue);
+        }
+        th.sort-desc::after {
+            content: ' ▼';
+            opacity: 0.9;
+            color: var(--accent-blue);
+        }
+
+        /* Column Resizer Handle */
+        .resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            cursor: col-resize;
+            user-select: none;
+            height: 100%;
+            z-index: 10;
+            background: transparent;
+            transition: background var(--transition-speed);
+        }
+
+        .resizer:hover, .resizer.resizing {
+            background: var(--accent-blue);
+            box-shadow: 0 0 6px var(--accent-blue-glow);
+        }
+
+        tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background var(--transition-speed);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        td {
+            padding: 8px 16px;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .col-id {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        /* Editing Elements */
+        .table-input {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            width: 100%;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all var(--transition-speed);
+        }
+
+        .table-input:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .table-input:focus {
+            background: rgba(10, 15, 28, 0.9);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px var(--accent-blue-glow);
+            outline: none;
+        }
+
+        .table-select {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            width: 100%;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all var(--transition-speed);
+            cursor: pointer;
+        }
+
+        .table-select:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .table-select:focus {
+            background: rgba(10, 15, 28, 0.9);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px var(--accent-blue-glow);
+            outline: none;
+        }
+
+        .table-select option {
+            background: #0f172a;
+            color: var(--text-primary);
+        }
+
+        /* Modified State Indicators */
+        .modified-cell {
+            position: relative;
+            background: rgba(245, 158, 11, 0.03);
+        }
+
+        .modified-cell::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-amber);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--accent-amber-glow);
+        }
+
+        .modified-cell .table-input,
+        .modified-cell .table-select {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .modified-row {
+            background: rgba(245, 158, 11, 0.015);
+        }
+
+        /* Checkbox switch wrapper */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .3s;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #9ca3af;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-blue-glow);
+            border-color: var(--accent-blue);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+            background-color: #60a5fa;
+        }
+
+        /* Description edit button */
+        .desc-edit-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .desc-edit-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Prosperity Custom View */
+        .prosperity-card {
+            background: rgba(16, 22, 37, 0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            backdrop-filter: blur(16px);
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .prosperity-field-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .prosperity-field-row:last-child {
+            border-bottom: none;
+        }
+
+        .prosperity-label-desc {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .prosperity-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 15px;
+        }
+
+        .prosperity-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .prosperity-input-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 150px;
+        }
+
+        /* Unsaved changes bar */
+        .changes-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--accent-amber);
+            border-radius: var(--radius-lg);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.15);
+            backdrop-filter: blur(12px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .changes-bar.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .changes-info {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent-amber);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .changes-info-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-amber);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        .changes-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-amber), #d97706);
+            border: none;
+            color: #ffffff;
+            padding: 8px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition-speed);
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background: #0f172a;
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 750px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            transform: scale(0.95);
+            transition: transform var(--transition-speed);
+        }
+
+        .modal-overlay.visible .modal-container {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: rgba(10, 15, 28, 0.4);
+        }
+
+        /* Diff Styles */
+        .diff-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .diff-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 14px;
+        }
+
+        .diff-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .diff-item-filepath {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .diff-changes-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .diff-changes-table td {
+            padding: 4px 8px;
+        }
+
+        .diff-field-name {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            color: var(--text-secondary);
+            width: 40%;
+        }
+
+        .diff-old-value {
+            color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.1);
+            text-decoration: line-through;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            word-break: break-all;
+        }
+
+        .diff-arrow {
+            color: var(--text-muted);
+            text-align: center;
+            width: 30px;
+        }
+
+        .diff-new-value {
+            color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            word-break: break-all;
+        }
+
+        /* Description Modal Specific */
+        .desc-textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(10, 15, 28, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .desc-textarea:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 10px var(--accent-blue-glow);
+        }
+
+        /* Security Approvals Checkbox */
+        .approval-agreement-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+        }
+
+        .approval-agreement-row input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-confirm-save {
+            background: linear-gradient(135deg, var(--accent-emerald), #059669);
+            border: none;
+            color: #ffffff;
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-confirm-save:disabled {
+            background: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-confirm-save:not(:disabled):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Toasts styling */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: rgba(15, 23, 42, 0.95);
+            border-left: 4px solid var(--accent-blue);
+            color: var(--text-primary);
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
+            font-size: 14px;
+            min-width: 250px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn var(--transition-speed) forwards;
+        }
+
+        .toast.success {
+            border-left-color: var(--accent-emerald);
+        }
+
+        .toast.error {
+            border-left-color: var(--accent-red);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title-container">
+            <div class="header-logo">GV</div>
+            <h1>Guild Valley - Game Data Editor</h1>
+        </div>
+        <div class="header-meta">
+            <div id="meta-label">Records loaded: <span id="items-count-badge" class="badge-count">0</span></div>
+            <div>File Status: <span style="color: var(--accent-emerald)">Connected</span></div>
+        </div>
+    </header>
+
+    <!-- Tabbed Navigation Bar -->
+    <div class="tabs-nav-container">
+        <button class="tab-btn active" data-tab="items" onclick="switchTab('items')">Items Data</button>
+        <button class="tab-btn" data-tab="quests" onclick="switchTab('quests')">Quest Templates</button>
+        <button class="tab-btn" data-tab="laws" onclick="switchTab('laws')">Politics & Laws</button>
+        <button class="tab-btn" data-tab="prosperity" onclick="switchTab('prosperity')">Prosperity Tiers</button>
+        <button class="tab-btn" data-tab="balance" onclick="switchTab('balance')">Balance Constants</button>
+    </div>
+
+    <main>
+        <!-- Search & Filter Controls -->
+        <div class="controls-panel" id="filters-container">
+            <div class="filter-group search">
+                <label for="search-input" id="search-label">Search Items</label>
+                <input type="text" id="search-input" class="input-control" placeholder="Search by name, ID, or description...">
+            </div>
+            
+            <!-- Items Specific Filters -->
+            <div class="filter-group item-filter-field">
+                <label for="filter-category">Category</label>
+                <select id="filter-category" class="input-control">
+                    <option value="">All Categories</option>
+                    <option value="Resource">Resource</option>
+                    <option value="Material">Material</option>
+                    <option value="Product">Product</option>
+                    <option value="Food">Food</option>
+                </select>
+            </div>
+
+            <div class="filter-group item-filter-field">
+                <label for="filter-market">Market Category</label>
+                <select id="filter-market" class="input-control">
+                    <option value="">All Market Categories</option>
+                    <option value="Raw Materials">Raw Materials</option>
+                    <option value="Semi-Elaborate">Semi-Elaborate</option>
+                    <option value="Finished Goods">Finished Goods</option>
+                    <option value="Consumables">Consumables</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Skill Items">Skill Items</option>
+                </select>
+            </div>
+
+            <div class="filter-group range-group item-filter-field">
+                <div class="filter-range-sub">
+                    <label for="filter-min-level">Min Level</label>
+                    <input type="number" id="filter-min-level" class="input-control" min="1" placeholder="Min">
+                </div>
+                <div class="filter-range-sub">
+                    <label for="filter-max-level">Max Level</label>
+                    <input type="number" id="filter-max-level" class="input-control" min="1" placeholder="Max">
+                </div>
+            </div>
+
+            <!-- Laws Specific Filters -->
+            <div class="filter-group law-filter-field" style="display:none;">
+                <label for="filter-law-category">Law Category</label>
+                <select id="filter-law-category" class="input-control">
+                    <option value="">All Categories</option>
+                    <option value="Numerical">Numerical</option>
+                    <option value="Prohibition">Prohibition</option>
+                </select>
+            </div>
+
+            <!-- Quests Specific Filters -->
+            <div class="filter-group quest-filter-field" style="display:none;">
+                <label for="filter-quest-diff">Difficulty</label>
+                <select id="filter-quest-diff" class="input-control">
+                    <option value="">All Difficulties</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Expert">Expert</option>
+                </select>
+            </div>
+
+            <button id="btn-clear-filters" class="btn-secondary">Clear</button>
+        </div>
+
+        <!-- Table Grid Container -->
+        <div class="table-container" id="grid-container">
+            <table id="data-table">
+                <thead id="data-thead">
+                    <!-- Dynamic Headers Insertion -->
+                </thead>
+                <tbody id="data-tbody">
+                    <!-- Dynamic Rows Insertion -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Prosperity Levels Custom Section -->
+        <div id="prosperity-container" style="display:none;">
+            <div class="prosperity-card">
+                <h2 style="font-size: 18px; font-weight:600; border-bottom:1px solid var(--panel-border); padding-bottom:10px; margin-bottom:10px;">Province Prosperity Thresholds</h2>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">
+                    Adjust the cumulative prosperity value needed to unlock each level tier (Level 1-5).
+                </p>
+                
+                <div class="prosperity-field-row">
+                    <div class="prosperity-label-desc">
+                        <span class="prosperity-title">Tier 2 Threshold</span>
+                        <span class="prosperity-desc">Unlocks Prosperity Level 2 (Increases NPC starting skills range to 4-6)</span>
+                    </div>
+                    <div class="prosperity-input-box">
+                        <input type="number" id="prop-tier-2" class="input-control" step="10" min="0" onchange="onProsperityChange(0, this.value)">
+                    </div>
+                </div>
+
+                <div class="prosperity-field-row">
+                    <div class="prosperity-label-desc">
+                        <span class="prosperity-title">Tier 3 Threshold</span>
+                        <span class="prosperity-desc">Unlocks Prosperity Level 3 (Increases NPC starting skills range to 7-10)</span>
+                    </div>
+                    <div class="prosperity-input-box">
+                        <input type="number" id="prop-tier-3" class="input-control" step="10" min="0" onchange="onProsperityChange(1, this.value)">
+                    </div>
+                </div>
+
+                <div class="prosperity-field-row">
+                    <div class="prosperity-label-desc">
+                        <span class="prosperity-title">Tier 4 Threshold</span>
+                        <span class="prosperity-desc">Unlocks Prosperity Level 4</span>
+                    </div>
+                    <div class="prosperity-input-box">
+                        <input type="number" id="prop-tier-4" class="input-control" step="10" min="0" onchange="onProsperityChange(2, this.value)">
+                    </div>
+                </div>
+
+                <div class="prosperity-field-row">
+                    <div class="prosperity-label-desc">
+                        <span class="prosperity-title">Tier 5 Threshold</span>
+                        <span class="prosperity-desc">Unlocks Prosperity Level 5 (Maximum Tier)</span>
+                    </div>
+                    <div class="prosperity-input-box">
+                        <input type="number" id="prop-tier-5" class="input-control" step="10" min="0" onchange="onProsperityChange(3, this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Unsaved Changes Bar -->
+    <div id="changes-bar" class="changes-bar">
+        <div class="changes-info">
+            <div class="changes-info-dot"></div>
+            <span id="changes-message">0 items modified</span>
+        </div>
+        <div class="changes-actions">
+            <button id="btn-discard-changes" class="btn-secondary">Discard</button>
+            <button id="btn-review-save" class="btn-primary">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Description Multiline Modal -->
+    <div id="desc-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title">Edit Description: <span id="desc-modal-item-name" style="color: var(--accent-blue)">Record</span></div>
+                <button class="modal-close" onclick="closeDescModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="desc-modal-textarea" class="desc-textarea"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDescModal()">Cancel</button>
+                <button id="btn-save-description" class="btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Approval Modal -->
+    <div id="approval-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title" style="color: var(--accent-amber)">Security Review: Approve File Writes</div>
+                <button class="modal-close" onclick="closeApprovalModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
+                    Please inspect the diff below. Confirming this action will write these modified properties directly into the corresponding Godot resource files or JSON configs on disk.
+                </p>
+                <div id="diff-container" class="diff-list">
+                    <!-- Visual Diffs inserted here -->
+                </div>
+
+                <div class="approval-agreement-row">
+                    <input type="checkbox" id="approve-write-checkbox">
+                    <label for="approve-write-checkbox" style="cursor: pointer; text-transform: none; font-size: 13px; font-weight: normal; color: var(--text-primary);">
+                        I approve writing these exact updates to the game's files on disk.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-overlay-actions modal-footer">
+                <button class="btn-secondary" onclick="closeApprovalModal()">Cancel</button>
+                <button id="btn-final-save" class="btn-confirm-save" disabled>Approve & Write to Files</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Core Javascript Code -->
+    <script>
+        // Global variables for grids
+        let activeTab = 'items';
+
+        // Original database structures loaded from server
+        let dbState = {
+            items: [],
+            quests: [],
+            laws: [],
+            prosperity: { thresholds: [250, 500, 750, 1000] },
+            balance: {}
+        };
+
+        // Unsaved changes state tracker
+        // Format: modifiedState[tab][identifier] = { updated_field: val }
+        let modifiedState = {
+            items: {},
+            quests: {},
+            laws: {},
+            prosperity: {}, // Special key "config" -> { thresholds: [...] }
+            balance: {} // Special key "config" -> { key: val }
+        };
+
+        let currentSort = { column: 'name', asc: true };
+        let activeDescEdit = { tab: '', identifier: '', originalText: '' };
+
+        // Column resizing state variables
+        let isResizing = false;
+        let currentHeader = null;
+        let startX = 0;
+        let startWidth = 0;
+
+        // Friendly balance constants metadata
+        const balanceMetadata = {
+            "artisan_luxury_craft_time_multiplier": {
+                name: "Artisan Luxury Speed Boost",
+                desc: "Crafting time factor for Level 8+ artisans crafting luxury products (e.g., 0.85 reduces craft duration by 15%)."
+            },
+            "labor_welfare_mandate_productivity_penalty": {
+                name: "Labor Welfare Mandate Penalty",
+                desc: "Productivity penalty fraction applied by Labor Welfare law (e.g., 0.15 represents -15% output speed)."
+            },
+            "double_harvest_chance_lvl5": {
+                name: "Double Harvest Chance (Level 5-7)",
+                desc: "Chance multiplier of receiving double harvest yield for level 5+ workers (e.g., 0.20 = 20%)."
+            },
+            "double_harvest_chance_lvl8": {
+                name: "Double Harvest Chance (Level 8+)",
+                desc: "Chance multiplier of receiving double harvest yield for level 8+ workers (e.g., 0.35 = 35%)."
+            },
+            "materials_steward_refund_chance": {
+                name: "Materials Steward Refund Chance",
+                desc: "Chance of materials refund when building career matches active office steward (e.g., 0.10 = 10%)."
+            },
+            "dynastic_marriage_speed_buff": {
+                name: "Dynastic Marriage Speed Buff",
+                desc: "Character movement speed bonus multiplier when married (e.g., 0.15 = +15% movement speed)."
+            },
+            "delinquent_faction_craft_time_multiplier": {
+                name: "Delinquent Faction Craft Penalty",
+                desc: "Crafting duration penalty applied to buildings owned by delinquent factions (e.g., 1.25 increases duration by 25%)."
+            }
+        };
+
+        // DOM elements
+        const dataThead = document.getElementById('data-thead');
+        const dataTbody = document.getElementById('data-tbody');
+        const itemsCountBadge = document.getElementById('items-count-badge');
+        const searchInput = document.getElementById('search-input');
+        const filterCategory = document.getElementById('filter-category');
+        const filterMarket = document.getElementById('filter-market');
+        const filterMinLevel = document.getElementById('filter-min-level');
+        const filterMaxLevel = document.getElementById('filter-max-level');
+        const filterLawCategory = document.getElementById('filter-law-category');
+        const filterQuestDiff = document.getElementById('filter-quest-diff');
+        const btnClearFilters = document.getElementById('btn-clear-filters');
+        const changesBar = document.getElementById('changes-bar');
+        const changesMessage = document.getElementById('changes-message');
+        const btnDiscardChanges = document.getElementById('btn-discard-changes');
+        const btnReviewSave = document.getElementById('btn-review-save');
+        const approvalModal = document.getElementById('approval-overlay') || document.getElementById('approval-modal');
+        const approveWriteCheckbox = document.getElementById('approve-write-checkbox');
+        const btnFinalSave = document.getElementById('btn-final-save');
+        const diffContainer = document.getElementById('diff-container');
+
+        // Initial setup
+        window.addEventListener('DOMContentLoaded', () => {
+            initResizersGlobal();
+            fetchDataForActiveTab();
+            
+            // Filters event listeners
+            searchInput.addEventListener('input', renderGrid);
+            filterCategory.addEventListener('change', renderGrid);
+            filterMarket.addEventListener('change', renderGrid);
+            filterMinLevel.addEventListener('input', renderGrid);
+            filterMaxLevel.addEventListener('input', renderGrid);
+            filterLawCategory.addEventListener('change', renderGrid);
+            filterQuestDiff.addEventListener('change', renderGrid);
+            
+            btnClearFilters.addEventListener('click', () => {
+                searchInput.value = '';
+                filterCategory.value = '';
+                filterMarket.value = '';
+                filterMinLevel.value = '';
+                filterMaxLevel.value = '';
+                filterLawCategory.value = '';
+                filterQuestDiff.value = '';
+                renderGrid();
+            });
+        });
+
+        // Toast Helper
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${message}</span>
+                <span style="margin-left: 15px; cursor: pointer; opacity: 0.6;" onclick="this.parentElement.remove()">&times;</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Tab selection handler
+        function switchTab(tabName) {
+            activeTab = tabName;
+            
+            // Adjust navigation styling
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Set dynamic metadata counters & filters
+            const searchLbl = document.getElementById('search-label');
+            const metaLbl = document.getElementById('meta-label');
+            
+            // Hide all filter fields
+            document.querySelectorAll('.item-filter-field, .law-filter-field, .quest-filter-field').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Display tab-specific filter controls
+            if (tabName === 'items') {
+                searchLbl.textContent = 'Search Items';
+                metaLbl.innerHTML = 'Items in database: <span id="items-count-badge" class="badge-count">0</span>';
+                document.querySelectorAll('.item-filter-field').forEach(el => el.style.display = 'flex');
+                document.getElementById('filters-container').style.display = 'flex';
+                document.getElementById('grid-container').style.display = 'block';
+                document.getElementById('prosperity-container').style.display = 'none';
+                currentSort = { column: 'name', asc: true };
+            } else if (tabName === 'quests') {
+                searchLbl.textContent = 'Search Quests';
+                metaLbl.innerHTML = 'Templates loaded: <span id="items-count-badge" class="badge-count">0</span>';
+                document.querySelectorAll('.quest-filter-field').forEach(el => el.style.display = 'flex');
+                document.getElementById('filters-container').style.display = 'flex';
+                document.getElementById('grid-container').style.display = 'block';
+                document.getElementById('prosperity-container').style.display = 'none';
+                currentSort = { column: 'item_name', asc: true };
+            } else if (tabName === 'laws') {
+                searchLbl.textContent = 'Search Laws';
+                metaLbl.innerHTML = 'Laws loaded: <span id="items-count-badge" class="badge-count">0</span>';
+                document.querySelectorAll('.law-filter-field').forEach(el => el.style.display = 'flex');
+                document.getElementById('filters-container').style.display = 'flex';
+                document.getElementById('grid-container').style.display = 'block';
+                document.getElementById('prosperity-container').style.display = 'none';
+                currentSort = { column: 'name', asc: true };
+            } else if (tabName === 'prosperity') {
+                metaLbl.innerHTML = 'Prosperity Tiers Configured';
+                document.getElementById('filters-container').style.display = 'none';
+                document.getElementById('grid-container').style.display = 'none';
+                document.getElementById('prosperity-container').style.display = 'block';
+            } else if (tabName === 'balance') {
+                searchLbl.textContent = 'Search Constants';
+                metaLbl.innerHTML = 'Constants loaded: <span id="items-count-badge" class="badge-count">0</span>';
+                document.getElementById('filters-container').style.display = 'flex';
+                document.getElementById('grid-container').style.display = 'block';
+                document.getElementById('prosperity-container').style.display = 'none';
+                currentSort = { column: 'key', asc: true };
+            }
+
+            fetchDataForActiveTab();
+        }
+
+        // Fetch API routing
+        async function fetchDataForActiveTab() {
+            try {
+                let url = '';
+                if (activeTab === 'items') url = '/api/items';
+                else if (activeTab === 'quests') url = '/api/quests';
+                else if (activeTab === 'laws') url = '/api/laws';
+                else if (activeTab === 'prosperity') url = '/api/prosperity';
+                else if (activeTab === 'balance') url = '/api/balance';
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP Error fetching ${activeTab}`);
+                const data = await res.json();
+                
+                // Save loaded database states
+                dbState[activeTab] = data;
+                
+                // Sync UI elements
+                if (activeTab === 'prosperity') {
+                    populateProsperityPanel(data);
+                } else {
+                    renderGrid();
+                }
+                
+                updateChangesBar();
+            } catch (err) {
+                console.error(err);
+                showToast(`Error fetching ${activeTab}: ${err.message}`, 'error');
+            }
+        }
+
+        // Populates prosperity inputs
+        function populateProsperityPanel(data) {
+            const thresholds = data.thresholds || [250, 500, 750, 1000];
+            document.getElementById('prop-tier-2').value = thresholds[0];
+            document.getElementById('prop-tier-3').value = thresholds[1];
+            document.getElementById('prop-tier-4').value = thresholds[2];
+            document.getElementById('prop-tier-5').value = thresholds[3];
+            
+            // Apply modified styling if active
+            const pMod = modifiedState.prosperity["config"]?.thresholds || [];
+            for (let i = 0; i < 4; i++) {
+                const el = document.getElementById(`prop-tier-${i+2}`);
+                if (pMod[i] !== undefined && pMod[i] !== thresholds[i]) {
+                    el.closest('.prosperity-input-box').classList.add('modified-cell');
+                } else {
+                    el.closest('.prosperity-input-box').classList.remove('modified-cell');
+                }
+            }
+        }
+
+        // Handles prosperity threshold cell edits
+        function onProsperityChange(index, value) {
+            value = Number(value);
+            const originalVal = dbState.prosperity.thresholds[index];
+            
+            if (!modifiedState.prosperity["config"]) {
+                modifiedState.prosperity["config"] = { thresholds: [...dbState.prosperity.thresholds] };
+            }
+            
+            modifiedState.prosperity["config"].thresholds[index] = value;
+
+            // Check if changed thresholds matches original
+            let isModified = false;
+            for (let i = 0; i < 4; i++) {
+                if (modifiedState.prosperity["config"].thresholds[i] !== dbState.prosperity.thresholds[i]) {
+                    isModified = true;
+                }
+            }
+
+            if (!isModified) {
+                delete modifiedState.prosperity["config"];
+            }
+
+            updateChangesBar();
+            populateProsperityPanel(dbState.prosperity);
+        }
+
+        // Handles cell modifications across tabs
+        function onFieldChange(identifier, field, value) {
+            const originalRecord = getOriginalRecord(identifier);
+            if (!originalRecord) return;
+
+            let isDifferent = false;
+            let origVal = originalRecord[field];
+
+            // Type check and convert inputs
+            if (typeof origVal === 'number') {
+                value = Number(value);
+            } else if (typeof origVal === 'boolean') {
+                value = (value === true || value === 'true');
+            }
+
+            if (origVal !== value) {
+                isDifferent = true;
+            }
+
+            if (isDifferent) {
+                if (!modifiedState[activeTab][identifier]) {
+                    modifiedState[activeTab][identifier] = {};
+                }
+                modifiedState[activeTab][identifier][field] = value;
+            } else {
+                if (modifiedState[activeTab][identifier]) {
+                    delete modifiedState[activeTab][identifier][field];
+                    if (Object.keys(modifiedState[activeTab][identifier]).length === 0) {
+                        delete modifiedState[activeTab][identifier];
+                    }
+                }
+            }
+
+            updateChangesBar();
+            decorateModifiedCells(identifier, field, isDifferent);
+        }
+
+        function getOriginalRecord(identifier) {
+            if (activeTab === 'items') return dbState.items.find(x => x._filepath === identifier);
+            if (activeTab === 'quests') return dbState.quests.find(x => x.item_id === identifier);
+            if (activeTab === 'laws') return dbState.laws.find(x => x._filepath === identifier);
+            if (activeTab === 'balance') return { key: identifier, value: dbState.balance[identifier] };
+            return null;
+        }
+
+        function decorateModifiedCells(identifier, field, isDifferent) {
+            const selector = `[data-id="${identifier}"][data-field="${field}"]`;
+            const inputEl = document.querySelector(selector);
+            if (inputEl) {
+                const td = inputEl.closest('td');
+                if (isDifferent) {
+                    td.classList.add('modified-cell');
+                    td.parentElement.classList.add('modified-row');
+                } else {
+                    td.classList.remove('modified-cell');
+                    const row = td.parentElement;
+                    const rowModifications = row.querySelectorAll('.modified-cell');
+                    if (rowModifications.length === 0) {
+                        row.classList.remove('modified-row');
+                    }
+                }
+            }
+        }
+
+        // Update unsaved modifications counter bar
+        function updateChangesBar() {
+            let totalChanges = 0;
+            for (const tab in modifiedState) {
+                totalChanges += Object.keys(modifiedState[tab]).length;
+            }
+
+            if (totalChanges > 0) {
+                changesMessage.textContent = `${totalChanges} configuration record${totalChanges > 1 ? 's' : ''} modified`;
+                changesBar.classList.add('visible');
+            } else {
+                changesBar.classList.remove('visible');
+            }
+        }
+
+        // Render dynamic table structure based on tab
+        function renderGrid() {
+            if (activeTab === 'prosperity') return;
+
+            const tbody = document.getElementById('data-tbody');
+            const search = searchInput.value.toLowerCase();
+
+            tbody.innerHTML = '';
+            
+            if (activeTab === 'items') {
+                renderItemsTable(search);
+            } else if (activeTab === 'quests') {
+                renderQuestsTable(search);
+            } else if (activeTab === 'laws') {
+                renderLawsTable(search);
+            } else if (activeTab === 'balance') {
+                renderBalanceTable(search);
+            }
+
+            // Re-bind resizing and sorting indicators
+            initResizersGlobal();
+        }
+
+        // Tab 1: Render Items
+        function renderItemsTable(search) {
+            // Table Header Setup
+            dataThead.innerHTML = `
+                <tr>
+                    <th class="sortable" data-sort="id" style="width:120px;">ID</th>
+                    <th class="sortable" data-sort="name" style="width:160px;">Name</th>
+                    <th class="sortable" data-sort="category" style="width:120px;">Category</th>
+                    <th class="sortable" data-sort="market_category" style="width:150px;">Market Cat</th>
+                    <th class="sortable" data-sort="item_level" style="width:90px;">Item Lvl</th>
+                    <th class="sortable" data-sort="base_value" style="width:90px;">Value</th>
+                    <th class="sortable" data-sort="weight" style="width:90px;">Weight</th>
+                    <th class="sortable" data-sort="min_price" style="width:90px;">Min Px</th>
+                    <th class="sortable" data-sort="max_price" style="width:90px;">Max Px</th>
+                    <th class="sortable" data-sort="max_stack" style="width:90px;">Max Stack</th>
+                    <th style="width:70px; text-align:center;">Trade</th>
+                    <th style="width:70px; text-align:center;">Stack</th>
+                    <th style="width:70px; text-align:center;">Luxury</th>
+                    <th style="width:70px; text-align:center;">Raw</th>
+                    <th style="width:180px;">Description</th>
+                </tr>
+            `;
+
+            // Setup sorting indicators
+            const activeTh = dataThead.querySelector(`[data-sort="${currentSort.column}"]`);
+            if (activeTh) activeTh.className = `sortable ${currentSort.asc ? 'sort-asc' : 'sort-desc'}`;
+
+            // Bind sort handlers
+            bindSortHeaders();
+
+            // Filter items
+            const category = filterCategory.value;
+            const market = filterMarket.value;
+            const minLvl = filterMinLevel.value ? Number(filterMinLevel.value) : null;
+            const maxLvl = filterMaxLevel.value ? Number(filterMaxLevel.value) : null;
+
+            let filtered = dbState.items.filter(item => {
+                const matchesSearch = !search || 
+                    (item.name && item.name.toLowerCase().includes(search)) ||
+                    (item.id && item.id.toLowerCase().includes(search)) ||
+                    (item.description && item.description.toLowerCase().includes(search));
+                
+                const matchesCategory = !category || item.category === category;
+                const matchesMarket = !market || item.market_category === market;
+                
+                const matchesMin = minLvl === null || item.item_level >= minLvl;
+                const matchesMax = maxLvl === null || item.item_level <= maxLvl;
+
+                return matchesSearch && matchesCategory && matchesMarket && matchesMin && matchesMax;
+            });
+
+            // Sort
+            sortDataArray(filtered);
+
+            // Display count
+            document.getElementById('items-count-badge').textContent = filtered.length;
+
+            // Render Rows
+            filtered.forEach(item => {
+                const fp = item._filepath;
+                const mods = modifiedState.items[fp] || {};
+                
+                const getValue = (f) => mods.hasOwnProperty(f) ? mods[f] : item[f];
+
+                const tr = document.createElement('tr');
+                if (Object.keys(mods).length > 0) tr.className = 'modified-row';
+
+                tr.innerHTML = `
+                    <td class="col-id">${item.id}</td>
+                    <td class="${mods.hasOwnProperty('name') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('name'))}" data-id="${fp}" data-field="name" onchange="onFieldChange('${fp}', 'name', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('category') ? 'modified-cell' : ''}">
+                        <select class="table-select" data-id="${fp}" data-field="category" onchange="onFieldChange('${fp}', 'category', this.value)">
+                            <option value="Resource" ${getValue('category') === 'Resource' ? 'selected' : ''}>Resource</option>
+                            <option value="Material" ${getValue('category') === 'Material' ? 'selected' : ''}>Material</option>
+                            <option value="Product" ${getValue('category') === 'Product' ? 'selected' : ''}>Product</option>
+                            <option value="Food" ${getValue('category') === 'Food' ? 'selected' : ''}>Food</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('market_category') ? 'modified-cell' : ''}">
+                        <select class="table-select" data-id="${fp}" data-field="market_category" onchange="onFieldChange('${fp}', 'market_category', this.value)">
+                            <option value="Raw Materials" ${getValue('market_category') === 'Raw Materials' ? 'selected' : ''}>Raw Materials</option>
+                            <option value="Semi-Elaborate" ${getValue('market_category') === 'Semi-Elaborate' ? 'selected' : ''}>Semi-Elaborate</option>
+                            <option value="Finished Goods" ${getValue('market_category') === 'Finished Goods' ? 'selected' : ''}>Finished Goods</option>
+                            <option value="Consumables" ${getValue('market_category') === 'Consumables' ? 'selected' : ''}>Consumables</option>
+                            <option value="Equipment" ${getValue('market_category') === 'Equipment' ? 'selected' : ''}>Equipment</option>
+                            <option value="Skill Items" ${getValue('market_category') === 'Skill Items' ? 'selected' : ''}>Skill Items</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('item_level') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('item_level')}" data-id="${fp}" data-field="item_level" onchange="onFieldChange('${fp}', 'item_level', this.value)" min="1" step="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('base_value') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('base_value')}" data-id="${fp}" data-field="base_value" onchange="onFieldChange('${fp}', 'base_value', this.value)" min="0" step="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('weight') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('weight')}" step="0.05" data-id="${fp}" data-field="weight" onchange="onFieldChange('${fp}', 'weight', this.value)" min="0">
+                    </td>
+                    <td class="${mods.hasOwnProperty('min_price') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('min_price')}" data-id="${fp}" data-field="min_price" onchange="onFieldChange('${fp}', 'min_price', this.value)" min="0">
+                    </td>
+                    <td class="${mods.hasOwnProperty('max_price') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('max_price')}" data-id="${fp}" data-field="max_price" onchange="onFieldChange('${fp}', 'max_price', this.value)" min="0">
+                    </td>
+                    <td class="${mods.hasOwnProperty('max_stack') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('max_stack')}" data-id="${fp}" data-field="max_stack" onchange="onFieldChange('${fp}', 'max_stack', this.value)" min="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_tradable') ? 'modified-cell' : ''}">
+                        <div class="checkbox-container">
+                            <label class="switch">
+                                <input type="checkbox" data-id="${fp}" data-field="is_tradable" ${getValue('is_tradable') ? 'checked' : ''} onchange="onFieldChange('${fp}', 'is_tradable', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_stackable') ? 'modified-cell' : ''}">
+                        <div class="checkbox-container">
+                            <label class="switch">
+                                <input type="checkbox" data-id="${fp}" data-field="is_stackable" ${getValue('is_stackable') ? 'checked' : ''} onchange="onFieldChange('${fp}', 'is_stackable', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_luxury_product') ? 'modified-cell' : ''}">
+                        <div class="checkbox-container">
+                            <label class="switch">
+                                <input type="checkbox" data-id="${fp}" data-field="is_luxury_product" ${getValue('is_luxury_product') ? 'checked' : ''} onchange="onFieldChange('${fp}', 'is_luxury_product', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_raw_material') ? 'modified-cell' : ''}">
+                        <div class="checkbox-container">
+                            <label class="switch">
+                                <input type="checkbox" data-id="${fp}" data-field="is_raw_material" ${getValue('is_raw_material') ? 'checked' : ''} onchange="onFieldChange('${fp}', 'is_raw_material', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </td>
+                    <td class="${mods.hasOwnProperty('description') ? 'modified-cell' : ''}">
+                        <button class="desc-edit-btn" onclick="openDescModal('${fp}')" data-id="${fp}" data-field="description">
+                            ${getValue('description') ? escapeHtml(getValue('description')) : '<span style="color: var(--text-muted)">No description</span>'}
+                        </button>
+                    </td>
+                `;
+                dataTbody.appendChild(tr);
+            });
+        }
+
+        // Tab 2: Render Quests
+        function renderQuestsTable(search) {
+            dataThead.innerHTML = `
+                <tr>
+                    <th class="sortable" data-sort="item_id" style="width:120px;">Item ID</th>
+                    <th class="sortable" data-sort="item_name" style="width:160px;">Display Name</th>
+                    <th class="sortable" data-sort="base_amount" style="width:110px;">Base Amount</th>
+                    <th class="sortable" data-sort="base_reward" style="width:110px;">Gold Reward</th>
+                    <th class="sortable" data-sort="due_days" style="width:100px;">Due Days</th>
+                    <th class="sortable" data-sort="req_level" style="width:110px;">Req Level</th>
+                    <th class="sortable" data-sort="difficulty" style="width:120px;">Difficulty</th>
+                </tr>
+            `;
+
+            const activeTh = dataThead.querySelector(`[data-sort="${currentSort.column}"]`);
+            if (activeTh) activeTh.className = `sortable ${currentSort.asc ? 'sort-asc' : 'sort-desc'}`;
+
+            bindSortHeaders();
+
+            const diffFilter = filterQuestDiff.value;
+
+            let filtered = dbState.quests.filter(quest => {
+                const matchesSearch = !search || 
+                    (quest.item_name && quest.item_name.toLowerCase().includes(search)) ||
+                    (quest.item_id && quest.item_id.toLowerCase().includes(search)) ||
+                    (quest.difficulty && quest.difficulty.toLowerCase().includes(search));
+                
+                const matchesDiff = !diffFilter || quest.difficulty === diffFilter;
+
+                return matchesSearch && matchesDiff;
+            });
+
+            sortDataArray(filtered);
+            document.getElementById('items-count-badge').textContent = filtered.length;
+
+            filtered.forEach(quest => {
+                const qid = quest.item_id;
+                const mods = modifiedState.quests[qid] || {};
+                
+                const getValue = (f) => mods.hasOwnProperty(f) ? mods[f] : quest[f];
+
+                const tr = document.createElement('tr');
+                if (Object.keys(mods).length > 0) tr.className = 'modified-row';
+
+                tr.innerHTML = `
+                    <td class="col-id">${quest.item_id}</td>
+                    <td class="${mods.hasOwnProperty('item_name') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('item_name'))}" data-id="${qid}" data-field="item_name" onchange="onFieldChange('${qid}', 'item_name', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('base_amount') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('base_amount')}" data-id="${qid}" data-field="base_amount" onchange="onFieldChange('${qid}', 'base_amount', this.value)" min="1" step="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('base_reward') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('base_reward')}" data-id="${qid}" data-field="base_reward" onchange="onFieldChange('${qid}', 'base_reward', this.value)" min="0" step="5">
+                    </td>
+                    <td class="${mods.hasOwnProperty('due_days') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('due_days')}" data-id="${qid}" data-field="due_days" onchange="onFieldChange('${qid}', 'due_days', this.value)" min="1" step="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('req_level') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('req_level')}" data-id="${qid}" data-field="req_level" onchange="onFieldChange('${qid}', 'req_level', this.value)" min="1" step="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('difficulty') ? 'modified-cell' : ''}">
+                        <select class="table-select" data-id="${qid}" data-field="difficulty" onchange="onFieldChange('${qid}', 'difficulty', this.value)">
+                            <option value="Beginner" ${getValue('difficulty') === 'Beginner' ? 'selected' : ''}>Beginner</option>
+                            <option value="Advanced" ${getValue('difficulty') === 'Advanced' ? 'selected' : ''}>Advanced</option>
+                            <option value="Expert" ${getValue('difficulty') === 'Expert' ? 'selected' : ''}>Expert</option>
+                        </select>
+                    </td>
+                `;
+                dataTbody.appendChild(tr);
+            });
+        }
+
+        // Tab 3: Render Laws
+        function renderLawsTable(search) {
+            dataThead.innerHTML = `
+                <tr>
+                    <th class="sortable" data-sort="id" style="width:120px;">ID</th>
+                    <th class="sortable" data-sort="name" style="width:160px;">Law Title</th>
+                    <th class="sortable" data-sort="category" style="width:120px;">Category</th>
+                    <th class="sortable" data-sort="influence_cost" style="width:110px;">Influence</th>
+                    <th class="sortable" data-sort="value_type" style="width:120px;">Value Type</th>
+                    <th class="sortable" data-sort="effect_value" style="width:110px;">Effect Value</th>
+                    <th style="width:180px;">Description</th>
+                </tr>
+            `;
+
+            const activeTh = dataThead.querySelector(`[data-sort="${currentSort.column}"]`);
+            if (activeTh) activeTh.className = `sortable ${currentSort.asc ? 'sort-asc' : 'sort-desc'}`;
+
+            bindSortHeaders();
+
+            const lawCategory = filterLawCategory.value;
+
+            let filtered = dbState.laws.filter(law => {
+                const matchesSearch = !search || 
+                    (law.name && law.name.toLowerCase().includes(search)) ||
+                    (law.id && law.id.toLowerCase().includes(search)) ||
+                    (law.description && law.description.toLowerCase().includes(search));
+                
+                const matchesCategory = !lawCategory || law.category === lawCategory;
+
+                return matchesSearch && matchesCategory;
+            });
+
+            sortDataArray(filtered);
+            document.getElementById('items-count-badge').textContent = filtered.length;
+
+            filtered.forEach(law => {
+                const fp = law._filepath;
+                const mods = modifiedState.laws[fp] || {};
+                
+                const getValue = (f) => mods.hasOwnProperty(f) ? mods[f] : law[f];
+
+                const tr = document.createElement('tr');
+                if (Object.keys(mods).length > 0) tr.className = 'modified-row';
+
+                tr.innerHTML = `
+                    <td class="col-id">${law.id}</td>
+                    <td class="${mods.hasOwnProperty('name') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('name'))}" data-id="${fp}" data-field="name" onchange="onFieldChange('${fp}', 'name', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('category') ? 'modified-cell' : ''}">
+                        <select class="table-select" data-id="${fp}" data-field="category" onchange="onFieldChange('${fp}', 'category', this.value)">
+                            <option value="Numerical" ${getValue('category') === 'Numerical' ? 'selected' : ''}>Numerical</option>
+                            <option value="Prohibition" ${getValue('category') === 'Prohibition' ? 'selected' : ''}>Prohibition</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('influence_cost') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('influence_cost')}" data-id="${fp}" data-field="influence_cost" onchange="onFieldChange('${fp}', 'influence_cost', this.value)" min="0" step="10">
+                    </td>
+                    <td class="${mods.hasOwnProperty('value_type') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('value_type'))}" data-id="${fp}" data-field="value_type" onchange="onFieldChange('${fp}', 'value_type', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('effect_value') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('effect_value')}" step="0.05" data-id="${fp}" data-field="effect_value" onchange="onFieldChange('${fp}', 'effect_value', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('description') ? 'modified-cell' : ''}">
+                        <button class="desc-edit-btn" onclick="openDescModal('${fp}')" data-id="${fp}" data-field="description">
+                            ${getValue('description') ? escapeHtml(getValue('description')) : '<span style="color: var(--text-muted)">No description</span>'}
+                        </button>
+                    </td>
+                `;
+                dataTbody.appendChild(tr);
+            });
+        }
+
+        // Tab 4: Render Balance Constants
+        function renderBalanceTable(search) {
+            dataThead.innerHTML = `
+                <tr>
+                    <th class="sortable" data-sort="key" style="width:220px;">Constant Code</th>
+                    <th style="width:160px;">Variable Name</th>
+                    <th style="width:100px;">Current Value</th>
+                    <th style="width:300px;">Description / Gameplay Effect</th>
+                </tr>
+            `;
+
+            const activeTh = dataThead.querySelector(`[data-sort="${currentSort.column}"]`);
+            if (activeTh) activeTh.className = `sortable ${currentSort.asc ? 'sort-asc' : 'sort-desc'}`;
+
+            bindSortHeaders();
+
+            // Transform balance dictionary into flat list for sorting & filtering
+            let rawList = [];
+            for (const key in dbState.balance) {
+                const meta = balanceMetadata[key] || { name: key.replace(/_/g, ' ').capitalize(), desc: "System balance constant." };
+                rawList.append({
+                    key: key,
+                    name: meta.name,
+                    value: dbState.balance[key],
+                    desc: meta.desc
+                });
+            }
+
+            let filtered = rawList.filter(item => {
+                return !search || 
+                    item.key.toLowerCase().includes(search) || 
+                    item.name.toLowerCase().includes(search) || 
+                    item.desc.toLowerCase().includes(search);
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                let valA = a[currentSort.column];
+                let valB = b[currentSort.column];
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return currentSort.asc ? -1 : 1;
+                if (valA > valB) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
+
+            document.getElementById('items-count-badge').textContent = filtered.length;
+
+            filtered.forEach(item => {
+                const key = item.key;
+                const mods = modifiedState.balance["config"] || {};
+                
+                const getValue = () => mods.hasOwnProperty(key) ? mods[key] : item.value;
+                const isCellMod = mods.hasOwnProperty(key);
+
+                const tr = document.createElement('tr');
+                if (isCellMod) tr.className = 'modified-row';
+
+                tr.innerHTML = `
+                    <td class="col-id">${item.key}</td>
+                    <td style="font-weight:500; color: var(--text-primary);">${item.name}</td>
+                    <td class="${isCellMod ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue()}" step="0.05" data-id="${key}" data-field="value" onchange="onBalanceConstantChange('${key}', this.value)">
+                    </td>
+                    <td style="font-size:12px; color: var(--text-secondary); white-space:normal; line-height:1.4;">${item.desc}</td>
+                `;
+                dataTbody.appendChild(tr);
+            });
+        }
+
+        // Special change handler for balance constants
+        function onBalanceConstantChange(key, value) {
+            value = Number(value);
+            const originalVal = dbState.balance[key];
+
+            if (!modifiedState.balance["config"]) {
+                modifiedState.balance["config"] = {};
+            }
+
+            if (originalVal !== value) {
+                modifiedState.balance["config"][key] = value;
+            } else {
+                delete modifiedState.balance["config"][key];
+            }
+
+            if (Object.keys(modifiedState.balance["config"]).length === 0) {
+                delete modifiedState.balance["config"];
+            }
+
+            updateChangesBar();
+            decorateModifiedCells(key, 'value', originalVal !== value);
+        }
+
+        // Sorting arrays logic
+        function sortDataArray(arr) {
+            arr.sort((a, b) => {
+                let valA = a[currentSort.column];
+                let valB = b[currentSort.column];
+
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return currentSort.asc ? -1 : 1;
+                if (valA > valB) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        // Header click binder
+        function bindSortHeaders() {
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.addEventListener('click', (e) => {
+                    // Prevent triggering sort if clicking resizer handle
+                    if (e.target.className === 'resizer') return;
+
+                    const column = th.dataset.sort;
+                    if (currentSort.column === column) {
+                        currentSort.asc = !currentSort.asc;
+                    } else {
+                        currentSort.column = column;
+                        currentSort.asc = true;
+                    }
+                    renderGrid();
+                });
+            });
+        }
+
+        // Header column resizing logic
+        function initResizersGlobal() {
+            document.querySelectorAll('th').forEach(th => {
+                if (!th.querySelector('.resizer')) {
+                    const resizer = document.createElement('div');
+                    resizer.className = 'resizer';
+                    th.appendChild(resizer);
+
+                    resizer.addEventListener('mousedown', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        isResizing = true;
+                        currentHeader = th;
+                        startX = e.pageX;
+                        startWidth = th.offsetWidth;
+                        resizer.classList.add('resizing');
+                        document.body.style.cursor = 'col-resize';
+                        document.body.style.userSelect = 'none';
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing || !currentHeader) return;
+            const diffX = e.pageX - startX;
+            const width = Math.max(40, startWidth + diffX);
+            currentHeader.style.width = width + 'px';
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isResizing) {
+                isResizing = false;
+                document.querySelectorAll('.resizer').forEach(r => r.classList.remove('resizing'));
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                currentHeader = null;
+            }
+        });
+
+        // String capitalise helper
+        String.prototype.capitalize = function() {
+            return this.charAt(0).toUpperCase() + this.slice(1);
+        };
+
+        // Description Modal Logic
+        function openDescModal(identifier) {
+            let record = null;
+            let currentVal = '';
+
+            if (activeTab === 'items') {
+                record = dbState.items.find(x => x._filepath === identifier);
+                currentVal = modifiedState.items[identifier]?.hasOwnProperty('description') 
+                    ? modifiedState.items[identifier].description 
+                    : record.description;
+            } else if (activeTab === 'laws') {
+                record = dbState.laws.find(x => x._filepath === identifier);
+                currentVal = modifiedState.laws[identifier]?.hasOwnProperty('description') 
+                    ? modifiedState.laws[identifier].description 
+                    : record.description;
+            }
+
+            if (!record) return;
+
+            activeDescEdit.tab = activeTab;
+            activeDescEdit.identifier = identifier;
+            activeDescEdit.originalText = record.description;
+
+            document.getElementById('desc-modal-item-name').textContent = record.name || record.id;
+            document.getElementById('desc-modal-textarea').value = currentVal || '';
+            document.getElementById('desc-modal').classList.add('visible');
+        }
+
+        function closeDescModal() {
+            document.getElementById('desc-modal').classList.remove('visible');
+            activeDescEdit = { tab: '', identifier: '', originalText: '' };
+        }
+
+        document.getElementById('btn-save-description').addEventListener('click', () => {
+            if (activeDescEdit.identifier) {
+                const newVal = document.getElementById('desc-modal-textarea').value;
+                
+                if (activeDescEdit.tab === 'items') {
+                    onFieldChange(activeDescEdit.identifier, 'description', newVal);
+                } else if (activeDescEdit.tab === 'laws') {
+                    onFieldChange(activeDescEdit.identifier, 'description', newVal);
+                }
+                
+                renderGrid();
+                closeDescModal();
+            }
+        });
+
+        // Discard all changes
+        btnDiscardChanges.addEventListener('click', () => {
+            if (confirm('Are you sure you want to discard all pending modifications across all tabs?')) {
+                modifiedState = {
+                    items: {},
+                    quests: {},
+                    laws: {},
+                    prosperity: {},
+                    balance: {}
+                };
+                updateChangesBar();
+                if (activeTab === 'prosperity') {
+                    populateProsperityPanel(dbState.prosperity);
+                } else {
+                    renderGrid();
+                }
+                showToast('All modifications discarded.');
+            }
+        });
+
+        // Approval Modal Logic
+        btnReviewSave.addEventListener('click', () => {
+            diffContainer.innerHTML = '';
+            
+            let hasChanges = false;
+
+            // 1. Group Items changes
+            for (const [filepath, updates] of Object.entries(modifiedState.items)) {
+                const orig = dbState.items.find(x => x._filepath === filepath);
+                if (!orig) continue;
+                hasChanges = true;
+                appendDiffUI(orig.name || orig.id, filepath.split('/').pop(), updates, orig);
+            }
+
+            // 2. Group Laws changes
+            for (const [filepath, updates] of Object.entries(modifiedState.laws)) {
+                const orig = dbState.laws.find(x => x._filepath === filepath);
+                if (!orig) continue;
+                hasChanges = true;
+                appendDiffUI(orig.name || orig.id, filepath.split('/').pop(), updates, orig);
+            }
+
+            // 3. Group Quests changes
+            for (const [qid, updates] of Object.entries(modifiedState.quests)) {
+                const orig = dbState.quests.find(x => x.item_id === qid);
+                if (!orig) continue;
+                hasChanges = true;
+                appendDiffUI(`Quest: Deliver ${orig.item_name}`, "quest_templates.json", updates, orig);
+            }
+
+            // 4. Group Prosperity thresholds changes
+            if (modifiedState.prosperity["config"]) {
+                hasChanges = true;
+                const updates = { thresholds: modifiedState.prosperity["config"].thresholds };
+                const orig = { thresholds: dbState.prosperity.thresholds };
+                appendDiffUI("Prosperity Config", "prosperity_config.json", updates, orig);
+            }
+
+            // 5. Group Balance constants changes
+            if (modifiedState.balance["config"]) {
+                hasChanges = true;
+                const updates = modifiedState.balance["config"];
+                const orig = dbState.balance;
+                appendDiffUI("Balance Constants", "game_balance_config.json", updates, orig);
+            }
+
+            if (!hasChanges) {
+                showToast("No pending edits to save.");
+                return;
+            }
+
+            // Reset confirmation check
+            approveWriteCheckbox.checked = false;
+            btnFinalSave.disabled = true;
+            
+            approvalModal.classList.add('visible');
+        });
+
+        function appendDiffUI(title, filename, updates, originalObject) {
+            const diffItem = document.createElement('div');
+            diffItem.className = 'diff-item';
+            
+            let changesRows = '';
+            for (const [field, newVal] of Object.entries(updates)) {
+                let oldVal = originalObject[field];
+                if (oldVal === undefined || oldVal === null) oldVal = '(not set)';
+                
+                changesRows += `
+                    <tr>
+                        <td class="diff-field-name">${field}</td>
+                        <td><span class="diff-old-value">${escapeHtml(String(oldVal))}</span></td>
+                        <td class="diff-arrow">➔</td>
+                        <td><span class="diff-new-value">${escapeHtml(String(newVal))}</span></td>
+                    </tr>
+                `;
+            }
+
+            diffItem.innerHTML = `
+                <div class="diff-item-title">
+                    <div>${escapeHtml(title)}</div>
+                    <div class="diff-item-filepath">${escapeHtml(filename)}</div>
+                </div>
+                <table class="diff-changes-table">
+                    <tbody>
+                        ${changesRows}
+                    </tbody>
+                </table>
+            `;
+            diffContainer.appendChild(diffItem);
+        }
+
+        function closeApprovalModal() {
+            approvalModal.classList.remove('visible');
+        }
+
+        approveWriteCheckbox.addEventListener('change', (e) => {
+            btnFinalSave.disabled = !e.target.checked;
+        });
+
+        // Trigger POST save requests across tabs
+        btnFinalSave.addEventListener('click', async () => {
+            try {
+                btnFinalSave.disabled = true;
+                btnFinalSave.textContent = 'Saving...';
+
+                // 1. Save Items
+                if (Object.keys(modifiedState.items).length > 0) {
+                    const payload = Object.entries(modifiedState.items).map(([fp, updates]) => ({ _filepath: fp, updates }));
+                    await postData('/api/items/save', payload);
+                }
+
+                // 2. Save Laws
+                if (Object.keys(modifiedState.laws).length > 0) {
+                    const payload = Object.entries(modifiedState.laws).map(([fp, updates]) => ({ _filepath: fp, updates }));
+                    await postData('/api/laws/save', payload);
+                }
+
+                // 3. Save Quests JSON
+                if (Object.keys(modifiedState.quests).length > 0) {
+                    // Gather full quest templates lists, merging local updates
+                    const fullList = dbState.quests.map(quest => {
+                        const qid = quest.item_id;
+                        const updates = modifiedState.quests[qid] || {};
+                        return { ...quest, ...updates };
+                    });
+                    await postData('/api/quests/save', fullList);
+                }
+
+                // 4. Save Prosperity thresholds JSON
+                if (modifiedState.prosperity["config"]) {
+                    const payload = { thresholds: modifiedState.prosperity["config"].thresholds };
+                    await postData('/api/prosperity/save', payload);
+                }
+
+                // 5. Save Balance constants JSON
+                if (modifiedState.balance["config"]) {
+                    const payload = { ...dbState.balance, ...modifiedState.balance["config"] };
+                    await postData('/api/balance/save', payload);
+                }
+
+                showToast('Successfully wrote all changes to Godot resource files & configs.', 'success');
+                closeApprovalModal();
+                
+                // Clear modified state tracker
+                modifiedState = {
+                    items: {},
+                    quests: {},
+                    laws: {},
+                    prosperity: {},
+                    balance: {}
+                };
+
+                // Re-fetch to sync
+                fetchDataForActiveTab();
+
+            } catch (err) {
+                console.error(err);
+                showToast(`Error saving configs: ${err.message}`, 'error');
+            } finally {
+                btnFinalSave.textContent = 'Approve & Write to Files';
+            }
+        });
+
+        async function postData(url, data) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || `Failed POST to ${url}`);
+            }
+            return res.json();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

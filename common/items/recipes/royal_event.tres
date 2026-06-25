@@ -4,19 +4,19 @@
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/sweet_berry_cake.tres" id="2_cake"]
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/gilded_cream_cake.tres" id="3_gilded"]
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/common_wine.tres" id="4_wine"]
-[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/smugglers_moonshine.tres" id="5_moonshine"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/fine_aged_schnapps.tres" id="5_schnapps"]
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/royal_event_certificate.tres" id="6_cert"]
 
 [resource]
 script = ExtResource("1_script")
-recipe_name = "Host Royal Event"
+recipe_name = "Host Royal Sovereign Banquet"
 required_career = "patreon"
 required_level = 8
 inputs = {
 ExtResource("2_cake"): 5,
 ExtResource("3_gilded"): 5,
 ExtResource("4_wine"): 5,
-ExtResource("5_moonshine"): 5
+ExtResource("5_schnapps"): 5
 }
 output_item = ExtResource("6_cert")
 output_amount = 1

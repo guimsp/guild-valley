@@ -40,6 +40,19 @@ func get_speed_multiplier() -> float:
 					npc_faction = "Rival"
 			if npc_faction == holder:
 				base_mult *= 1.05
+	# Fleet-Footed speed bonus
+	if npc and npc.character_resource:
+		var bonus = 0.0
+		for trait_id in npc.character_resource.active_mods:
+			if trait_id.begins_with("Fleet-Footed_Lvl"):
+				var lvl = int(trait_id.replace("Fleet-Footed_Lvl", ""))
+				if lvl == 1: bonus += 0.05
+				elif lvl == 2: bonus += 0.10
+				elif lvl == 3: bonus += 0.15
+		base_mult *= (1.0 + bonus)
+		
+	if GameState and npc:
+		base_mult = GameState.apply_macro_modifier(npc, "movement_speed", base_mult)
 				
 	return base_mult
 

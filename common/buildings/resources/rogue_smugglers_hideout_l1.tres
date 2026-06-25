@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rogue_smugglers_hideout_l1"
+name = "Smuggler's Hideout"
+family = "rogue_smugglers_hideout"
+building_level = 1
+career = "rogue"
+tier = 1
+level = 1
+cost = 120
+time = 5.0
+scene_path = "res://components/production/smugglers_hideout.tscn"
+type = "production"
+description = "A hidden hub to melt scrap metal, carve bone buttons, and process coarse cordage."

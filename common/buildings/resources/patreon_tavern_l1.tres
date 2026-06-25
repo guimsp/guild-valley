@@ -5,14 +5,14 @@
 [resource]
 script = ExtResource("1_tavern")
 id = "patreon_tavern_l1"
-name = "Mead Tavern"
+name = "Tavern & Taproom"
 family = "patreon_tavern"
 career = "patreon"
 tier = 2
 level = 4
-cost = 400
+cost = 500
 time = 8.0
 scene_path = "res://components/production/tavern.tscn"
 type = "production"
 allowed_settlement = "any"
-description = "A cozy local tavern to brew ale and entertain patrons."
+description = "Local Tavern providing House Ale and Taproom services."

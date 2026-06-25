@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "transit_pass"
+name = "Transit Pass"
+item_level = 2
+base_value = 40
+weight = 0.1
+category = "Product"
+market_category = "Finished Goods"
+description = "An expedited transit pass allowing couriers to slide past customs."

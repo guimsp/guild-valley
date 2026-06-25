@@ -92,24 +92,97 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_tick_employees(delta)
 	
-	# Convert event certificates in building_storage to strongbox gold
 	if building_storage:
-		var noble_cert = building_storage.get_item_amount("noble_event_certificate")
-		if noble_cert > 0:
-			building_storage.remove_item("noble_event_certificate", noble_cert)
-			var sbox = get_node_or_null("StrongboxComponent")
-			if sbox:
-				var payout = noble_cert * 250
-				sbox.strongbox_gold += payout
-				sbox.add_transaction("Noble Event Service", noble_cert, payout, TimeManager.get_time_string(), "Guests")
-				GameState.spawn_ui_floating_text("+%d Gold (Noble Event Hall)" % payout)
-				
-		var royal_cert = building_storage.get_item_amount("royal_event_certificate")
-		if royal_cert > 0:
-			building_storage.remove_item("royal_event_certificate", royal_cert)
-			var sbox = get_node_or_null("StrongboxComponent")
-			if sbox:
-				var payout = royal_cert * 600
-				sbox.strongbox_gold += payout
-				sbox.add_transaction("Royal Event Service", royal_cert, payout, TimeManager.get_time_string(), "Nobles")
-				GameState.spawn_ui_floating_text("+%d Gold (Royal Event Hall)" % payout)
+		_process_event_certificate(
+			"noble_event_certificate",
+			"res://common/items/instances/Finished Goods/noble_event_certificate.tres",
+			"res://common/items/recipes/noble_event.tres",
+			1.3,
+			"Noble Event Service",
+			"Guests"
+		)
+		_process_event_certificate(
+			"royal_event_certificate",
+			"res://common/items/instances/Finished Goods/royal_event_certificate.tres",
+			"res://common/items/recipes/royal_event.tres",
+			1.3,
+			"Royal Event Service",
+			"Nobles"
+		)
+
+func _process_event_certificate(cert_id: String, cert_path: String, recipe_path: String, client_premium: float, service_name: String, guest_type: String) -> void:
+	var cert_qty = building_storage.get_item_amount(cert_id)
+	if cert_qty <= 0:
+		return
+		
+	building_storage.remove_item(cert_id, cert_qty)
+	
+	var cert_item = load(cert_path) as ItemData
+	var recipe = load(recipe_path) as Recipe
+	if not cert_item or not recipe:
+		return
+		
+	var consumed_items: Array = []
+	for input in recipe.inputs:
+		var qty = recipe.inputs[input]
+		for j in range(qty):
+			consumed_items.append(input)
+			
+	var econ = get_node_or_null("/root/EconomyManager")
+	if not econ:
+		return
+		
+	var sbox = get_node_or_null("StrongboxComponent")
+	if not sbox:
+		return
+		
+	var total_payout: int = 0
+	var total_influence: int = 0
+	var total_prestige: int = 0
+	var bad_outcomes_count: int = 0
+	var outcome_names: Array[String] = []
+	
+	var base_influence: int = 15 if cert_id == "noble_event_certificate" else 30
+	var base_prestige: int = 30 if cert_id == "noble_event_certificate" else 60
+	var contract_data: Dictionary = {
+		"influence": base_influence,
+		"prestige": base_prestige
+	}
+	
+	for i in range(cert_qty):
+		var resolution: Dictionary = econ.resolve_grand_event(consumed_items, contract_data)
+		var payout: int = resolution.get("payout", 0)
+		var outcome_tier: int = resolution.get("outcome_tier", 1)
+		
+		total_payout += payout
+		if outcome_tier == 0:
+			bad_outcomes_count += 1
+			
+		var outcome_str: String = "Regular"
+		match outcome_tier:
+			0: outcome_str = "Bad"
+			1: outcome_str = "Regular"
+			2: outcome_str = "Good"
+			3: outcome_str = "Excellent"
+			4: outcome_str = "Pristine"
+		outcome_names.append(outcome_str)
+		
+		var p_mult: float = resolution.get("prestige_multiplier", 1.0)
+		total_influence += int(round(float(base_influence) * p_mult))
+		total_prestige += int(round(float(base_prestige) * p_mult))
+		
+	sbox.strongbox_gold += total_payout
+	
+	GameState.influence += total_influence
+	GameState.permanent_influence += total_prestige
+	
+	var outcomes_summary: String = ", ".join(outcome_names)
+	var tx_name: String = "%s (%s)" % [service_name, outcomes_summary]
+	sbox.add_transaction(tx_name, cert_qty, total_payout, TimeManager.get_time_string(), guest_type)
+	
+	GameState.spawn_ui_floating_text("+%d Gold, +%d Influence (%s: %s)" % [total_payout, total_influence, service_name, outcomes_summary])
+	
+	if bad_outcomes_count > 0:
+		var msg: String = "A hosted %s suffered a mishap, resulting in poor reviews and reduced payouts." % service_name
+		AlertManager.add_alert("Grand Event Mishap!", msg, "warning", self)
+

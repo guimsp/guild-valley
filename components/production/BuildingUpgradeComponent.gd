@@ -52,6 +52,35 @@ func initiate_level_upgrade() -> void:
 		GameState.spawn_ui_floating_text("Requires %d Gold!" % req.gold_cost)
 		return
 		
+	# Check architectural blueprint requirement for Level 3+
+	var bp_in_player = false
+	var bp_in_building = false
+	if next_lvl >= 3:
+		if GameState.player_inventory and GameState.player_inventory.has_item("architectural_blueprint", 1):
+			bp_in_player = true
+		else:
+			var target_b_storage = building.get("building_storage") if "building_storage" in building else null
+			if not target_b_storage and "inventory" in building:
+				target_b_storage = building.inventory
+			if target_b_storage and target_b_storage.has_item("architectural_blueprint", 1):
+				bp_in_building = true
+				
+		if not bp_in_player and not bp_in_building:
+			GameState.spawn_ui_floating_text("Upgrade requires 1x Architectural Blueprint!")
+			return
+
+	# Consume blueprint
+	if bp_in_player:
+		GameState.player_inventory.remove_item("architectural_blueprint", 1)
+	elif bp_in_building:
+		var target_b_storage = building.get("building_storage") if "building_storage" in building else null
+		if not target_b_storage and "inventory" in building:
+			target_b_storage = building.inventory
+		if target_b_storage:
+			target_b_storage.remove_item("architectural_blueprint", 1)
+
+	GameState.next_change_reason = "Building Upgrade"
+	GameState.next_change_detail = building.name if building else "Building"
 	GameState.gold -= req.gold_cost
 	is_upgrading = true
 	upgrade_timer = req.time
@@ -81,6 +110,8 @@ func purchase_improvement(improvement_id: String) -> void:
 		GameState.spawn_ui_floating_text("Not enough gold!")
 		return
 		
+	GameState.next_change_reason = "Upgrade Improvement"
+	GameState.next_change_detail = def.name if "name" in def else improvement_id
 	GameState.gold -= cost
 	improvements[improvement_id] = current_lvl + 1
 	

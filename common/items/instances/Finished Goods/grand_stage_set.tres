@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "grand_stage_set"
+name = "Grand Stage Set"
+item_level = 8
+base_value = 450
+weight = 10.0
+category = "Product"
+market_category = "Finished Goods"
+description = "A massive assembled stage set for theatrical tragedies and pageants."

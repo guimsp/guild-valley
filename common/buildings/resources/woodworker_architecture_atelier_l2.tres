@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "woodworker_architecture_atelier_l2"
+name = "Architecture Atelier"
+family = "woodworker_architecture_atelier"
+building_level = 2
+career = "woodworker"
+tier = 3
+level = 9
+cost = 2200
+time = 6.0
+scene_path = "res://components/production/architecture_atelier.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 3 Architecture Atelier (Level 2). Carve heavy structural scaffolding."

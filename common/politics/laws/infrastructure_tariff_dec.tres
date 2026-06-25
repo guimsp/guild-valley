@@ -6,8 +6,8 @@
 script = ExtResource("1_law")
 id = "infrastructure_tariff_dec"
 name = "The Infrastructure Tariff (Decrement)"
-description = "Decreases Public Market caravan import markups by -50%."
+description = "Decreases Public Market infrastructure toll markups by -15%."
 category = "Numerical"
 influence_cost = 120
 value_type = "infrastructure_tariff"
-effect_value = -0.5
+effect_value = -0.15

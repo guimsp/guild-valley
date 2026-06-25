@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_mint"]
+
+[resource]
+script = ExtResource("1_mint")
+id = "scholar_mint_l1"
+name = "Sovereign Mint & Library"
+family = "scholar_mint"
+building_level = 1
+career = "scholar"
+tier = 4
+level = 10
+cost = 5000
+time = 20.0
+scene_path = "res://components/production/sovereign_mint.tscn"
+type = "production"
+description = "A masterpiece sovereign mint and legal library codifying fiat currencies."

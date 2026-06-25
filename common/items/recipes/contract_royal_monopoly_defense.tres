@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/venture_certificate.tres" id="2_cert"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/tax_exemption_writ.tres" id="3_writ"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/royal_tapestry.tres" id="4_tapestry"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/monopoly_defense_contract.tres" id="5_contract"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Contract: Royal Monopoly Defense"
+required_career = "scholar"
+required_level = 8
+inputs = {
+ExtResource("2_cert"): 2,
+ExtResource("3_writ"): 2,
+ExtResource("4_tapestry"): 1
+}
+output_item = ExtResource("5_contract")
+output_amount = 1
+xp_reward = 200

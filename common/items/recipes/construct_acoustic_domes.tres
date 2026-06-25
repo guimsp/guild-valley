@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/refined_hardwood.tres" id="2_input1"]
+[ext_resource type="Resource" path="res://common/items/instances/Equipment/brass_horn.tres" id="3_input2"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/monumental_acoustic_dome.tres" id="4_output"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Construct Acoustic Domes"
+required_career = "showman"
+required_level = 10
+inputs = {
+ExtResource("2_input1"): 10,
+ExtResource("3_input2"): 4
+}
+output_item = ExtResource("4_output")
+output_amount = 1
+xp_reward = 300
+is_breakthrough_only = false
+is_service = false
+service_type = 0

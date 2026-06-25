@@ -35,9 +35,11 @@ func _ready() -> void:
 		bench.bench_name = "Farmstead Crafting"
 		var r1 = load("res://common/items/recipes/grow_barley_hops.tres")
 		var r2 = load("res://common/items/recipes/cure_pork.tres")
+		var r3 = load("res://common/items/recipes/tan_raw_pelts.tres")
 		bench.recipes.clear()
 		if r1: bench.recipes.append(r1)
 		if r2: bench.recipes.append(r2)
+		if r3: bench.recipes.append(r3)
 			
 		# Remove the bench's own interaction area
 		var bench_interact = bench.get_node_or_null("InteractionArea")

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_reg"]
+
+[resource]
+script = ExtResource("1_reg")
+id = "scholar_registrar_l1"
+name = "Registrar Office"
+family = "scholar_registrar"
+building_level = 1
+career = "scholar"
+tier = 2
+level = 4
+cost = 500
+time = 8.0
+scene_path = "res://components/production/registrar_office.tscn"
+type = "production"
+description = "Municipal registrar handling local tax assessments and licensing."

@@ -19,6 +19,8 @@ enum RarityTier {
 @export var rarity_override: int = -1
 @export var target_stock_override: int = -1
 @export var price_elasticity_override: float = -1.0
+@export var price_override: int = -1
+@export var is_liquid: bool = false
 
 # Unique identifier for the item (e.g. "wheat", "iron_ore")
 @export var id: String = ""
@@ -33,32 +35,29 @@ enum RarityTier {
 @export var icon: Texture2D
 
 # Base market value before supply and demand adjustments
-@export var base_value: int = 10
+@export var base_value: int = 10:
+	get:
+		if price_override > 0:
+			return price_override
+		var main_loop = Engine.get_main_loop()
+		if main_loop and main_loop.root:
+			var econ = main_loop.root.get_node_or_null("EconomyManager")
+			if econ and econ.has_method("get_algorithmic_base_value"):
+				return econ.get_algorithmic_base_value(self)
+		return base_value
 
 # Minimum price bounds for pricing controls
 @export var min_price: int = 1:
 	get:
 		if min_price == 1:
-			match get_rarity_tier():
-				RarityTier.COMMON:
-					return max(1, int(base_value * 0.6))
-				RarityTier.LUXURY:
-					return max(1, int(base_value * 0.4))
-				RarityTier.RARE:
-					return max(1, int(base_value * 0.2))
+			return max(1, int(round(base_value * 0.5)))
 		return min_price
 
 # Maximum price bounds for pricing controls
 @export var max_price: int = 999:
 	get:
 		if max_price == 999:
-			match get_rarity_tier():
-				RarityTier.COMMON:
-					return max(base_value + 1, int(base_value * 1.6))
-				RarityTier.LUXURY:
-					return max(base_value + 2, int(base_value * 2.5))
-				RarityTier.RARE:
-					return max(base_value + 5, int(base_value * 5.0))
+			return max(base_value + 1, int(round(base_value * 1.8)))
 		return max_price
 
 # Weight per unit (useful for inventory limits)

@@ -5,76 +5,184 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 ---
 
 ## 🎯 Current Task
-- **Completed Build Menu Focus Polish**: Fixed the focus selector beating/respawning bug on clock ticks by caching and restoring the last focused card on viewport focus changes.
+- None. Ready for next task selection.
 
 ---
 
 ## 📋 Planned Features & Ideas
 
-### 🤖 1. NPC & Opponent Economy AI (Buyers, Prices & Attractiveness)
-- **Generic Buyer NPCs**: Roaming townspeople representing local customers who have infinite funds but buy products/services selectively based on key decision variables.
-- **Economic Purchase Variables**:
-  - **Attractiveness**: Storefront decoration, level/prestige, and walking distance.
-  - **Prices**: Current item prices set by the shop owner relative to market/average values.
-  - **Randomness**: Random choice factors and daily individual needs.
-- **Opponent Logic (Rivals)**: Competitors dynamically expand by building/claiming lots, crafting items, upgrading workstations, and hiring employees to compete.
+### 🏛️ 1. Dynamic Lot Spawning & Licensing
+- **Citizenship & Settlement Restrictions**: Characters default to a native City/Town. Building or settling in other cities requires purchasing a local license or paying a premium lot cost.
+- **Luxury Spawners**: High-prosperity zones spawn luxury materials and premium goods in the overworld.
 
-### 🏛️ 2. Prosperity, Lot Scaling & Visual Evolutions
-- **Prosperity Rating**: Cities maintain higher prosperity than Towns, driving higher populations and Lot density.
-- **Luxury Spawners**: High-prosperity zones spawn luxury materials and premium goods.
-- **City Visual Evolution**: Cities upgrade walls and visually expand on sleep transitions when prosperity milestones are reached (selecting randomly from 3 predefined visual evolution paths).
+### 🤖 2. Dynamic Navigation Obstacle Avoidance
+- **Dynamic Avoidance**: Enable obstacle avoidance (RVO pathfinding steering) so competitor NPCs, couriers, and wandering villagers naturally route around player-placed workstations and houses.
 
-### 📜 3. Settlement Licenses & Trade Freedom
-- **Citizenship & Settlement**: Characters default to a native City/Town. Building or settling in other cities requires purchasing a local license or paying a premium lot cost.
-- **Trade Freedom**: Players and NPCs are free to trade merchandise globally across all markets, regardless of settlement status (settlement restricts building only).
+### 🧵 3. Tailor Career & Crafting Expansion
+- **Tailor Clothing Recipes & Sewing Table**: Implement advanced Tailor career recipes, materials (like wool, fabric, clothes), and the custom workstation (Sewing Table).
 
-### 🏛️ 4. Character Titles, Taxes & Provincial Politics
-- **Social Class Titles (Character Level)**: A separate 10-tier character progression system representing social class climbing (Commoner, Noble, etc.) unlocked via experience and gold, yielding generic rewards not tied to specific careers.
-- **Taxes**: Implements provincial tax systems for residential houses (real estate) and production buildings.
-- **Provincial Politics**: Spend influence and gold to vote on or pass laws/norms affecting taxes, regional security, and career productivity across the province.
-- **Interconnected Paths**: Ability to leverage politics for illicit benefit (e.g., lobbying to defund security in a region to facilitate burglaries and rogue actions).
-
-### 🤖 5. Built-in Navigation Upgrades
-- **Built-in Navigation**: Replace the custom waypoint-raycast pathfinding with Godot's native `NavigationRegion2D` and `NavigationAgent2D`.
-- **Dynamic Avoidance**: Enable obstacle avoidance so competitor NPCs and wandering villagers naturally route around player-placed workstations and houses.
-
-### 🧵 6. Player Career & Crafting Expansion
-- **Tailor Recipes**: Implement the Tailor career recipes, materials (like wool, fabric, clothes), and custom workstation (Sewing Table).
-
-### 👤 7. Character Creation & Starting Profession
-- **Starting Career Selection**: Provide a screen at the beginning of the game where players select their native starting career (e.g. Patreon, Craftsman, Tailor, Scholar).
-- **Starting Inventory & Lore**: Adapt starting items, gold, and local lore based on the selected career choice.
-
-### 💑 8. Dynasties, Courting & NPC Relationships
-- **NPC Affinity**: Add dialogue options, gifting, and favor tasks to increase relationship points with specific townspeople.
-- **Dynastic Marriage & Partnerships**: Courting and marriage at a macro level with regional dynasties, granting access to new playable/hireable characters that can work at player businesses.
+### 💑 4. Dynastic Alliances & Career Partnerships
+- **Dynastic Alliances**: Courting and marriage at a macro level with regional dynasties, granting access to new playable/hireable characters that can work at player businesses.
 - **Career Partnerships**: Romancing or partnering with a townsperson of a different career unlocks joint building/crafting access, allowing players to build and run workstations belonging to their partner's profession.
 
-### 🌍 9. Macro-Economy, Events & External Trade
-- **Province & Global Events**: Dynamic events affecting industries, sales, or stocks (e.g. foreign war outbreak generating massive order requests for weapons, armor, and health items).
-- **Service/Production Events**: Unusual events within specific business types (e.g., a bank client failing to pay back their debt and interests).
+### 🌍 5. Macro-Economy, Events & External Trade
+- **Commerce-Driven Prosperity**: Selling items to public markets grants small, subtle trickles of prosperity to the local province/city (hidden from players in exact values but visible as incremental progress).
+- **Dynamic Event Crises**: Random events requesting bulk goods from players (e.g., a city/province demanding weapons and armor for an upcoming war).
+- **Quest System Overhaul**: Introduce distinct quest categories and rewards:
+  - *Guild Quests & City Authority Quests* (from Councilors, Governors, etc.).
+  - *Diverse Rewards*: Quests might yield Gold + Influence, Gold + Influence + Profession Exp (to boost specific careers), or Gold + Prosperity (to build up local cities).
 - **River-Based External Trade**: Trading routes along rivers for exporting goods at higher prices, requiring high capital investments in security/escorts and trade licenses (High-Risk/High-Reward).
 - **Bandit Encounters**: Random ambush and theft encounters during goods transportation, scaling in frequency and threat level depending on the province's security rating.
 
-### 🌾 10. Profession Expansion & Raw Materials
-- **Pervasive Profession Trees**: Expand unique buildings, recipes, and progression trees for Craftsman, WoodWorker, Scholar, Patreon, Tailor, Rogue, Herbalist, and Entertainer professions.
-- **Basic Item Gathering**: Refine world gathering mechanics for basic raw materials (wheat, eggs, apples, fresh water, etc.) to support foundational economy loops.
+### 🌾 6. Profession Expansion & Raw Materials
+- **Pervasive Profession Trees**: Expand unique buildings, recipes, and progression trees for WoodWorker, Rogue, Herbalist, and Entertainer professions.
 - **Provincial Raw Material Nodes**: Specific nodes in each province dedicated to gathering basic raw materials, allowing players to source goods by investing money and managing time/logistics.
 
-### ⚖️ 11. Health, Crime & Legal Systems
+### ⚖️ 7. Health, Crime, & Underworld Systems
+- **Black Market Trading Hub**: A dedicated black market trading system and custom illicit economy mechanics with unique trader NPCs for Rogue characters to exchange contraband and forged items.
 - **Legal System & Jail Time**: Employees and characters face legal consequences. Misconduct or illegal actions can result in lawsuits, legal cases, and active jail sentences.
 - **Injuries & Hospitalization**: Accidents in workplaces or physical altercations result in temporary injuries and recovery time in hospitals, disabling workers.
 
-### 🏰 12. Province Travel & Guild Alliances
-- **Province Border Restrictions**: Border tolls and entry requirements (gold fees or title thresholds) needed to travel to, buy properties in, or build in new provinces.
+### 🏰 8. Province Travel & Guild Alliances
+- **Walled City Entrance Tolls**: Entry tolls applied when entering walled cities via gated checkpoints guarded by city sentries. Bypassed by being affiliated with the local city/province guild.
 - **Guild Trade Alliances**: Set up diplomatic treaties, trading agreements, and guild alliances at the macro level.
 
-### ⛪ 13. Religion System
+### ⛪ 9. Religion System
 - **State Religion**: Interact with a centralized state religion. Players can donate gold/money to temples to accumulate political and social influence.
+
+### 🏢 10. Building Interior Evolution & Workstation Spawning
+- **Dynamic Building Interiors**: Support unique, themed interior templates matching the building type (e.g. bakeries, distilleries, inns, and event halls).
+- **Workstation Improvement Spawning**: Dynamically spawn and position physical workbenches inside the interior scene when they are added via building improvements.
+- **Service Navigation Target Points**: Guide worker NPCs to different specific coordinates and target nodes inside the building depending on the active recipe or service they are performing (e.g. baking oven vs. serving counter).
+
+### 🖼️ 11. Housing Artifact Slots & Buff Stacking
+- **Artifact Slots**: Each personal house has 1 slot (expanding to 2 slots at maximum house level) for displaying unique artifacts.
+- **Buff Stacking Incentives**: Players can establish houses across different provinces to stack passive artifact bonuses (e.g., stats or production boosts) simultaneously.
 
 ---
 
 ## ✅ Completed Features
+
+### 🎭 Showman (Entertainer) Profession Tier 1-4 Update
+- Re-aligned Showman career progression loop from levels 1 to 10.
+- Added 21 item resources: Raw (`clay_mud`, `raw_stone`, `marble_block`), semi-elaborate (`fine_pigments`, `artist_canvas`, `refined_clay`, `instrument_strings`), and finished/equipment goods (`clay_flute`, `festival_mask`, `plaster_bust`, `noble_statue`, `masterwork_lute`, `brass_horn`, `sheet_music`, `busking_ticket`, `concert_ticket`, `scenic_backdrop`, `royal_regalia`, `grand_stage_set`, `masterpiece_opera_partiture`, `monumental_acoustic_dome`).
+- Configured 21 recipes covering workshop production, dynamic boost services, and spires.
+- Created custom workshop scripts and scenes: Artisan Atelier, Busking Stages (L1-4), Instrument Workshop, Music Salons (L1-2), Scenic Design Lofts (L1-2), Grand Amphitheater, and Royal Opera House.
+- Integrated placement rules for Royal Opera House (requiring Showman Level 10, gold, and consuming 1x Monumental Truss; spouse requirement explicitly removed per user instruction).
+- Programmatically spawned overworld resource nodes for Clay Banks (`clay_mud`), Stone Quarries (`raw_stone`), and Marble Deposits (`marble_block`).
+- Programmed dynamic service boosters in Music Salons, supporting cost scaling and ticket production.
+
+### 👤 Rogue Profession Tier 1-4 Update
+- Re-aligned Rogue progression loop from levels 1 to 10.
+- Added 19 item resources: Raw (`scraped_metal`, `wild_animal_bones`, `deadwood_twigs`), refined (`utility_solder_bar`, `polished_bone_buttons`, `coarse_cordage`), finished (`street_cudgel`, `travelers_money_belt`, `transit_pass`, `concealed_liner_bag`, `performer_disguise_kit`, `flash_powder_bomb`, `poisoned_dagger`, `informant_report`, `private_security_voucher`, `squatters_writ`, `bandits_pass`, `skeleton_key`).
+- Configured 14 recipes covering workbench fabrication, logistics, extortion, and safe conduct passes.
+- Created custom workshop scripts and scenes: Smuggler's Hideout, Thieves' Den (L1-4), Informant Lookout, Cutpurse Apartments (L1-2), Crime Syndicate HQ (L1-2), Shadow Broker's Ring, and Palace Spire.
+- Implemented map attributes ("W | S | H") drawing on map graphics and map click-to-dispatch, private security client-driven services, toll and tariff bypass for smuggler routes, Spire placement career/spouse rules, overworld scrap/bone/twig gathering mega-nodes spawning, and Squatter's Writ 48-hour audit shutdown confirmation logic on competitor workshops.
+
+### 📑 Scholar Profession Tier 1-4 Update
+- Re-aligned Scholar progression loop from levels 1 to 10.
+- Added 20 item resources: Raw (`wild_flax`, `river_reeds`), refined (`inkwell`, `parchment_sheet`, `printing_plate`, `unsigned_bond`), finished (`land_deed`, `registry_ledger`, `blank_profession_book`/Apprenticeship Tome, `masterwork_folio`, `trade_passport`), and legal certificates/contracts (`signed_affidavit`, `tax_exemption_writ`, `imperial_trade_charter`, `active_debt_ledger`, `venture_certificate`, `defaulted_estate_contract`, `monopoly_defense_contract`, `central_banking_charter`, `fiat_currency_matrix`).
+- Configured 22 recipes covering scriptorium paper making, legal drafting, usury lending, and masterpiece fiat currency matrix.
+- Created custom workshop scripts and scenes: Paper Scriptorium (L1), Scholar Study (L1-4), Registrar Office (L1-2), Type-Setting Press (L1), Grand Courthouse (L1), Provincial Bank (L1-2), Sovereign Mint (L10 Spire), and Library Spire (L10).
+- Handled spires checks (removed spouse/truss checks for Craftsman and Patreon spires), added Sovereign Mint Scholar Level 10 requirement, and added Provincial Bank advanced structural beam consumption.
+- Enforced a 15 Gold border toll on NPCs transitioning between different provinces, bypassed if player has a `trade_passport` in inventory.
+- Programmatically spawned Oakhaven Flax Field and Valley Reed Banks mega nodes.
+- Fixed a pre-existing out-of-bounds inventory layout focus linking error.
+
+### 🧪 Herbalist Profession Tier 1-4 Update
+- Re-aligned Herbalist career progression loop from levels 1 to 10.
+- Added raw resources (`raw_wild_herbs`, `overworld_root`, `underground_fungi`) and semi-elaborates/finished goods (`flora_oil`, `dried_shives`, `raw_pigment_powder`, `stamina_draught`, `nitre_powder`, `healing_salve`, `chemical_solvent`, `pure_sulfur`, `antitoxin_serum`, `restoration_flask`, `lethal_poison_base`, `void_catalyst`, `crop_blight_contract`, `archduke_treatment_contract`, `draught_of_infinity`, `philosophers_stone`).
+- Configured 22 new recipes covering botany, medicine, dyes, contracts (Crop Blight, Archduke Treatment), and spires.
+- Created custom workshop scripts and scenes: Biomass Drying Shed (L1), Apothecary Shop (L1-4), Acid Crucible & Still (L1), Infusion Infirmary (L1-2), Conservatory Lab (L1-2), Imperial Sanitarium, and Alchemical Greenhouse Spire.
+- Implemented level 10 validation (no spouse, no truss requirement) on Alchemical Spire placement.
+- Programmatically spawned overworld gatherable nodes for wild herbs, root, and fungi at coordinate Vector2s.
+- Integrated the Infirmaries with Dynamic Boosters (Anti-Toxin Serum, Restoration Flask) yielding a 1.5x price multiplier.
+
+### 🪵 Woodworker Profession Tier 1-4 Update
+- Re-aligned Woodworker career progression loop from levels 1 to 10.
+- Added raw resources (`raw_log`, `raw_hardwood_log`, `firewood`) and semi-elaborates/finished goods (`wooden_pegs`, `basic_crate`, `loom_frame`, `shipping_crate`, `refined_hardwood`, `reinforced_wheel`, `handcart`, `freight_wagon`, `ornate_fittings`, `modular_wing`, `heavy_scaffolding`, `masterwork_vault_door`).
+- Configured 23 new recipes covering wood processing, cartwrighting, architecture, event contracts (Bridge Reconstruction, Palace Remodeling), and masterwork vault doors.
+- Created custom workshop scripts and scenes: Timber Mill (L1), Carpentry Workshop (L1-4), Hardwood Kiln, Wheelwright Shop (L1-2), Architecture Atelier (L1-2), Civil Engineering Guildhall, and Citadel Spire.
+- Implemented spouse career and Woodworker Level 10 validation on Citadel Spire placement.
+- Programmatically spawned overworld gatherable nodes for Hardwood Logs at Valley Hardwood Grove and Mineville Hardwood Forest.
+- Configured GreatForest and OakhavenForest to harvest `raw_log` instead of standard timber.
+- Integrated the Hauling and Transit Services with Dynamic Boosters (Handcart, Freight Wagon) yielding a 1.5x price multiplier.
+
+### 🛠️ Craftsman Profession Tier 1-4 Update
+- Re-aligned Craftsman career progression loop from levels 1 to 10.
+- Programmatically spawned raw overworld gathering nodes: Coal Nuggets, Copper Ore, and Zinc Ore.
+- Created 31 new item resources representing raw resources, intermediates, finished contracts, and martial weapons/armor.
+- Configured 24 new recipes covering metallurgy, toolmaking, defensive fortification spikes, and military armory commissions.
+- Added custom workshop scripts and scenes: Bloomery Smelter (L1), Blacksmith Forge (L1-2), Alloy Blast Furnace (L4), The Armory (L1-3), Imperial Siege Arsenal (L7), Imperial Ordnance Foundry (L8), and Imperial Ironworks Spire (L10).
+- Implemented spouse career and Craftsman Level 10 validation on Ironworks Spire placement.
+- Integrated the Garrison Outfitting Service dynamic booster and client transaction logs inside Armories.
+
+### 🥖 Patreon Profession Tier 1-4 Update
+- Re-aligned Patreon progression loop from levels 1 to 10.
+- Added new items (Wild animal hides, tanned leather strips, cargo keg, stage costume, spice grubs, tickets/vouchers, sovereign banquet, sovereign nectar, and royal tapestry/painting decor items).
+- Revamped Tavern and Inn to separate production and services, including DYNAMIC_BOOST mechanics.
+- Implemented Tier 4 Imperial Gastronomy Spire with Monumental Truss construction cost.
+
+### 👤 Character Core Stats, Trait Pipeline & Serialization (Phase 1)
+- **CharacterResource Container**: Standardized base stats (LP, AP, damage, walking/gathering speed, productivity) and progress/ID metadata.
+- **Prosperity-Weighted Trait Generation**: RNG loops inside NPCManager weighing provincial prosperity levels to roll 0-2 traits on spawning.
+- **Tool Level Restraints**: Restricts overworld harvesting: level 1 tool for tier 1 resource, level 2 tool for tiers 1-3, and level 3 tool for tiers 1-6. Breaks scheduling and raises alerts on violation.
+- **Midnight Wage Scaling**: Midnight loop evaluating `Daily_Wage = (Profession_Level * 15) + (Sum_Of_All_Base_Stats * 2) + (Active_Mods_Value_Weight)`.
+- **Skill Book Overwriting UI**: Selection list view and confirmation replacement panel when capping at 2 active traits.
+- **Deep Serialization**: Flat dictionary exports and safe reconstructive loads for player, rival, and employee resources.
+
+### 🧠 Trait Modifiers & Probabilities (Phase 2)
+- **Trait Registration & Scaled Modifiers**: Registered traits `"Fleet-Footed"`, `"Diligent Master"`, `"Scythe-Wielder"`, `"Miracle Artisan"`, and `"Scavenger's Eye"` in `npc_manager.gd` with scaled modifiers across Levels 1-3.
+- **Passive Attribute Modifiers**: Refactored speed and productivity getters in player (`player.gd`) and competitor rivals (`ai_rival.gd`), employee productivity (`npc_ai_controller.gd`), and NPC speed multipliers (`npc_navigation_component.gd`) to apply passive multipliers.
+- **Scythe-Wielder Gathering Speed**: Scaled tick yields in `logistics_manager.gd` during resource harvesting by Scythe-Wielder level (+5% / +10% / +15%).
+- **Miracle Artisan Yield Duplication**: Hooked up 3%/7%/15% probability-based duplication for manual player crafting (`base_production_building.gd`) and employee crafting (`BuildingStaffComponent.gd`), spawning visual confirmation floating text.
+- **Miracle Artisan Free Service Inputs**: Allowed service providers to skip ingredient/booster consumption and serve off-duty consumer NPCs for free on Miracle Artisan trigger.
+- **Scavenger's Eye Resource Harvest**: Added level 1 raw material drop checks (3%/6%/10% chance) when harvesting high-level nodes, depositing items directly to Player inventory or building storage.
+
+### 🌐 Macro Scale Modifier Managers (Phase 3)
+- **Settlement Scope Modifiers**: Embedded export modifiers dictionaries into `city.gd` and `town.gd` matching local boundary circles to scale internal benches.
+- **Province Scope Modifiers**: Created the `ProvinceMasterData` Autoload singleton tracking regional modifier lists (laws, weather events) propagating sector territory parameters.
+- **Map Scope Modifiers**: Created the `GlobalProfile` Autoload singleton containing global empire profile layer arrays that apply unchanging blanket changes globally.
+- **Decoupled Evaluation Pipeline**: Integrated `GameState.apply_macro_modifier()` which resolves Settlement, Province, and Map modifiers to compute speed, productivity, manual player/employee crafting times, and tavern/inn service durations at runtime.
+
+### 📊 F1 Status Screen Expansion: Global Modifiers & Employees Status (F1 Status)
+- **Programmatic Tab Integration**: Instantiated and registered two new tabs ("Global Modifiers" and "Employees Status") dynamically in `UI/game_hud.gd` to extend the Character F1 HUD.
+- **Global Modifiers Section**: Renders Map-wide, Province-wide, and Local Settlement scope modifiers at runtime, displaying their source description and active values (e.g. +10% movement speed, -15% crafting time).
+- Employees Status Section: Lists player-hired employees across all active workshops, including their assigned task, trait modifiers breakdown, daily wage, and current equipment.
+
+### 🧹 HUD Architecture & Modularization Refactor
+- **Code Size Reduction**: Refactored the massive `UI/game_hud.gd` script, reducing its size from 2,188 lines to 740 lines by delegating distinct UI layout and populating tasks to RefCounted helper scripts.
+- **Strict Static Typing**: Declared `class_name GameHUD` on the main HUD node for typed type-hinting, implementing strict compile-time types across all variables, arguments, and return types.
+- **Extracted UI Helpers**:
+  - [game_hud_character_tabs.gd](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/game_hud_character_tabs.gd): Renders career tabs, wealth ledgers, location-specific global modifier lists, and employee overview cards.
+  - [game_hud_inventory_manager.gd](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/game_hud_inventory_manager.gd): Builds the grid slots, updates player equipment stats, connects equipment slots, and routes keyboard focus mapping.
+  - [game_hud_rental_window.gd](file:///Users/guidospiritoso/Desktop/Antigravity/guild-valley/UI/game_hud_rental_window.gd): Configures size, styles, buttons, and animations for the house rental dialog overlay.
+
+### 🤖 NPC & Opponent Economy AI (Buyers, Prices & Attractiveness)
+- **Generic Buyer NPCs**: Roaming townspeople representing local customers who buy products selectively based on attractiveness (decoration, level, distance), prices set by the shop owner, randomness, and daily needs.
+- **Opponent Logic (Rivals)**: Competitors dynamically compete, gather resources, refine inputs, construct production buildings, hire employees, and sell finished products at their private market stalls.
+
+### 👤 Character Creation & Starting Profession
+- **Starting Career Selection**: Fully functional character creation menu to choose name and starting career path (Patreon, Craftsman, Tailor, Scholar).
+- **Starting Equipment**: Populates player's inventory with matching career-starting items.
+
+### 🏛️ Character Titles, Taxes & Provincial Politics
+- **Title Upgrade Progression**: 5-tier titles (Apprentice, Journeyman, Guildmaster, Patrician, Guild Baron) unlocked via Gold and Influence, yielding building tier unlocks and passive boosts.
+- **Taxes & Delinquency System**: Periodic real estate and production taxes with backlogs, delinquency status effects, and legal audit summing.
+- **Provincial Politics**: Influence-weighted Conclave voting system to pass or reject 14 active provincial laws.
+
+### 💑 Dynasties, Courting & NPC Relationships
+- **NPC Affinity**: Relationship value tracking with chatting, flirting, and custom quest/favor tasks.
+- **Gifting**: Interface to gift any inventory item, adjusting relationship points dynamically depending on liked/disliked items.
+- **Marriage Proposal**: Proposal at 80+ Affinity using a Ring, moving the spouse to the player's cozy house and enabling them as a hireable employee.
+
+### 🤖 Built-in Native Navigation
+- **AStar & NavigationRegion2D**: Standard pathfinding utilizing Godot's native `NavigationRegion2D` and `NavigationAgent2D`.
+- **Lot Avoidance**: Physics collision boxes block NPCs/Rivals from walking across vacant or highlighted building lots.
+
+### 🧵 Tailor Career Core Loop
+- **Weaving Workstations**: Loom and spinning jenny workstations.
+- **Tailor Core Recipes**: Weaving cotton to cloth, spools of thread, and dyes.
 
 ### 📈 Simulated Economy, Shop Selection Refinement & Market Balancing
 - Refactored NPC shop selection utility weights and transaction limits.
@@ -168,3 +276,109 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
   - Restrict infinite virtual stock checks to public MarketStalls only; private stalls and production buildings require real stock to be sold.
   - Automatically transfer finished goods from building storage to the storefront stall for Rival/NPC-run production buildings so they can sell crafted goods.
   - Multiplied NPC necessity demand cooldowns and initial timers by 4x to decrease overall consumption frequency.
+
+### 🏛️ Province-Wide Prosperity, Lot Scaling, Infrastructure & Ledger
+- **Province-Wide Prosperity & Level Scaling**:
+  - Implemented a unified prosperity evaluation mapping with new thresholds: 100 (base/Level 1), 250 (Level 2), 500 (Level 3), 750 (Level 4), and 1000 (Level 5).
+  - Synced settlement `.prosperity`, `.prosperity_level`, and `.security_rating` attributes.
+- **Dynamic Lot Expansion & Visual Evolutions**:
+  - Implemented directional city-lot expansions on sleep transitions, adding buildable lots and progressing city wall tiers (Palisade -> Finished Wood -> Massive Stone Walls).
+  - Synced paved road network upgrades across the province once Level 3 is reached.
+- **Paved Speed Boosts**:
+  - Road segments support an upgraded `is_paved` status applying a flat +3% travel speed boost on top of default road boosts.
+- **Security Attribute**:
+  - Integrated settlement-wide `security_rating` starting at a baseline of 100 and buffing by +20 per level above Level 1.
+- **Global Wealth Transaction Ledger**:
+  - Developed a persistent, comprehensive gold update attribution system tracking all sources of income/loss.
+  - Implemented a dedicated Ledger view tab under the F1 Character Screen.
+- **Inventory Context Interaction Menu**:
+  - Replaced double-click/default action with a context options popup (Equip/Consume, More Data, Delete with confirmation dialog).
+
+---
+
+## 🏛️ Endgame Grand Events System Design
+
+### 📋 Overview
+The Grand Events system represents the pinnacle of the **Guild Valley** endgame. Players utilize their Event Halls and high-tier materials to host massive regional events that dictate provincial prestige, shift market demand, and trigger macro-economic booms or busts.
+
+---
+
+### 📅 Cooldowns & Scheduling
+- **Seasonal Cooldown**: Hostable once per season (4 game days/years).
+- **Audit Penalty**: A catastrophic mishap triggers a mandatory 2-day Guild audit on the hosting Event Hall, locking all production and storefront transactions.
+- **Opponent Interference**: Competitors (Rivals) can attempt to sabotage active event preparations, adding +15% mishap risk unless the building has the `iron_reinforcements` improvement.
+
+---
+
+### 🗳️ Pool of 6-7 Grand Events (with Player Choices)
+Each Grand Event presents the player with critical logistics choices, matching the inputs and required careers to dictate outcomes:
+
+1. **Grand Cathedral Inauguration**
+   - *Career Focus*: Scholar / Patreon
+   - *Inputs*: Finished luxury goods, common wine, sweet berry cakes.
+   - *Choices*: 
+     - *Solemn Mass*: Lower payout, 0% mishap chance, +30 Holy Faction affinity.
+     - *Pompous Pageantry*: High payout, 30% mishap chance, +50 Influence.
+
+2. **Royal Tournament Banquet**
+   - *Career Focus*: Craftsman / Patreon
+   - *Inputs*: Savory baked eggs, ale, standard timber, fine weapons.
+   - *Choices*:
+     - *Bountiful Feast*: Focus on food. Safe and stable reputation boost.
+     - *Warrior's Gala*: Focus on heavy combat goods and premium wine. Higher payout, higher risk.
+
+3. **Imperial Fleet Outfitting**
+   - *Career Focus*: Craftsman / Scholar
+   - *Inputs*: Standard timber, sails/cloth, iron bars, cured pork.
+   - *Choices*:
+     - *Naval Commission*: High base payout, scales with quality, requires strict deadlines.
+     - *Privateer Contracting*: High profit margins but high risk of merchant audit if goods fail inspection.
+
+4. **Guild Baron's Gala**
+   - *Career Focus*: Patreon / Tailor
+   - *Inputs*: Gilded cream cakes, common wine, luxury clothes.
+   - *Choices*:
+     - *Aristocratic Display*: Huge prestige/influence reward, high cost.
+     - *Guild Alliance Dinner*: Medium payout, boosts relationship with opponent rivals.
+
+5. **Provincial Harvest Summit**
+   - *Career Focus*: Patreon / Craftsman
+   - *Inputs*: Flour, savory baked eggs, baked apples, ale.
+   - *Choices*:
+     - *Peasant Feast*: High popularity/attractiveness bonus (+20 to all businesses), low gold return.
+     - *Mercantile Trade Fair*: High gold payout, scales with items' levels.
+
+6. **Alchemist's Grand Exhibition**
+   - *Career Focus*: Scholar / Patreon
+   - *Inputs*: Smugglers' moonshine, basic ingredients, apothecary buns.
+   - *Choices*:
+     - *Controlled Demos*: Low risk, modest payouts.
+     - *Volatile Spectacle*: 40% mishap risk, massive payout & breakthrough chance.
+
+7. **Winter Solstice Jubilee**
+   - *Career Focus*: Tailor / Patreon
+   - *Inputs*: Common wine, baked apples, cured pork, blankets/cloth.
+   - *Choices*:
+     - *Charity Drive*: Boosts tax exemptions for the next year.
+     - *Imperial Revelry*: Large immediate gold payout from visiting nobles.
+
+---
+
+### 🏆 The 5 Event Outcomes
+The final rating of the hosted event is determined by the input quality (average item level), staff career levels, and mishap rolls:
+
+1. **Pristine / Masterwork Success**
+   - *Conditions*: Triggered if all inputs are high quality (avg level >= 6). Mishap chance clamped to 0%.
+   - *Rewards*: 150% gold payout, +50 Influence, +15 Attractiveness for 2 days, and immediate Career XP.
+2. **Standard Success**
+   - *Conditions*: Event successfully hosted with no mishaps.
+   - *Rewards*: 100% gold payout, standard Career XP, and +10 Influence.
+3. **Mishap / Partial Success**
+   - *Conditions*: A mishap occurs but the event is saved by quick action.
+   - *Rewards*: Payout reduced by 50-70%, no Influence reward, and temporary Attractiveness penalty (-10).
+4. **Catastrophic Mishap**
+   - *Conditions*: Critical mishap failure (e.g. food poisoning, fire).
+   - *Rewards*: 0% gold payout, -30 Influence, and 12-hour building lock.
+5. **Grand Boycott / Audit Strike**
+   - *Conditions*: Event fails while player is under tax delinquency or active political audit.
+   - *Rewards*: Demolition penalty, heavy Conclave fine, and -100 Influence.

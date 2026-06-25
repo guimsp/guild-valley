@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "informant_report"
+name = "Informant Report"
+item_level = 4
+base_value = 70
+weight = 0.2
+category = "Product"
+market_category = "Finished Goods"
+description = "A compiled collection of espionage reports tracking regional city statistics."

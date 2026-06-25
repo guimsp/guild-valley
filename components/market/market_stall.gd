@@ -161,14 +161,12 @@ func _populate_default_stock() -> void:
 					target_stock[item] = item.get_target_stock()
 					
 		# Also add skill books to public markets so players can buy them
-		var book_p: ItemData = load("res://common/items/instances/Skill Items/book_patreon.tres")
-		var book_c: ItemData = load("res://common/items/instances/Skill Items/book_craftsman.tres")
-		var book_t: ItemData = load("res://common/items/instances/Skill Items/book_tailor.tres")
-		var book_s: ItemData = load("res://common/items/instances/Skill Items/book_scholar.tres")
-		if book_p: target_stock[book_p] = 1
-		if book_c: target_stock[book_c] = 1
-		if book_t: target_stock[book_t] = 1
-		if book_s: target_stock[book_s] = 1
+		var book_f: ItemData = load("res://common/items/instances/Skill Items/book_fleet_footed.tres")
+		var book_i: ItemData = load("res://common/items/instances/Skill Items/book_industrious.tres")
+		var book_st: ItemData = load("res://common/items/instances/Skill Items/book_sturdy.tres")
+		if book_f: target_stock[book_f] = 1
+		if book_i: target_stock[book_i] = 1
+		if book_st: target_stock[book_st] = 1
 	else:
 		# Original default stock logic for non-public/competitor/rented/player stalls
 		var wheat: ItemData = load("res://common/items/instances/Raw Materials/wheat.tres")
@@ -213,15 +211,13 @@ func _populate_default_stock() -> void:
 						inventory.add_item(item, average_amt)
 						
 		# Also add skill books to public markets so players can buy them
-		var book_p: ItemData = load("res://common/items/instances/Skill Items/book_patreon.tres")
-		var book_c: ItemData = load("res://common/items/instances/Skill Items/book_craftsman.tres")
-		var book_t: ItemData = load("res://common/items/instances/Skill Items/book_tailor.tres")
-		var book_s: ItemData = load("res://common/items/instances/Skill Items/book_scholar.tres")
+		var book_f: ItemData = load("res://common/items/instances/Skill Items/book_fleet_footed.tres")
+		var book_i: ItemData = load("res://common/items/instances/Skill Items/book_industrious.tres")
+		var book_st: ItemData = load("res://common/items/instances/Skill Items/book_sturdy.tres")
 		if inventory:
-			if book_p: inventory.add_item(book_p, 1)
-			if book_c: inventory.add_item(book_c, 1)
-			if book_t: inventory.add_item(book_t, 1)
-			if book_s: inventory.add_item(book_s, 1)
+			if book_f: inventory.add_item(book_f, 1)
+			if book_i: inventory.add_item(book_i, 1)
+			if book_st: inventory.add_item(book_st, 1)
 	else:
 		var wheat: ItemData = load("res://common/items/instances/Raw Materials/wheat.tres")
 		var flour: ItemData = load("res://common/items/instances/Semi-Elaborate/flour.tres")
@@ -242,36 +238,54 @@ func _populate_default_stock() -> void:
 			if ingot: inventory.add_item(ingot, 5)
 			if ale: inventory.add_item(ale, 15)
 
-func get_calculated_price(item: ItemData, current_stock: int) -> float:
-	var base_val: float = item.base_value
-	var min_val: float = item.min_price
-	var max_val: float = item.max_price
-	var target: float = target_stock.get(item, item.get_target_stock())
-	if target <= 0.0:
-		target = 10.0
+func get_target_mid_stock_for(item: ItemData) -> int:
+	if not item:
+		return 10
+	var main_loop = Engine.get_main_loop()
+	if not main_loop or not main_loop.root:
+		return 10
+	var econ = main_loop.root.get_node_or_null("EconomyManager")
+	if not econ:
+		return 10
 		
+	var career = econ.get_item_career(item.id)
+	var prof = econ.CAREER_TO_PROFESSION.get(career, econ.ProfessionType.PATREON)
+	var profile = econ.PROFESSION_PROFILES[prof]
+	
+	var province_scale = 100.0
+	var prov = GameState.get_province_of_node(self) if GameState else ""
+	if ProsperityManager and prov != "":
+		province_scale = ProsperityManager.province_prosperity.get(prov, 100.0)
+		
+	var L = item.item_level
+	var target_mid = int(ceil(profile.base_stock / pow(L, 1.2))) * (province_scale / 100.0)
+	return int(max(1, target_mid))
+
+func get_calculated_price(item: ItemData, current_stock: int) -> float:
+	var target_mid = get_target_mid_stock_for(item)
+	var mid_price = item.base_value
+	
+	var min_val = mid_price * 0.5
+	var max_val = mid_price * 1.8
+	
 	var elasticity = item.get_price_elasticity()
-	# Scale exponent by sensitivity relative to default 0.5
 	var alpha = elasticity * (sensitivity / 0.5)
-	var price: float = base_val
+	var price = float(mid_price)
 	
 	if current_stock <= 0:
 		price = max_val
-	elif current_stock < target:
-		# Shortage: BaseValue -> MaxPrice
-		var deficit_ratio = 1.0 - (float(current_stock) / target)
-		price = base_val + (max_val - base_val) * pow(deficit_ratio, alpha)
-	elif current_stock <= 2.0 * target:
-		# Surplus: BaseValue -> MinPrice
-		var excess_ratio = 2.0 - (float(current_stock) / target)
-		price = min_val + (base_val - min_val) * pow(excess_ratio, alpha)
+	elif current_stock < target_mid:
+		var deficit_ratio = 1.0 - (float(current_stock) / target_mid)
+		price = mid_price + (max_val - mid_price) * pow(deficit_ratio, alpha)
+	elif current_stock <= 2.0 * target_mid:
+		var excess_ratio = 2.0 - (float(current_stock) / target_mid)
+		price = min_val + (mid_price - min_val) * pow(excess_ratio, alpha)
 	else:
-		# Saturation floor
 		price = min_val
 		
 	return clamp(price, min_val, max_val)
 
-func get_single_buy_price(item: ItemData, temp_stock: int) -> int:
+func get_single_buy_price(item: ItemData, temp_stock: int, ignore_tariffs: bool = false) -> int:
 	var base_price = get_calculated_price(item, temp_stock)
 	
 	var price = 0.0
@@ -280,26 +294,31 @@ func get_single_buy_price(item: ItemData, temp_stock: int) -> int:
 	else:
 		price = base_price * 1.1
 		
-	# Apply Infrastructure Tariff Import Buy Markup
-	var pm = get_node_or_null("/root/PoliticsManager")
-	var prov = GameState.get_province_of_node(self) if GameState else ""
-	if pm and prov != "" and ownership_type == "Public":
-		if pm.is_law_active("infrastructure_tariff_inc", prov):
-			price *= 1.50
-		elif pm.is_law_active("infrastructure_tariff_dec", prov):
-			price *= 0.50
+	# Apply Infrastructure Tariff Toll Buy Markup
+	if not ignore_tariffs:
+		var pm = get_node_or_null("/root/PoliticsManager")
+		var prov = GameState.get_province_of_node(self) if GameState else ""
+		if pm and prov != "" and ownership_type == "Public":
+			if pm.is_law_active("infrastructure_tariff_inc", prov):
+				price *= 1.15
+			elif pm.is_law_active("infrastructure_tariff_dec", prov):
+				price *= 0.85
 			
 	return int(price)
 
 # Calculate buy price (what player pays to buy 1 unit)
-func get_buy_price(item: ItemData) -> int:
+func get_buy_price(item: ItemData, ignore_tariffs: bool = false) -> int:
+	if parent_building and "custom_prices" in parent_building and parent_building.custom_prices.has(item.id):
+		return parent_building.custom_prices[item.id]
 	if custom_prices.has(item.id):
 		return custom_prices[item.id]
 	var current_stock: int = inventory.get_item_amount(item.id)
-	return get_single_buy_price(item, current_stock)
+	return get_single_buy_price(item, current_stock, ignore_tariffs)
 
 # Calculate sell price (what player receives when selling 1 unit)
 func get_sell_price(item: ItemData) -> int:
+	if parent_building and "custom_prices" in parent_building and parent_building.custom_prices.has(item.id):
+		return int(parent_building.custom_prices[item.id] * 0.8)
 	if custom_prices.has(item.id):
 		return int(custom_prices[item.id] * 0.8)
 		
@@ -311,6 +330,8 @@ func get_sell_price(item: ItemData) -> int:
 
 # Calculate single sell price dynamically based on temporary stock level
 func get_single_sell_price(item: ItemData, temp_stock: int) -> int:
+	if parent_building and "custom_prices" in parent_building and parent_building.custom_prices.has(item.id):
+		return int(parent_building.custom_prices[item.id] * 0.8)
 	if custom_prices.has(item.id):
 		return int(custom_prices[item.id] * 0.8)
 		
@@ -336,14 +357,13 @@ func buy_item(item: ItemData, amount: int) -> bool:
 		else:
 			inventory.remove_item(item.id, amount)
 		print("[MarketStall] Withdrew %d %s from storefront." % [amount, item.name])
+		var econ = get_node_or_null("/root/EconomyManager")
+		if econ and econ.has_method("register_trade_activity"):
+			econ.register_trade_activity(String(get_path()), item.id)
 		return true
 		
-	# Calculate price incrementally (marginal price changes per unit purchased)
-	var total_price: int = 0
-	var temp_stock: int = current_stock
-	for i in range(amount):
-		total_price += get_single_buy_price(item, temp_stock)
-		temp_stock -= 1
+	var unit_price: int = get_buy_price(item)
+	var total_price: int = unit_price * amount
 		
 	if GameState.gold < total_price:
 		print("[MarketStall] Player cannot afford purchase! Cost: %d, Gold: %d" % [total_price, GameState.gold])
@@ -357,16 +377,17 @@ func buy_item(item: ItemData, amount: int) -> bool:
 			print("[MarketStall] Player inventory is full!")
 			return false
 			
-		# Recalculate price for accepted portion
-		total_price = 0
-		temp_stock = current_stock
-		for i in range(accepted):
-			total_price += get_single_buy_price(item, temp_stock)
-			temp_stock -= 1
-			
+		total_price = unit_price * accepted
+		
+		# Set change attribution
+		GameState.next_change_reason = "Market Purchase"
+		GameState.next_change_detail = item.name
 		GameState.gold -= total_price
 		inventory.remove_item(item.id, accepted)
 	else:
+		# Set change attribution
+		GameState.next_change_reason = "Market Purchase"
+		GameState.next_change_detail = item.name
 		GameState.gold -= total_price
 		inventory.remove_item(item.id, amount)
 		
@@ -377,6 +398,9 @@ func buy_item(item: ItemData, amount: int) -> bool:
 			rivals[0].gold += total_price
 		
 	print("[MarketStall] Transaction successful. Bought %d %s for %d Gold." % [amount - remainder, item.name, total_price])
+	var econ = get_node_or_null("/root/EconomyManager")
+	if econ and econ.has_method("register_trade_activity"):
+		econ.register_trade_activity(String(get_path()), item.id)
 	return true
 
 # Executes selling items to the market (player sells items, receives gold)
@@ -398,15 +422,13 @@ func sell_item(item: ItemData, amount: int) -> bool:
 		else:
 			GameState.player_inventory.remove_item(item.id, amount)
 		print("[MarketStall] Deposited %d %s to storefront." % [amount, item.name])
+		var econ = get_node_or_null("/root/EconomyManager")
+		if econ and econ.has_method("register_trade_activity"):
+			econ.register_trade_activity(String(get_path()), item.id)
 		return true
 		
-	# Calculate revenue incrementally
-	var current_stock: int = inventory.get_item_amount(item.id)
-	var total_revenue: int = 0
-	var temp_stock: int = current_stock
-	for i in range(amount):
-		total_revenue += get_single_sell_price(item, temp_stock)
-		temp_stock += 1
+	var unit_price: int = get_sell_price(item)
+	var total_revenue: int = unit_price * amount
 		
 	# Try to add items to market inventory
 	var remainder: int = inventory.add_item(item, amount)
@@ -416,12 +438,7 @@ func sell_item(item: ItemData, amount: int) -> bool:
 			print("[MarketStall] Market inventory is full!")
 			return false
 			
-		# Recalculate revenue for accepted portion
-		total_revenue = 0
-		temp_stock = current_stock
-		for i in range(accepted):
-			total_revenue += get_single_sell_price(item, temp_stock)
-			temp_stock += 1
+		total_revenue = unit_price * accepted
 			
 		# Deduct from rival if NPC owned
 		if ownership_type == "NPC" and owner_id == "Rival":
@@ -434,6 +451,9 @@ func sell_item(item: ItemData, amount: int) -> bool:
 					return false
 				rivals[0].gold -= total_revenue
 			
+		# Set change attribution
+		GameState.next_change_reason = "Market Sales"
+		GameState.next_change_detail = item.name
 		GameState.gold += total_revenue
 		GameState.player_inventory.remove_item(item.id, accepted)
 	else:
@@ -448,10 +468,16 @@ func sell_item(item: ItemData, amount: int) -> bool:
 					return false
 				rivals[0].gold -= total_revenue
 				
+		# Set change attribution
+		GameState.next_change_reason = "Market Sales"
+		GameState.next_change_detail = item.name
 		GameState.gold += total_revenue
 		GameState.player_inventory.remove_item(item.id, amount)
 		
 	print("[MarketStall] Transaction successful. Sold %d %s for %d Gold." % [amount - remainder, item.name, total_revenue])
+	var econ = get_node_or_null("/root/EconomyManager")
+	if econ and econ.has_method("register_trade_activity"):
+		econ.register_trade_activity(String(get_path()), item.id)
 	return true
 
 func get_interaction_position() -> Vector2:

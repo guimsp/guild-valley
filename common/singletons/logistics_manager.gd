@@ -82,8 +82,68 @@ func _process_gathering_ticks() -> void:
 				
 			var tick_yield = base_yield * prod * congestion * gathering_mult
 			
+			var econ = get_node_or_null("/root/EconomyManager")
+			var node_level = 1
+			if econ:
+				var item_res = econ.item_database.get(node.resource_type_id)
+				if item_res:
+					node_level = item_res.item_level
+					var gather_time = econ.get_algorithmic_gathering_time(item_res.item_level)
+					tick_yield = (3.0 / gather_time) * base_yield * prod * congestion * gathering_mult
+			
+			# Apply Scythe-Wielder gathering speed modifier
+			var scythe_bonus = 0.0
+			if "character_resource" in character and character.character_resource != null:
+				for trait_id in character.character_resource.active_mods:
+					if trait_id.begins_with("Scythe-Wielder_Lvl"):
+						var lvl = int(trait_id.replace("Scythe-Wielder_Lvl", ""))
+						if lvl == 1: scythe_bonus += 0.05
+						elif lvl == 2: scythe_bonus += 0.10
+						elif lvl == 3: scythe_bonus += 0.15
+			tick_yield *= (1.0 + scythe_bonus)
+			
 			if gathered_buffer.has(character):
 				gathered_buffer[character]["amount"] += tick_yield
+				
+			# Apply Scavenger's Eye extra resource drop
+			if node_level > 1 and "character_resource" in character and character.character_resource != null:
+				var scavenger_lvl = 0
+				for trait_id in character.character_resource.active_mods:
+					if trait_id.begins_with("Scavenger's Eye_Lvl"):
+						scavenger_lvl = int(trait_id.replace("Scavenger's Eye_Lvl", ""))
+						break
+				if scavenger_lvl > 0:
+					var chance = 0.0
+					if scavenger_lvl == 1: chance = 0.03
+					elif scavenger_lvl == 2: chance = 0.06
+					elif scavenger_lvl == 3: chance = 0.10
+					
+					if randf() <= chance:
+						var extra_item = _get_baseline_level_1_item()
+						if extra_item:
+							var success = false
+							if character.is_in_group("Player"):
+								var remainder = GameState.player_inventory.add_item(extra_item, 1)
+								if remainder == 0:
+									success = true
+									GameState.spawn_ui_floating_text("Scavenged 1 %s!" % extra_item.name)
+							elif character.is_in_group("Rivals"):
+								if "inventory" in character and character.inventory:
+									character.inventory.add_item(extra_item, 1)
+									success = true
+							else:
+								var home = character.get("hired_by_building")
+								if is_instance_valid(home) and "building_storage" in home and home.building_storage:
+									home.building_storage.add_item(extra_item, 1)
+									success = true
+									
+							if success:
+								if character.has_method("spawn_debug_emote"):
+									character.call("spawn_debug_emote", "Scavenger!", Color.GREEN)
+								elif character.has_method("spawn_floating_text"):
+									character.call("spawn_floating_text", "Scavenger!")
+								elif character.has_method("_spawn_floating_text"):
+									character.call("_spawn_floating_text", "Scavenger!")
 				
 			# Durability tick down
 			if eq:
@@ -181,3 +241,16 @@ func collect_player_yield(player: Node2D, node: Area2D) -> void:
 func erase_buffer(character: Node2D) -> void:
 	if gathered_buffer.has(character):
 		gathered_buffer.erase(character)
+
+func _get_baseline_level_1_item() -> ItemData:
+	var econ_mgr = get_node_or_null("/root/EconomyManager")
+	if not econ_mgr:
+		return null
+	var candidates: Array[ItemData] = []
+	for item_id in econ_mgr.item_database:
+		var item: ItemData = econ_mgr.item_database[item_id]
+		if item.item_level == 1 and item.get_item_category() == 0:
+			candidates.append(item)
+	if candidates.is_empty():
+		return null
+	return candidates.pick_random()

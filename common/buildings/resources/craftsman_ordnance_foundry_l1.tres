@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_foundry"]
+
+[resource]
+script = ExtResource("1_foundry")
+id = "craftsman_ordnance_foundry_l1"
+name = "Imperial Ordnance Foundry"
+family = "craftsman_ordnance"
+career = "craftsman"
+tier = 3
+level = 8
+cost = 2000
+time = 25.0
+scene_path = "res://components/production/ordnance_foundry.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 3 Ordnance Foundry. Take on grand city defense contracts and honor guard uniform projects."

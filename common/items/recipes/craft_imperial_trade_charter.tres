@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/signed_affidavit.tres" id="2_affidavit"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/land_deed.tres" id="3_deed"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/imperial_trade_charter.tres" id="4_charter"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Craft Imperial Trade Charter"
+required_career = "scholar"
+required_level = 5
+inputs = {
+ExtResource("2_affidavit"): 1,
+ExtResource("3_deed"): 1
+}
+output_item = ExtResource("4_charter")
+output_amount = 1
+xp_reward = 40

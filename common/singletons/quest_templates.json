@@ -1,0 +1,128 @@
+[
+  {
+    "item_id": "iron_ore",
+    "item_name": "Iron Ore",
+    "base_amount": 10,
+    "base_reward": 180,
+    "due_days": 2,
+    "req_level": 1,
+    "difficulty": "Beginner"
+  },
+  {
+    "item_id": "wheat",
+    "item_name": "Wheat",
+    "base_amount": 15,
+    "base_reward": 120,
+    "due_days": 2,
+    "req_level": 1,
+    "difficulty": "Beginner"
+  },
+  {
+    "item_id": "cotton",
+    "item_name": "Cotton",
+    "base_amount": 12,
+    "base_reward": 150,
+    "due_days": 2,
+    "req_level": 1,
+    "difficulty": "Beginner"
+  },
+  {
+    "item_id": "flour",
+    "item_name": "Flour",
+    "base_amount": 8,
+    "base_reward": 200,
+    "due_days": 2,
+    "req_level": 2,
+    "difficulty": "Beginner"
+  },
+  {
+    "item_id": "cloth",
+    "item_name": "Cloth",
+    "base_amount": 8,
+    "base_reward": 250,
+    "due_days": 2,
+    "req_level": 2,
+    "difficulty": "Beginner"
+  },
+  {
+    "item_id": "iron_ingot",
+    "item_name": "Iron Ingot",
+    "base_amount": 5,
+    "base_reward": 300,
+    "due_days": 3,
+    "req_level": 3,
+    "difficulty": "Advanced"
+  },
+  {
+    "item_id": "oil",
+    "item_name": "Oil",
+    "base_amount": 6,
+    "base_reward": 240,
+    "due_days": 2,
+    "req_level": 3,
+    "difficulty": "Advanced"
+  },
+  {
+    "item_id": "paper",
+    "item_name": "Paper",
+    "base_amount": 12,
+    "base_reward": 220,
+    "due_days": 2,
+    "req_level": 3,
+    "difficulty": "Advanced"
+  },
+  {
+    "item_id": "bread",
+    "item_name": "Bread",
+    "base_amount": 8,
+    "base_reward": 350,
+    "due_days": 3,
+    "req_level": 4,
+    "difficulty": "Advanced"
+  },
+  {
+    "item_id": "book",
+    "item_name": "Book",
+    "base_amount": 4,
+    "base_reward": 400,
+    "due_days": 3,
+    "req_level": 4,
+    "difficulty": "Advanced"
+  },
+  {
+    "item_id": "ale",
+    "item_name": "Ale",
+    "base_amount": 6,
+    "base_reward": 320,
+    "due_days": 2,
+    "req_level": 4,
+    "difficulty": "Advanced"
+  },
+  {
+    "item_id": "meadhaven",
+    "item_name": "Meadhaven",
+    "base_amount": 5,
+    "base_reward": 380,
+    "due_days": 3,
+    "req_level": 5,
+    "difficulty": "Expert"
+  },
+  {
+    "item_id": "cured_pork",
+    "item_name": "Cured Pork",
+    "base_amount": 5,
+    "base_reward": 360,
+    "due_days": 2,
+    "req_level": 5,
+    "difficulty": "Expert"
+  },
+  {
+    "item_id": "sweet_berry_cake",
+    "item_name": "Sweet Berry Cake",
+    "base_amount": 3,
+    "base_reward": 450,
+    "due_days": 3,
+    "req_level": 5,
+    "difficulty": "Expert"
+  }
+]

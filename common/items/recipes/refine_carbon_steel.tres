@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/iron_ingot.tres" id="2_iron"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/charcoal.tres" id="3_charcoal"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/steel_ingot.tres" id="4_steel"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Refine Carbon Steel"
+required_career = "craftsman"
+required_level = 4
+inputs = {
+ExtResource("2_iron"): 2,
+ExtResource("3_charcoal"): 1
+}
+output_item = ExtResource("4_steel")
+output_amount = 2
+xp_reward = 18

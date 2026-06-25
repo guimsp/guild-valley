@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/chemical_solvent.tres" id="2_solvent"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/lethal_poison_base.tres" id="3_poison"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/void_catalyst.tres" id="4_catalyst"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Synthesize Void Catalyst"
+required_career = "herbalist"
+required_level = 8
+inputs = {
+ExtResource("2_solvent"): 2,
+ExtResource("3_poison"): 1
+}
+output_item = ExtResource("4_catalyst")
+output_amount = 1
+xp_reward = 90

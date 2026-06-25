@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = "wheat"
-name = "Wheat"
+name = "Wild Grains"
+item_level = 1
 base_value = 5
 weight = 0.2
 category = "Resource"

@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = "cured_pork"
-name = "Cured Pork"
+name = "Cured Pork Slab"
+item_level = 4
 base_value = 35
 min_price = 5
 max_price = 350

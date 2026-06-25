@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/raw_wild_herbs.tres" id="2_herbs"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/dried_shives.tres" id="3_shives"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Dehydrate Herbs"
+required_career = "herbalist"
+required_level = 1
+inputs = {
+ExtResource("2_herbs"): 2
+}
+output_item = ExtResource("3_shives")
+output_amount = 2
+xp_reward = 8

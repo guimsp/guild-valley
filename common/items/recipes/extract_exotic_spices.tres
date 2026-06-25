@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/underground_fungi.tres" id="2_fungi"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flora_oil.tres" id="3_oil"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/spice_grubs.tres" id="4_spices"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Extract Exotic Spices"
+required_career = "herbalist"
+required_level = 7
+inputs = {
+ExtResource("2_fungi"): 2,
+ExtResource("3_oil"): 1
+}
+output_item = ExtResource("4_spices")
+output_amount = 1
+xp_reward = 50

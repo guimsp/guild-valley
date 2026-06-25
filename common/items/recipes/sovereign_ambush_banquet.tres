@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/royal_venison_pasty.tres" id="2_pasty"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/gilded_cream_cake.tres" id="3_gilded"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/spice_grubs.tres" id="4_grubs"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/sovereign_banquet.tres" id="5_banquet"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Arrange Sovereign Ambush Banquet"
+required_career = "patreon"
+required_level = 10
+inputs = {
+ExtResource("2_pasty"): 4,
+ExtResource("3_gilded"): 4,
+ExtResource("4_grubs"): 2
+}
+output_item = ExtResource("5_banquet")
+output_amount = 1
+xp_reward = 350

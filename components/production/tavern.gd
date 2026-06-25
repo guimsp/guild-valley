@@ -36,10 +36,13 @@ func _ready() -> void:
 		bench.recipes.clear()
 		var r1 = load("res://common/items/recipes/brew_ale.tres")
 		var r2 = load("res://common/items/recipes/brew_meadhaven.tres")
-		var r3 = load("res://common/items/recipes/entertain.tres")
+		var r3 = load("res://common/items/recipes/tavern_taproom_service.tres")
 		if r1: bench.recipes.append(r1)
 		if r2: bench.recipes.append(r2)
 		if r3: bench.recipes.append(r3)
+		if building_level >= 2:
+			var r4 = load("res://common/items/recipes/grand_casino_lounge.tres")
+			if r4: bench.recipes.append(r4)
 			
 		# Remove the bench's own interaction area
 		var bench_interact = bench.get_node_or_null("InteractionArea")
@@ -93,16 +96,3 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_tick_employees(delta)
-	
-	if building_storage:
-		var tickets = building_storage.get_item_amount("entertainment_ticket")
-		if tickets > 0:
-			building_storage.remove_item("entertainment_ticket", tickets)
-			var sbox = get_node_or_null("StrongboxComponent")
-			if sbox:
-				var mult = 2.0 if building_level >= 2 else 1.0
-				var revenue = int(tickets * 50 * mult)
-				sbox.strongbox_gold += revenue
-				var name_tag = "Casino Service" if building_level >= 2 else "Tavern Service"
-				sbox.add_transaction(name_tag, tickets, revenue, TimeManager.get_time_string(), "Patrons")
-				GameState.spawn_ui_floating_text("+%d Gold (%s)" % [revenue, "Casino" if building_level >= 2 else "Tavern"])

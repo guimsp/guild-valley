@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/overworld_root.tres" id="2_root"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/raw_pigment_powder.tres" id="3_pigment"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Crush Root Pigment"
+required_career = "herbalist"
+required_level = 1
+inputs = {
+ExtResource("2_root"): 1
+}
+output_item = ExtResource("3_pigment")
+output_amount = 2
+xp_reward = 10

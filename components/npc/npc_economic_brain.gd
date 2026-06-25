@@ -70,7 +70,10 @@ func process_transact() -> void:
 	var buy_amount = min(wanted_amount, min(available_stock, buy_limit))
 	
 	if item_data and buy_amount > 0:
-		var price = npc.target_stall.get_buy_price(item_data)
+		var ignore_t = false
+		if npc.active_commercial_route and npc.active_commercial_route.get("is_smuggler") == true:
+			ignore_t = true
+		var price = npc.target_stall.get_buy_price(item_data, ignore_t)
 		var total_cost = price * buy_amount
 		
 		# Deduct stock if NOT Public
@@ -228,6 +231,37 @@ func try_equip_tool_from_building(node_path: String) -> void:
 			print("[Tool System] %s successfully equipped %s from %s storage." % [worker_name, tool_id, building_name])
 		else:
 			print("[Tool System] %s failed to equip %s: tool not found in %s storage!" % [worker_name, tool_id, building_name])
+
+func try_equip_item_from_building(slot_name: String, item_id: String) -> void:
+	if not npc or not is_instance_valid(npc.hired_by_building):
+		return
+	var eq = npc.get_node_or_null("EquipmentComponent")
+	if not eq:
+		return
+		
+	var current_item = eq.get_equipped_item(slot_name)
+	if current_item != null and current_item.id == item_id:
+		return
+		
+	var target_storage = npc.hired_by_building.get("building_storage")
+	if not target_storage:
+		target_storage = npc.hired_by_building.get("inventory")
+		
+	if current_item != null:
+		if target_storage:
+			target_storage.add_item(current_item, 1)
+		eq.unequip_item(slot_name)
+		
+	if target_storage:
+		var found_res: ItemData = null
+		for slot in target_storage.slots:
+			if slot["item"] and slot["item"].id == item_id:
+				found_res = slot["item"]
+				break
+				
+		if found_res:
+			target_storage.remove_item(item_id, 1)
+			eq.equip_item(slot_name, found_res)
 
 func deposit_cargo() -> void:
 	if not npc:
@@ -413,6 +447,21 @@ func start_transit_to_waypoint(index: int) -> void:
 	if npc.active_commercial_route and index < npc.active_commercial_route.market_waypoints.size():
 		var wp = npc.active_commercial_route.market_waypoints[index]
 		if is_instance_valid(wp):
+			var current_prov = GameState.get_province_of_node(npc) if GameState else "Unknown Province"
+			var target_prov = GameState.get_province_of_node(wp) if GameState else "Unknown Province"
+			if current_prov != "Unknown Province" and target_prov != "Unknown Province" and current_prov != target_prov:
+				var is_smuggler = false
+				if npc.active_commercial_route and npc.active_commercial_route.get("is_smuggler") == true:
+					is_smuggler = true
+					
+				if not is_smuggler:
+					var has_passport = false
+					if GameState and GameState.player_inventory:
+						has_passport = GameState.player_inventory.has_item("trade_passport", 1)
+					if not has_passport:
+						if GameState:
+							GameState.gold = max(0, GameState.gold - 15)
+							GameState.spawn_ui_floating_text("Border Toll Paid: 15 G")
 			var target_pos = wp.global_position
 			if wp.has_method("get_interaction_position"):
 				target_pos = wp.get_interaction_position()
@@ -494,7 +543,10 @@ func process_internal_trade_route(delta: float) -> void:
 						npc.wait_timer = 1.0
 						return
 						
-					var price = stop.target_building.get_buy_price(item_res)
+					var ignore_t = false
+					if npc.active_commercial_route and npc.active_commercial_route.get("is_smuggler") == true:
+						ignore_t = true
+					var price = stop.target_building.get_buy_price(item_res, ignore_t)
 					var strongbox = npc.hired_by_building.get_node_or_null("StrongboxComponent") if is_instance_valid(npc.hired_by_building) else null
 					var can_afford = false
 					if strongbox and strongbox.gold >= price:
@@ -642,7 +694,24 @@ func start_transit_to_stop(index: int) -> void:
 	if npc.active_commercial_route and index < npc.active_commercial_route.route_stops.size():
 		var stop = npc.active_commercial_route.route_stops[index]
 		if stop and is_instance_valid(stop.target_building):
+			var current_prov = GameState.get_province_of_node(npc) if GameState else "Unknown Province"
+			var target_prov = GameState.get_province_of_node(stop.target_building) if GameState else "Unknown Province"
+			if current_prov != "Unknown Province" and target_prov != "Unknown Province" and current_prov != target_prov:
+				var is_smuggler = false
+				if npc.active_commercial_route and npc.active_commercial_route.get("is_smuggler") == true:
+					is_smuggler = true
+					
+				if not is_smuggler:
+					var has_passport = false
+					if GameState and GameState.player_inventory:
+						has_passport = GameState.player_inventory.has_item("trade_passport", 1)
+					if not has_passport:
+						if GameState:
+							GameState.gold = max(0, GameState.gold - 15)
+							GameState.spawn_ui_floating_text("Border Toll Paid: 15 G")
 			npc.worker_state = "internal_route_transit"
+			if randf() < 0.10:
+				_trigger_bandit_ambush()
 			var target_pos = stop.target_building.get_interaction_position() if stop.target_building.has_method("get_interaction_position") else stop.target_building.global_position
 			npc.navigation.generate_path(target_pos)
 
@@ -681,3 +750,59 @@ func advance_to_next_stop() -> void:
 	if npc.current_stop_index >= npc.active_commercial_route.route_stops.size():
 		npc.current_stop_index = 0
 	start_transit_to_stop(npc.current_stop_index)
+
+func _trigger_bandit_ambush() -> void:
+	if not npc:
+		return
+		
+	var eq = npc.get_node_or_null("EquipmentComponent")
+	
+	if eq:
+		var neck_item = eq.get_equipped_item("necklace")
+		if neck_item and neck_item.id == "bandits_pass":
+			AlertManager.add_alert(
+				"Bandit Ambush Bypassed",
+				"Carrier %s was ambushed by bandits but bypassed them safely using a Bandit's Pass!" % npc.npc_name,
+				"info",
+				npc.hired_by_building if is_instance_valid(npc.hired_by_building) else null
+			)
+			return
+			
+	var has_liner_bag = false
+	if eq:
+		var bag_item = eq.get_equipped_item("bag")
+		if bag_item and bag_item.id == "concealed_liner_bag":
+			has_liner_bag = true
+			
+	if npc.cargo_inventory:
+		var items_in_cargo = []
+		for slot in npc.cargo_inventory.slots:
+			if slot["item"] and slot["amount"] > 0:
+				items_in_cargo.append(slot)
+				
+		if items_in_cargo.is_empty():
+			return
+			
+		if has_liner_bag:
+			var slot = items_in_cargo.pick_random()
+			npc.cargo_inventory.remove_item(slot["item"].id, 1)
+			AlertManager.add_alert(
+				"Bandit Ambush: Minor Loss",
+				"Carrier %s was ambushed by bandits! Thanks to a Concealed Liner Bag, they lost only 1 unit of cargo." % npc.npc_name,
+				"warning",
+				npc.hired_by_building if is_instance_valid(npc.hired_by_building) else null
+			)
+		else:
+			var total_lost = 0
+			for slot in items_in_cargo:
+				var amount = slot["amount"]
+				var to_lose = int(ceil(amount * 0.5))
+				npc.cargo_inventory.remove_item(slot["item"].id, to_lose)
+				total_lost += to_lose
+				
+			AlertManager.add_alert(
+				"Bandit Ambush: Heavy Loss",
+				"Carrier %s was ambushed by bandits and lost %d units (50%%) of their cargo!" % [npc.npc_name, total_lost],
+				"danger",
+				npc.hired_by_building if is_instance_valid(npc.hired_by_building) else null
+			)

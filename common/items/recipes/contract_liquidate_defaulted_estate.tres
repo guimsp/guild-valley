@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/signed_affidavit.tres" id="2_affidavit"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/active_debt_ledger.tres" id="3_ledger"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/tumbler_locks.tres" id="4_locks"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/defaulted_estate_contract.tres" id="5_contract"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Contract: Liquidate Defaulted Estate"
+required_career = "scholar"
+required_level = 8
+inputs = {
+ExtResource("2_affidavit"): 4,
+ExtResource("3_ledger"): 2,
+ExtResource("4_locks"): 1
+}
+output_item = ExtResource("5_contract")
+output_amount = 1
+xp_reward = 150

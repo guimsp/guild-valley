@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "coal_nugget"
+name = "Coal Nugget"
+item_level = 1
+base_value = 8
+weight = 1.0
+category = "Resource"
+market_category = "Raw Materials"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "raw_pigment_powder"
+name = "Raw Pigment Powder"
+item_level = 1
+base_value = 10
+weight = 0.2
+category = "Material"
+market_category = "Semi-Elaborate"
+item_type = "Material"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "Crushed root powder containing raw concentrated color dyes."

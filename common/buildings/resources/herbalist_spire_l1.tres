@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "herbalist_spire_l1"
+name = "Alchemical Greenhouse Spire"
+family = "herbalist_spire"
+building_level = 1
+career = "herbalist"
+tier = 4
+level = 10
+cost = 5000
+time = 10.0
+scene_path = "res://components/production/greenhouse_spire.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 4 Masterwork Spire. Brew draughts of infinity and transmute philosopher's stones."

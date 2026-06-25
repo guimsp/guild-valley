@@ -5,8 +5,9 @@
 [resource]
 script = ExtResource("1_script")
 id = "sugar"
-name = "Sugar"
-base_value = 5
+name = "Rare Sugar-Beet Extract"
+item_level = 3
+base_value = 10
 min_price = 1
 max_price = 50
 weight = 0.1

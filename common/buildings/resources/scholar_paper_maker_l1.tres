@@ -5,10 +5,14 @@
 [resource]
 script = ExtResource("1_16nqs")
 id = "scholar_paper_maker_l1"
-name = "Paper Maker"
+name = "Paper Scriptorium"
 family = "scholar_paper_maker"
+building_level = 1
 career = "scholar"
-cost = 150
+tier = 1
+level = 1
+cost = 120
 time = 5.0
 scene_path = "res://components/production/paper_maker.tscn"
-description = "A workshop to press and dry raw cotton fibers into paper sheets."
+type = "production"
+description = "A workshop to press and dry raw fibers into paper sheets."

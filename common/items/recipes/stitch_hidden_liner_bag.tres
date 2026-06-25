@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/burlap_cloth_bolt.tres" id="2_input"]
+[ext_resource type="Resource" path="res://common/items/instances/Equipment/concealed_liner_bag.tres" id="3_output"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Stitch Hidden Liner Bag"
+required_career = "rogue"
+required_level = 3
+inputs = {
+ExtResource("2_input"): 1
+}
+output_item = ExtResource("3_output")
+output_amount = 1
+xp_reward = 20

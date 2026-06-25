@@ -72,7 +72,8 @@ func _deserialize_core_states(manager: Node, save_dict: Dictionary) -> void:
 	var p_data = save_dict.get("player", {})
 	_restore_props(GameState, p_data, [
 		"player_name", "rival_ai_active", "gold", "bank_balance",
-		"influence", "permanent_influence", "title_level", "career_levels", "career_xp"
+		"influence", "permanent_influence", "title_level", "career_levels", "career_xp",
+		"wealth_ledger"
 	])
 	GameState.active_trial_recipes = save_dict.get("active_trial_recipes", [])
 	
@@ -96,6 +97,10 @@ func _deserialize_core_states(manager: Node, save_dict: Dictionary) -> void:
 	var econ_mgr = manager.get_node_or_null("/root/EconomyManager")
 	if econ_mgr:
 		econ_mgr.shortage_days = save_dict.get("shortage_days", {})
+		
+	if save_dict.has("province_prosperity"):
+		ProsperityManager.province_prosperity = save_dict["province_prosperity"]
+		ProsperityManager.sync_settlements()
 
 func _deserialize_player_instance(p_data: Dictionary, player: Node) -> void:
 	if player:
@@ -104,6 +109,10 @@ func _deserialize_player_instance(p_data: Dictionary, player: Node) -> void:
 		if player.has_node("EquipmentComponent") and p_data.has("equipment"):
 			player.get_node("EquipmentComponent").deserialize(p_data["equipment"])
 			player.recalculate_equipment_stats()
+		if "character_resource" in player and p_data.has("character_resource") and not p_data["character_resource"].is_empty():
+			if not player.character_resource:
+				player.character_resource = CharacterResource.new()
+			player.character_resource.from_dictionary(p_data["character_resource"])
 		if "interactables_in_range" in player:
 			player.interactables_in_range.clear()
 			player.interactables_changed.emit()
@@ -189,11 +198,15 @@ func _configure_deserialized_building(tree: SceneTree, node: Node2D, b_data: Dic
 	
 	_restore_props(node, b_data, [
 		"ownership_type", "owner_id", "rent_days_remaining",
-		"is_rental", "is_occupied", "rent_cost",
+		"is_rental", "is_occupied", "rent_cost", "total_income_generated",
 		"daily_production", "lifetime_production", "custom_prices",
 		"building_level", "is_upgrading", "upgrade_timer",
-		"improvements", "min_retained_stock"
+		"improvements", "min_retained_stock",
+		"unlocked_expansion_zones", "wall_tier", "security_rating"
 	])
+	
+	if node.has_method("restore_expansion_zones"):
+		node.restore_expansion_zones()
 	
 	if node.has_method("_update_door_state"):
 		node._update_door_state()
@@ -321,6 +334,11 @@ func _deserialize_npcs(tree: SceneTree, npcs_list: Array, player: Node) -> Dicti
 			npc.get_node("EquipmentComponent").deserialize(n_data["equipment"])
 			npc.recalculate_equipment_stats()
 			
+		if "character_resource" in npc and n_data.has("character_resource") and not n_data["character_resource"].is_empty():
+			if not npc.character_resource:
+				npc.character_resource = CharacterResource.new()
+			npc.character_resource.from_dictionary(n_data["character_resource"])
+			
 		spawned_npcs[npc.npc_name] = npc
 		_wire_hired_npc(tree, npc, n_data)
 		
@@ -337,6 +355,11 @@ func _wire_hired_npc(tree: SceneTree, npc: CharacterBody2D, n_data: Dictionary) 
 				for emp in building.hired_employees:
 					if emp.get("name") == npc.npc_name:
 						emp["npc_ref"] = npc
+						if "character_resource" in npc:
+							if not npc.character_resource:
+								npc.character_resource = CharacterResource.new()
+							if emp.has("character_resource") and not emp["character_resource"].is_empty():
+								npc.character_resource.from_dictionary(emp["character_resource"])
 						if emp.get("active_commercial_route") != null:
 							var route = emp["active_commercial_route"]
 							npc.active_commercial_route = route

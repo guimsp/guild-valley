@@ -29,7 +29,8 @@ func save_game(manager: Node) -> void:
 		"spouse_npc_id": GameState.spouse_npc_id,
 		"completed_relation_quests": GameState.completed_relation_quests,
 		"active_trial_recipes": GameState.active_trial_recipes,
-		"shortage_days": manager.get_node("/root/EconomyManager").shortage_days if manager.has_node("/root/EconomyManager") else {}
+		"shortage_days": manager.get_node("/root/EconomyManager").shortage_days if manager.has_node("/root/EconomyManager") else {},
+		"province_prosperity": ProsperityManager.province_prosperity
 	}
 	
 	var file = FileAccess.open("user://savegame.json", FileAccess.WRITE)
@@ -66,7 +67,9 @@ func _serialize_player(player: Node, player_pos: Vector2) -> Dictionary:
 		"careers": GameState.career_levels,
 		"xp": GameState.career_xp,
 		"inventory": player_inv,
-		"equipment": player.get_node("EquipmentComponent").serialize() if player and player.has_node("EquipmentComponent") else {}
+		"equipment": player.get_node("EquipmentComponent").serialize() if player and player.has_node("EquipmentComponent") else {},
+		"wealth_ledger": GameState.wealth_ledger,
+		"character_resource": player.character_resource.to_dictionary() if player and "character_resource" in player and player.character_resource else {}
 	}
 
 func _serialize_buildings(tree: SceneTree) -> Array:
@@ -113,10 +116,11 @@ func _serialize_building_details(tree: SceneTree, node: Node, data: Dictionary) 
 	
 	_copy_props(node, data, [
 		"ownership_type", "owner_id", "rent_days_remaining",
-		"is_rental", "is_occupied", "rent_cost",
+		"is_rental", "is_occupied", "rent_cost", "total_income_generated",
 		"daily_production", "lifetime_production", "custom_prices",
 		"building_level", "is_upgrading", "upgrade_timer",
-		"improvements", "min_retained_stock"
+		"improvements", "min_retained_stock",
+		"unlocked_expansion_zones", "wall_tier", "security_rating"
 	])
 		
 	if "hired_employees" in node:
@@ -165,6 +169,8 @@ func _serialize_employees(tree: SceneTree, hired_employees: Array) -> Array:
 			])
 			if npc.cargo_inventory:
 				emp_copy["cargo_inventory"] = _serialize_inventory_slots(npc.cargo_inventory.slots)
+			if "character_resource" in npc and npc.character_resource:
+				emp_copy["character_resource"] = npc.character_resource.to_dictionary()
 				
 		if emp_copy.has("npc_ref"):
 			emp_copy.erase("npc_ref")
@@ -254,6 +260,8 @@ func _serialize_npcs(tree: SceneTree) -> Array:
 				npc_dict["equipment"] = npc.get_node("EquipmentComponent").serialize()
 			if npc.is_hired and is_instance_valid(npc.hired_by_building):
 				npc_dict["hired_by_building_path"] = String(tree.root.get_path_to(npc.hired_by_building))
+			if "character_resource" in npc and npc.character_resource:
+				npc_dict["character_resource"] = npc.character_resource.to_dictionary()
 			npcs_data.append(npc_dict)
 	return npcs_data
 

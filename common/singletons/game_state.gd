@@ -2,12 +2,74 @@ extends Node
 
 signal rival_ai_active_changed(active: bool)
 signal gold_changed(new_gold: int)
+signal wealth_ledger_changed
 
 # Player global finances
 var gold: int = 1000:
 	set(val):
+		var diff = val - gold
 		gold = val
 		gold_changed.emit(val)
+		
+		var is_loading = false
+		var slm = get_node_or_null("/root/SaveLoadManager")
+		if slm and slm.get("is_loading_game") == true:
+			is_loading = true
+			
+		if diff != 0 and not is_loading:
+			_log_wealth_transaction(diff)
+
+var wealth_ledger: Array = []
+const MAX_WEALTH_LEDGER_ENTRIES: int = 50
+var next_change_reason: String = ""
+var next_change_detail: String = ""
+
+func _log_wealth_transaction(diff: int) -> void:
+	var reason = next_change_reason
+	var detail = next_change_detail
+	
+	if reason == "":
+		var stack = get_stack()
+		var found_frame = null
+		for i in range(stack.size()):
+			var f = stack[i]
+			if "game_state.gd" not in f.source:
+				found_frame = f
+				break
+		if found_frame:
+			var src = found_frame.source.get_file()
+			var func_name = found_frame.function
+			reason = "%s -> %s" % [src, func_name]
+			detail = "System Triggered"
+		else:
+			if not stack.is_empty():
+				var frame = stack[stack.size() - 1]
+				reason = "%s -> %s" % [frame.source.get_file(), frame.function]
+				detail = "System Triggered"
+			else:
+				reason = "System"
+				detail = "Direct write"
+				
+	var time_str = "Day 1 - 06:00 AM"
+	var tm = get_node_or_null("/root/TimeManager")
+	if tm and tm.has_method("get_time_string"):
+		time_str = tm.get_time_string()
+		
+	var entry = {
+		"amount": diff,
+		"reason": reason,
+		"detail": detail,
+		"timestamp": time_str,
+		"new_total": gold
+	}
+	wealth_ledger.append(entry)
+	while wealth_ledger.size() > MAX_WEALTH_LEDGER_ENTRIES:
+		wealth_ledger.pop_front()
+		
+	next_change_reason = ""
+	next_change_detail = ""
+	wealth_ledger_changed.emit()
+
 var bank_balance: int = 0
 var influence: int = 150
 var permanent_influence: int = 300
@@ -20,6 +82,7 @@ var player_max_stamina: float = 100.0
 var player_speed: float = 210.0
 
 var player_name: String = "Player"
+var balance_config: Dictionary = {}
 var rival_ai_active: bool = true:
 	set(val):
 		if rival_ai_active != val:
@@ -51,6 +114,22 @@ func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	_ensure_input_actions()
 	_load_build_database()
+	
+	# Load balance constants configuration if available
+	var file = FileAccess.open("res://common/singletons/game_balance_config.json", FileAccess.READ)
+	if file:
+		var json_text = file.get_as_text()
+		var json = JSON.new()
+		var error = json.parse(json_text)
+		if error == OK:
+			if json.data is Dictionary:
+				balance_config = json.data
+			else:
+				print("[GameState] JSON balance data is not a Dictionary, using default dictionary.")
+		else:
+			print("[GameState] Failed to parse game_balance_config.json: ", json.get_error_message())
+	else:
+		print("[GameState] game_balance_config.json not found, using empty config.")
 	
 	var inventory_script = load("res://components/inventory/inventory_component.gd")
 	player_inventory = inventory_script.new()
@@ -143,13 +222,29 @@ func _ensure_input_actions() -> void:
 
 var active_trial_recipes: Array = []
 
+var max_profession_slots: int = 1
+
 # Player career levels and experience
 var career_levels: Dictionary = {
 	"patreon": 1,
 	"craftsman": 0,
 	"tailor": 0,
-	"scholar": 0
+	"scholar": 0,
+	"woodworker": 0,
+	"herbalist": 0,
+	"rogue": 0,
+	"showman": 0
 }
+
+func get_active_careers_count() -> int:
+	var count = 0
+	for key in career_levels:
+		if career_levels[key] > 0:
+			count += 1
+	return count
+
+func unlock_secondary_profession_slot() -> void:
+	max_profession_slots = 2
 
 var allocated_interiors: Dictionary = {}
 var next_interior_index: int = 0
@@ -169,7 +264,11 @@ var career_xp: Dictionary = {
 	"patreon": 0,
 	"craftsman": 0,
 	"tailor": 0,
-	"scholar": 0
+	"scholar": 0,
+	"woodworker": 0,
+	"herbalist": 0,
+	"rogue": 0,
+	"showman": 0
 }
 
 # Player Title / Status System
@@ -329,8 +428,6 @@ func add_text_tag(parent: Node2D, text: String) -> void:
 func get_scene_path_for_node(node: Node) -> String:
 	if node.is_in_group("Beds"):
 		return "res://components/sleep/bed.tscn"
-	elif node.is_in_group("MarketStall"):
-		return "res://components/market/market_stall.tscn"
 	elif node.is_in_group("CraftingBenches"):
 		return "res://components/crafting/crafting_bench.tscn"
 	elif node.is_in_group("WheatFieldGrids"):
@@ -369,6 +466,10 @@ func get_scene_path_for_node(node: Node) -> String:
 		return "res://components/production/distillery.tscn"
 	elif node.is_in_group("EventHalls"):
 		return "res://components/production/event_hall.tscn"
+	elif node.is_in_group("Warehouses"):
+		return "res://components/buildings/warehouse.tscn"
+	elif node.is_in_group("MarketStall"):
+		return "res://components/market/market_stall.tscn"
 	return ""
 
 
@@ -426,7 +527,10 @@ func get_province_of_node(node: Node) -> String:
 		return settlement.ownership_province
 		
 	if settlement.is_in_group("Cities") or "city_name" in settlement:
-		return settlement.city_name + " Province"
+		var name_val = settlement.get("city_name")
+		if name_val == null or str(name_val) == "":
+			name_val = settlement.name
+		return str(name_val) + " Province"
 		
 	return "Unknown Province"
 
@@ -484,3 +588,53 @@ func get_building_data_for_node(node: Node2D) -> BuildingData:
 			return db_item
 			
 	return null
+
+func apply_macro_modifier(node: Node, modifier_key: String, base_value: float) -> float:
+	var bonus_mult = 0.0 # for speed/productivity/yield
+	var time_mult = 0.0  # for time/duration modifiers
+	
+	# 1. Settlement Scope
+	var settlement = get_nearest_settlement(node)
+	if is_instance_valid(settlement):
+		var dist = 0.0
+		if "global_position" in node and "global_position" in settlement:
+			dist = node.global_position.distance_to(settlement.global_position)
+		var radius = settlement.get("radius_of_influence")
+		if radius == null:
+			radius = 800.0
+		if dist <= radius:
+			if "modifiers" in settlement and settlement.modifiers.has(modifier_key):
+				var mod_val = settlement.modifiers[modifier_key]
+				if modifier_key.ends_with("_time") or modifier_key.ends_with("_duration"):
+					time_mult += mod_val
+				else:
+					bonus_mult += mod_val
+					
+	# 2. Province Scope
+	var province_name = get_province_of_node(node)
+	if province_name != "Unknown Province" and province_name != "":
+		var pmd = get_node_or_null("/root/ProvinceMasterData")
+		if pmd:
+			var mod_val = pmd.get_modifier(province_name, modifier_key)
+			if modifier_key.ends_with("_time") or modifier_key.ends_with("_duration"):
+				time_mult += mod_val
+			else:
+				bonus_mult += mod_val
+				
+	# 3. Map Scope (Global)
+	var gp = get_node_or_null("/root/GlobalProfile")
+	if gp:
+		var mod_val = gp.get_modifier(modifier_key)
+		if modifier_key.ends_with("_time") or modifier_key.ends_with("_duration"):
+			time_mult += mod_val
+		else:
+			bonus_mult += mod_val
+			
+	var result = base_value
+	# Apply multipliers
+	if modifier_key.ends_with("_time") or modifier_key.ends_with("_duration"):
+		result *= (1.0 + time_mult)
+	else:
+		result *= (1.0 + bonus_mult)
+		
+	return result

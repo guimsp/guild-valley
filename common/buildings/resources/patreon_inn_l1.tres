@@ -5,13 +5,13 @@
 [resource]
 script = ExtResource("1_l4o82")
 id = "patreon_inn_l1"
-name = "Traveler's Inn"
+name = "Boarding House Inn"
 family = "patreon_inn"
 career = "patreon"
 tier = 2
-level = 5
-cost = 400
+level = 4
+cost = 500
 time = 10.0
 scene_path = "res://components/production/inn.tscn"
 type = "production"
-description = "Generates visitor revenue. Offers lodging and kitchen services."
+description = "Traveler Lodging Quarters providing Boarding services."

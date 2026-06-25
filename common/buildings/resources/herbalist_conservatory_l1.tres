@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "herbalist_conservatory_l1"
+name = "Conservatory Lab L1"
+family = "herbalist_conservatory"
+building_level = 1
+career = "herbalist"
+tier = 3
+level = 7
+cost = 1200
+time = 8.0
+scene_path = "res://components/production/conservatory_lab.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Synthesize void catalysts and extract sulfur pods."

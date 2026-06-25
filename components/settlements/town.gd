@@ -11,9 +11,15 @@ signal town_ownership_changed(town: Town, old_province: String, new_province: St
 @export var growth_milestones: int = 50
 @export var is_growing: bool = true
 @export var ownership_province: String = "Neutral Province"
+@export var modifiers: Dictionary = {}
 @export var market_node_path: NodePath
 @export var security_level: float = 0.5
-
+@export var wealth_level: float = 0.5
+@export var criminal_heat: float = 0.0
+@export var prosperity_level: int = 1
+@export var security_rating: float = 100.0
+# Towns never alter their boundary size or expand their lot density, remaining at a flat 18 across all prosperity shifts.
+const MAX_TOWN_LOTS: int = 18
 var controlling_city: City = null
 
 func _ready() -> void:

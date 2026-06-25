@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = "oil"
-name = "Oil"
+name = "Flora Oil"
+item_level = 2
 base_value = 12
 min_price = 2
 max_price = 120

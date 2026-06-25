@@ -1,6 +1,9 @@
 extends Control
 
 var is_zoomed_in: bool = false
+var current_bounds: Rect2
+var current_scale_factor: float = 1.0
+var current_offset: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	clip_contents = true
@@ -32,6 +35,10 @@ func _draw() -> void:
 	var scale_factor = min(size_map.x / bounds.size.x, size_map.y / bounds.size.y)
 	# Center map within control container
 	var offset = (size_map - bounds.size * scale_factor) / 2.0
+	
+	current_bounds = bounds
+	current_scale_factor = scale_factor
+	current_offset = offset
 	
 	var to_map = func(world_pos: Vector2) -> Vector2:
 		return offset + (world_pos - bounds.position) * scale_factor
@@ -173,6 +180,15 @@ func _draw() -> void:
 			draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size, 3, Color.BLACK)
 			draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size, font_color)
 			
+			if get_tree().get_nodes_in_group("InformantLookouts").size() > 0:
+				var w = s.get("wealth_level") if "wealth_level" in s else 0.5
+				var sec = s.get("security_level") if "security_level" in s else 0.8
+				var h = s.get("criminal_heat") if "criminal_heat" in s else 0.0
+				var attr_text = "W: %.1f | S: %.1f | H: %.1f" % [w, sec, h]
+				var attr_pos = pos + Vector2(0, 12)
+				draw_string_outline(font, attr_pos, attr_text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size - 2, 2, Color.BLACK)
+				draw_string(font, attr_pos, attr_text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size - 2, Color(0.7, 0.9, 0.7))
+			
 	# C. MegaNode Labels
 	for mn in mega_nodes:
 		if is_instance_valid(mn):
@@ -223,3 +239,33 @@ func get_world_bounds() -> Rect2:
 		return Rect2(0, 0, 4000, 3000)
 		
 	return Rect2(min_x, min_y, max_x - min_x, max_y - min_y)
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var cutpurse_apartments = get_tree().get_nodes_in_group("CutpurseApartments")
+		if cutpurse_apartments.is_empty():
+			return
+			
+		var click_pos = event.position
+		var world_pos = (click_pos - current_offset) / current_scale_factor + current_bounds.position
+		
+		var settlements = []
+		settlements.append_array(get_tree().get_nodes_in_group("Cities"))
+		settlements.append_array(get_tree().get_nodes_in_group("Towns"))
+		
+		var clicked_settlement = null
+		var min_dist = 150.0
+		for s in settlements:
+			if is_instance_valid(s):
+				var dist = world_pos.distance_to(s.global_position)
+				if dist < min_dist:
+					min_dist = dist
+					clicked_settlement = s
+					
+		if clicked_settlement:
+			var hud = get_tree().get_first_node_in_group("PlayerHUD")
+			if not hud:
+				hud = get_tree().get_first_node_in_group("game_hud")
+			if hud and hud.has_method("open_rogue_mission_popup"):
+				hud.open_rogue_mission_popup(clicked_settlement)
+				accept_event()

@@ -22,6 +22,10 @@ extends Control
 @onready var card_craftsman: PanelContainer = %Card_Craftsman
 @onready var card_tailor: PanelContainer = %Card_Tailor
 @onready var card_scholar: PanelContainer = %Card_Scholar
+@onready var card_woodworker: PanelContainer = %Card_Woodworker
+@onready var card_herbalist: PanelContainer = %Card_Herbalist
+@onready var card_rogue: PanelContainer = %Card_Rogue
+@onready var card_showman: PanelContainer = %Card_Showman
 @onready var creator_back_button: Button = %CreatorBackButton
 @onready var creator_launch_button: Button = %CreatorLaunchButton
 
@@ -99,14 +103,25 @@ func _ready() -> void:
 		card_patreon.grab_focus()
 	)
 	
+	# Wire NameInput changed signal to enable/disable Launch Button
+	name_input.text_changed.connect(_on_name_changed)
+	creator_launch_button.disabled = name_input.text.strip_edges().is_empty()
+	
 	# Wire up Profession cards events
 	_setup_career_card("patreon", card_patreon)
 	_setup_career_card("craftsman", card_craftsman)
 	_setup_career_card("tailor", card_tailor)
 	_setup_career_card("scholar", card_scholar)
+	_setup_career_card("woodworker", card_woodworker)
+	_setup_career_card("herbalist", card_herbalist)
+	_setup_career_card("rogue", card_rogue)
+	_setup_career_card("showman", card_showman)
 	
 	# Highlight initial selection
 	_update_career_highlights()
+
+func _on_name_changed(new_text: String) -> void:
+	creator_launch_button.disabled = new_text.strip_edges().is_empty()
 
 func _on_start_pressed() -> void:
 	# Transition to Settings screen
@@ -172,12 +187,17 @@ func _update_career_highlights() -> void:
 	card_craftsman.add_theme_stylebox_override("panel", _style_selected if _selected_career == "craftsman" else _style_normal)
 	card_tailor.add_theme_stylebox_override("panel", _style_selected if _selected_career == "tailor" else _style_normal)
 	card_scholar.add_theme_stylebox_override("panel", _style_selected if _selected_career == "scholar" else _style_normal)
+	card_woodworker.add_theme_stylebox_override("panel", _style_selected if _selected_career == "woodworker" else _style_normal)
+	card_herbalist.add_theme_stylebox_override("panel", _style_selected if _selected_career == "herbalist" else _style_normal)
+	card_rogue.add_theme_stylebox_override("panel", _style_selected if _selected_career == "rogue" else _style_normal)
+	card_showman.add_theme_stylebox_override("panel", _style_selected if _selected_career == "showman" else _style_normal)
 
 func _on_launch_pressed() -> void:
-	# Validate player name
+	# Validate player name (strictly block empty or whitespace-only name)
 	var p_name = name_input.text.strip_edges()
 	if p_name == "":
-		p_name = "Player"
+		name_input.grab_focus()
+		return
 		
 	if GameState:
 		# Save name and reset career levels
@@ -198,6 +218,16 @@ func _on_launch_pressed() -> void:
 			var cotton_res = load("res://common/items/instances/Raw Materials/cotton.tres")
 			var paper_res = load("res://common/items/instances/Semi-Elaborate/paper.tres")
 			
+			# New career starting items
+			var timber_res = load("res://common/items/instances/Raw Materials/standard_timber.tres")
+			var pegs_res = load("res://common/items/instances/Semi-Elaborate/wooden_pegs.tres")
+			var herbs_res = load("res://common/items/instances/Raw Materials/raw_wild_herbs.tres")
+			var root_res = load("res://common/items/instances/Raw Materials/overworld_root.tres")
+			var scrap_res = load("res://common/items/instances/Raw Materials/scraped_metal.tres")
+			var bones_res = load("res://common/items/instances/Raw Materials/wild_animal_bones.tres")
+			var clay_res = load("res://common/items/instances/Raw Materials/clay_mud.tres")
+			var stone_res = load("res://common/items/instances/Raw Materials/raw_stone.tres")
+			
 			match _selected_career:
 				"patreon":
 					if wheat_res: GameState.player_inventory.add_item(wheat_res, 10)
@@ -212,6 +242,18 @@ func _on_launch_pressed() -> void:
 				"scholar":
 					if paper_res: GameState.player_inventory.add_item(paper_res, 5)
 					if cotton_res: GameState.player_inventory.add_item(cotton_res, 5)
+				"woodworker":
+					if timber_res: GameState.player_inventory.add_item(timber_res, 10)
+					if pegs_res: GameState.player_inventory.add_item(pegs_res, 5)
+				"herbalist":
+					if herbs_res: GameState.player_inventory.add_item(herbs_res, 10)
+					if root_res: GameState.player_inventory.add_item(root_res, 5)
+				"rogue":
+					if scrap_res: GameState.player_inventory.add_item(scrap_res, 10)
+					if bones_res: GameState.player_inventory.add_item(bones_res, 5)
+				"showman":
+					if clay_res: GameState.player_inventory.add_item(clay_res, 10)
+					if stone_res: GameState.player_inventory.add_item(stone_res, 5)
 					
 		# Recalculate stats with the new career level config
 		GameState.recalculate_career_stats()

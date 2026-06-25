@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rogue_thieves_den_l2"
+name = "Thieves' Den L2"
+family = "rogue_thieves_den"
+building_level = 2
+career = "rogue"
+tier = 1
+level = 3
+cost = 500
+time = 8.0
+scene_path = "res://components/production/thieves_den.tscn"
+type = "production"
+description = "An upgraded den for preparing transit passes, hidden liner bags, and performer disguise kits."

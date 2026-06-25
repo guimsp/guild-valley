@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/paper.tres" id="2_paper"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/printing_plate.tres" id="3_plate"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/signed_affidavit.tres" id="4_affidavit"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Print Legal Affidavit"
+required_career = "scholar"
+required_level = 4
+inputs = {
+ExtResource("2_paper"): 2,
+ExtResource("3_plate"): 1
+}
+output_item = ExtResource("4_affidavit")
+output_amount = 1
+xp_reward = 25

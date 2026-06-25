@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flora_oil.tres" id="2_oil"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/honey.tres" id="3_honey"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/healing_salve.tres" id="4_salve"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Refine Soothing Salve"
+required_career = "herbalist"
+required_level = 3
+inputs = {
+ExtResource("2_oil"): 2,
+ExtResource("3_honey"): 1
+}
+output_item = ExtResource("4_salve")
+output_amount = 1
+xp_reward = 45

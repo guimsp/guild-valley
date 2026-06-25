@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "leather_grip"
+name = "Leather Grip"
+item_level = 2
+base_value = 15
+weight = 0.2
+category = "Material"
+market_category = "Semi-Elaborate"

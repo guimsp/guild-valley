@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/unsigned_bond.tres" id="2_bond"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/masterwork_folio.tres" id="3_folio"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/fiat_currency_matrix.tres" id="4_matrix"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Print Imperial Currency Decree"
+required_career = "scholar"
+required_level = 10
+inputs = {
+ExtResource("2_bond"): 10,
+ExtResource("3_folio"): 4
+}
+output_item = ExtResource("4_matrix")
+output_amount = 1
+xp_reward = 400

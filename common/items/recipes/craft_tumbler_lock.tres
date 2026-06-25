@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/iron_ingot.tres" id="2_iron"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/sheet_metal.tres" id="3_sheet"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/tumbler_locks.tres" id="4_lock"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Craft Tumbler Lock"
+required_career = "craftsman"
+required_level = 3
+inputs = {
+ExtResource("2_iron"): 1,
+ExtResource("3_sheet"): 2
+}
+output_item = ExtResource("4_lock")
+output_amount = 1
+xp_reward = 35

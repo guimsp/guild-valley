@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "dried_shives"
+name = "Dried Shives"
+item_level = 1
+base_value = 8
+weight = 0.3
+category = "Material"
+market_category = "Semi-Elaborate"
+item_type = "Material"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "Dehydrated and processed wild herbs, ready for brewing."

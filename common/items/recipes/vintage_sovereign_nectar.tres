@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/common_wine.tres" id="2_wine"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/fine_aged_schnapps.tres" id="3_schnapps"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/vintage_sovereign_nectar.tres" id="4_nectar"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Distill Vintage Sovereign Nectar"
+required_career = "patreon"
+required_level = 10
+inputs = {
+ExtResource("2_wine"): 10,
+ExtResource("3_schnapps"): 4
+}
+output_item = ExtResource("4_nectar")
+output_amount = 1
+xp_reward = 400

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/refined_hardwood.tres" id="2_refined_hardwood"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/waterproofing_tar.tres" id="3_tar"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/advanced_structural_beam.tres" id="4_beam"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Mill Advanced Structural Beam"
+required_career = "woodworker"
+required_level = 7
+inputs = {
+ExtResource("2_refined_hardwood"): 3,
+ExtResource("3_tar"): 1
+}
+output_item = ExtResource("4_beam")
+output_amount = 1
+xp_reward = 40

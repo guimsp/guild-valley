@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/paper.tres" id="2_paper"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/inkwell.tres" id="3_inkwell"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/standard_timber.tres" id="4_timber"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/blank_profession_book.tres" id="5_book"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Bind Apprenticeship Tome"
+required_career = "scholar"
+required_level = 3
+inputs = {
+ExtResource("2_paper"): 3,
+ExtResource("3_inkwell"): 1,
+ExtResource("4_timber"): 1
+}
+output_item = ExtResource("5_book")
+output_amount = 1
+xp_reward = 20

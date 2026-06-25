@@ -4,11 +4,31 @@ extends CharacterBody2D
 # Movement speed exported to the inspector
 @export var speed: float = 210.0:
 	get:
-		return GameState.player_speed if GameState else speed
+		var base_speed = GameState.player_speed if GameState else speed
+		if character_resource:
+			var bonus = 0.0
+			for trait_id in character_resource.active_mods:
+				if trait_id.begins_with("Fleet-Footed_Lvl"):
+					var lvl = int(trait_id.replace("Fleet-Footed_Lvl", ""))
+					if lvl == 1: bonus += 0.05
+					elif lvl == 2: bonus += 0.10
+					elif lvl == 3: bonus += 0.15
+			base_speed *= (1.0 + bonus)
+		if GameState:
+			base_speed = GameState.apply_macro_modifier(self, "movement_speed", base_speed)
+		return base_speed
 	set(value):
 		speed = value
 		if GameState:
 			GameState.player_speed = value
+
+var character_resource: CharacterResource = null:
+	get:
+		if not character_resource:
+			character_resource = CharacterResource.new()
+			character_resource.character_id = "char_player"
+			character_resource.daily_wage = 0
+		return character_resource
 
 # Player attributes synchronized with GameState
 var productivity: float:
@@ -17,7 +37,19 @@ var productivity: float:
 		if GameState:
 			for c in GameState.career_levels:
 				max_lvl = max(max_lvl, GameState.career_levels[c])
-		return 1.0 + (max_lvl * 0.02)
+		var base_prod = 1.0 + (max_lvl * 0.02)
+		if character_resource:
+			var bonus = 0.0
+			for trait_id in character_resource.active_mods:
+				if trait_id.begins_with("Diligent Master_Lvl"):
+					var lvl_mod = int(trait_id.replace("Diligent Master_Lvl", ""))
+					if lvl_mod == 1: bonus += 0.03
+					elif lvl_mod == 2: bonus += 0.06
+					elif lvl_mod == 3: bonus += 0.10
+			base_prod *= (1.0 + bonus)
+		if GameState:
+			base_prod = GameState.apply_macro_modifier(self, "productivity", base_prod)
+		return base_prod
 	set(val):
 		pass
 var is_harvesting: bool = false
@@ -205,6 +237,14 @@ func interact_with_object() -> void:
 				spawn_floating_text("Locked: NPC Owned!")
 				return
 			
+			if GameState.player_inventory.has_item("squatters_writ", 1):
+				var hud = get_tree().get_first_node_in_group("PlayerHUD")
+				if not hud:
+					hud = get_tree().get_first_node_in_group("game_hud")
+				if hud and hud.has_method("show_squatters_writ_confirmation"):
+					hud.show_squatters_writ_confirmation(check_node)
+					return
+			
 		if interactable.has_method("interact"):
 			interactable.interact(self)
 
@@ -323,6 +363,8 @@ func try_buy_workstation() -> void:
 		spawn_floating_text("Need %d Gold!" % cost)
 		return
 		
+	GameState.next_change_reason = "Purchase Building"
+	GameState.next_change_detail = target.name if "name" in target else "Property"
 	GameState.gold -= cost
 	target.ownership_type = "Player"
 	target.owner_id = "Player"
@@ -371,6 +413,8 @@ func try_rent_workstation() -> void:
 		spawn_floating_text("Need %d Gold!" % cost)
 		return
 		
+	GameState.next_change_reason = "Rent Property"
+	GameState.next_change_detail = target.name if "name" in target else "Property"
 	GameState.gold -= cost
 	target.rent_days_remaining = current_days + 1
 	target.ownership_type = "Rented"

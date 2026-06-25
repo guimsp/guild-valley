@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_spire"]
+
+[resource]
+script = ExtResource("1_spire")
+id = "patreon_spire_l1"
+name = "Imperial Gastronomy Spire"
+family = "patreon_spire"
+career = "patreon"
+tier = 4
+level = 10
+cost = 5000
+time = 30.0
+scene_path = "res://components/production/spire.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Legendary Masterwork Production spire for Arranging Sovereign Banquets and Distilling Vintage Sovereign Nectars."

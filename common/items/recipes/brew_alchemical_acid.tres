@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/nitre_powder.tres" id="2_nitre"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flora_oil.tres" id="3_oil"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/corrosive_acid.tres" id="4_acid"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Brew Alchemical Acid"
+required_career = "herbalist"
+required_level = 4
+inputs = {
+ExtResource("2_nitre"): 2,
+ExtResource("3_oil"): 1
+}
+output_item = ExtResource("4_acid")
+output_amount = 1
+xp_reward = 60

@@ -18,6 +18,18 @@ enum NPCType {
 var is_talking: bool = false
 var npc_gold: int = 100
 
+var character_resource: CharacterResource = null:
+	get:
+		if not character_resource:
+			character_resource = CharacterResource.new()
+			character_resource.character_id = "char_" + str(Time.get_ticks_usec()) + "_" + str(randi() % 100000)
+			var lvl = 1
+			if skills_data and skills_data.has(career):
+				lvl = skills_data[career].get("level", 1)
+			character_resource.profession_level = lvl
+			character_resource.update_daily_wage(self)
+		return character_resource
+
 var _road_speed_multiplier: float = 1.0
 var active_roads_count: int = 0
 
@@ -78,10 +90,30 @@ var productivity: float:
 		if is_instance_valid(hired_by_building) and "career" in hired_by_building and hired_by_building.career != "":
 			active_career = hired_by_building.career
 		var lvl = skills_data.get(active_career, {}).get("level", 1)
-		return 1.0 + (lvl * 0.02)
+		var base_prod = 1.0 + (lvl * 0.02)
+		if character_resource:
+			var bonus = 0.0
+			for trait_id in character_resource.active_mods:
+				if trait_id.begins_with("Diligent Master_Lvl"):
+					var lvl_mod = int(trait_id.replace("Diligent Master_Lvl", ""))
+					if lvl_mod == 1: bonus += 0.03
+					elif lvl_mod == 2: bonus += 0.06
+					elif lvl_mod == 3: bonus += 0.10
+			base_prod *= (1.0 + bonus)
+		if GameState:
+			base_prod = GameState.apply_macro_modifier(self, "productivity", base_prod)
+		return base_prod
 	set(val):
 		pass
-var salary: int = 15
+var salary: int:
+	get:
+		if character_resource:
+			character_resource.update_daily_wage(self)
+			return character_resource.daily_wage
+		return 15
+	set(val):
+		if character_resource:
+			character_resource.daily_wage = val
 var province: String = "Unknown Province"
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -244,16 +276,23 @@ func _ready() -> void:
 	
 	# Randomize levels and stats
 	if not is_loaded:
-		var careers = ["patreon", "scholar", "craftsman", "tailor"]
-		career = careers[randi() % careers.size()]
+		if npc_type != NPCType.TYPE_RELATION_TARGET:
+			var careers = ["patreon", "scholar", "craftsman", "tailor"]
+			career = careers[randi() % careers.size()]
 		skills_data = {
 			"patreon": { "level": randi_range(1, 5), "xp": 0 },
 			"scholar": { "level": randi_range(1, 5), "xp": 0 },
 			"craftsman": { "level": randi_range(1, 5), "xp": 0 },
 			"tailor": { "level": randi_range(1, 5), "xp": 0 }
 		}
+		if npc_type == NPCType.TYPE_RELATION_TARGET:
+			var rel = get_node_or_null("RelationshipComponent")
+			if rel:
+				career = rel.profession_type
+				if skills_data.has(career):
+					skills_data[career]["level"] = rel.profession_level
 		speed = randf_range(50.0, 90.0)
-		salary = randi_range(12, 28)
+		# salary is computed dynamically based on level, speed, productivity, and traits!
 	
 	call_deferred("_initialize_province")
 	
@@ -297,19 +336,23 @@ func setup_relationship_component() -> void:
 	match quest_npc_id:
 		"elena":
 			rel.hidden_preferences = ["spool_thread", "red_dye", "blue_dye"]
+			rel.disliked_preferences = ["iron_ore", "corrosive_acid", "animal_feed", "smugglers_moonshine"]
 			rel.profession_type = "tailor"
 			rel.profession_level = 3
 		"aldous":
 			rel.hidden_preferences = ["ancient_manuscript", "ink", "paper"]
+			rel.disliked_preferences = ["smugglers_moonshine", "animal_feed", "iron_ore", "corrosive_acid"]
 			rel.profession_type = "scholar"
 			rel.profession_level = 4
 		"valeria":
 			rel.hidden_preferences = ["confidential_documents", "gold_ring", "silver_necklace"]
+			rel.disliked_preferences = ["animal_feed", "iron_ore", "wheat", "cotton", "smugglers_moonshine"]
 			rel.profession_type = "scholar"
 			rel.profession_level = 5
 		"gideon":
 			rel.hidden_preferences = ["standard_timber", "iron_ingot", "iron_ore"]
-			rel.profession_type = "woodworker"
+			rel.disliked_preferences = ["ancient_manuscript", "confidential_documents", "paper", "smugglers_moonshine"]
+			rel.profession_type = "craftsman"
 			rel.profession_level = 3
 
 var _relationship_icon: Label = null

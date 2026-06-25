@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "herbalist_conservatory_l2"
+name = "Conservatory Lab L2"
+family = "herbalist_conservatory"
+building_level = 2
+career = "herbalist"
+tier = 3
+level = 9
+cost = 2200
+time = 9.0
+scene_path = "res://components/production/conservatory_lab.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Advanced alchemical syntheses and extraction of exotic spores."

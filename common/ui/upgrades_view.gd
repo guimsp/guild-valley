@@ -122,10 +122,38 @@ func _populate_leveling() -> void:
 			career_req_label.text = " • Player %s Level: %d (Current: %d)" % [career_id.capitalize(), req.profession_level, p_lvl]
 			career_req_label.modulate = Color(0.2, 0.8, 0.4) if meets_lvl else Color(0.9, 0.3, 0.3)
 			
+			# Architectural Blueprint requirement
+			var meets_bp = true
+			var bp_label = requirements_vbox.get_node_or_null("BlueprintCostLabel")
+			if next_lvl >= 3:
+				var bp_count = 0
+				if GameState.player_inventory:
+					bp_count += GameState.player_inventory.get_item_amount("architectural_blueprint")
+				var target_b_storage = _building.get("building_storage") if "building_storage" in _building else null
+				if not target_b_storage and "inventory" in _building:
+					target_b_storage = _building.inventory
+				if target_b_storage:
+					bp_count += target_b_storage.get_item_amount("architectural_blueprint")
+				
+				if not bp_label:
+					bp_label = Label.new()
+					bp_label.name = "BlueprintCostLabel"
+					bp_label.add_theme_font_size_override("font_size", 10)
+					requirements_vbox.add_child(bp_label)
+					requirements_vbox.move_child(bp_label, downtime_label.get_index())
+				
+				meets_bp = bp_count >= 1
+				bp_label.text = " • Architectural Blueprint: 1 (Current: %d)" % bp_count
+				bp_label.modulate = Color(0.2, 0.8, 0.4) if meets_bp else Color(0.9, 0.3, 0.3)
+				bp_label.show()
+			else:
+				if bp_label:
+					bp_label.hide()
+			
 			# Downtime
 			downtime_label.text = " • Construction Downtime: %d seconds" % int(req.time)
 			
-			var meets_req = meets_gold and meets_lvl
+			var meets_req = meets_gold and meets_lvl and meets_bp
 			begin_upgrade_btn.show()
 			begin_upgrade_btn.disabled = not meets_req
 			if not meets_req:

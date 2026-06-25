@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/chemical_solvent.tres" id="2_solvent"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/healing_salve.tres" id="3_salve"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/restoration_flask.tres" id="4_flask"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Formulate Rejuvenation Tonic"
+required_career = "herbalist"
+required_level = 5
+inputs = {
+ExtResource("2_solvent"): 2,
+ExtResource("3_salve"): 1
+}
+output_item = ExtResource("4_flask")
+output_amount = 1
+xp_reward = 50

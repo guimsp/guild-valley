@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/paper.tres" id="2_paper"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/inkwell.tres" id="3_inkwell"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/land_deed.tres" id="4_deed"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Draft Basic Property Deed"
+required_career = "scholar"
+required_level = 1
+inputs = {
+ExtResource("2_paper"): 2,
+ExtResource("3_inkwell"): 1
+}
+output_item = ExtResource("4_deed")
+output_amount = 1
+xp_reward = 12

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "bandits_pass"
+name = "Bandit's Pass"
+item_level = 10
+base_value = 1200
+weight = 0.2
+category = "Product"
+market_category = "Equipment"
+item_type = "Equipment"
+equipment_slot = "Necklace"
+description = "A safe-conduct pass marked with underworld cartel symbols, granting trade route couriers immunity to highway bandit ambushes."

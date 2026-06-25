@@ -73,6 +73,34 @@ func spawn_dynamic_npc_in_province(prov_name: String) -> CharacterBody2D:
 	npc.global_position = spawn_pos + Vector2(randf_range(-100, 100), randf_range(-100, 100))
 	building.get_parent().add_child(npc)
 	npc.province = prov_name
+	
+	# Scale starting skills based on province prosperity level
+	var pm = building.get_node_or_null("/root/ProsperityManager")
+	var level = 1
+	if pm:
+		var val = pm.province_prosperity.get(prov_name, 100.0)
+		level = pm.get_level_for_prosperity(val)
+	
+	var min_skill = 1
+	var max_skill = 3
+	if level == 2:
+		min_skill = 4
+		max_skill = 6
+	elif level >= 3:
+		min_skill = 7
+		max_skill = 10
+		
+	var final_lvl = randi_range(min_skill, max_skill)
+	if "skills_data" in npc:
+		for career_key in npc.skills_data:
+			npc.skills_data[career_key]["level"] = final_lvl
+			
+	var npc_mgr = building.get_node_or_null("/root/NPCManager")
+	if npc_mgr:
+		npc.character_resource = npc_mgr.generate_character_resource(prov_name, final_lvl)
+		if "salary" in npc:
+			npc.salary = npc.character_resource.daily_wage
+			
 	return npc
 
 func get_employee_craft_time(emp: Dictionary, recipe: Resource) -> float:
@@ -85,13 +113,20 @@ func get_employee_craft_time(emp: Dictionary, recipe: Resource) -> float:
 	var craft_time = recipe.get_base_craft_time()
 	var prod = npc.get("productivity") if is_instance_valid(npc) else 1.0
 	if prod > 0.0: craft_time /= prod
-	if level >= 8 and recipe.output_item.get("is_luxury_product"): craft_time *= 0.85
+	if level >= 8 and recipe.output_item.get("is_luxury_product"):
+		craft_time *= GameState.balance_config.get("artisan_luxury_craft_time_multiplier", 0.85)
 	var b_prov = GameState.get_province_of_node(building) if building else ""
 	var pm = get_node_or_null("/root/PoliticsManager")
 	if pm and b_prov != "":
 		var faction = "Player" if building.ownership_type == "Player" else "Rival"
-		if pm.is_faction_delinquent(faction, b_prov): craft_time *= 1.25
-		if pm.is_law_active("labor_welfare_mandate", b_prov): craft_time *= 1.176
+		if pm.is_faction_delinquent(faction, b_prov):
+			craft_time *= GameState.balance_config.get("delinquent_faction_craft_time_multiplier", 1.25)
+		if pm.is_law_active("labor_welfare_mandate", b_prov):
+			var penalty = GameState.balance_config.get("labor_welfare_mandate_productivity_penalty", 0.15)
+			if penalty < 1.0:
+				craft_time *= 1.0 / (1.0 - penalty)
+	if GameState and building:
+		craft_time = GameState.apply_macro_modifier(building, "crafting_time", craft_time)
 	return craft_time
 
 func tick_employees(delta: float) -> void:
@@ -270,18 +305,36 @@ func _process_crafting_step(emp: Dictionary, recipe_path: String, delta: float) 
 					level = emp.get("levels", {}).get(recipe.required_career, 1)
 					
 				var double_harvest_triggered = false
-				if level >= 8 and randf() <= 0.35:
+				if level >= 8 and randf() <= GameState.balance_config.get("double_harvest_chance_lvl8", 0.35):
 					out_qty *= 2
 					double_harvest_triggered = true
-				elif level >= 5 and randf() <= 0.20:
+				elif level >= 5 and randf() <= GameState.balance_config.get("double_harvest_chance_lvl5", 0.20):
 					out_qty *= 2
 					double_harvest_triggered = true
 						
+				var miracle_artisan_triggered = false
+				if is_instance_valid(worker) and "character_resource" in worker and worker.character_resource != null:
+					var ma_lvl = 0
+					for trait_id in worker.character_resource.active_mods:
+						if trait_id.begins_with("Miracle Artisan_Lvl"):
+							ma_lvl = int(trait_id.replace("Miracle Artisan_Lvl", ""))
+							break
+					if ma_lvl > 0:
+						var ma_chance = 0.0
+						if ma_lvl == 1: ma_chance = 0.03
+						elif ma_lvl == 2: ma_chance = 0.07
+						elif ma_lvl == 3: ma_chance = 0.15
+						
+						if randf() <= ma_chance:
+							out_qty *= 2
+							miracle_artisan_triggered = true
+
 				var artisan_efficiency_triggered = level >= 8 and out_item.get("is_luxury_product") == true
 				
 				if building_storage.get_free_space_for_item(out_item) >= out_qty:
 					building_storage.add_item(out_item, out_qty)
 					if double_harvest_triggered: _show_text("Double Harvest!")
+					if miracle_artisan_triggered: _show_text("Miracle Artisan!")
 					if artisan_efficiency_triggered: _show_text("Masterwork Efficiency!")
 							
 					building.lifetime_production[out_item.id] = building.lifetime_production.get(out_item.id, 0) + out_qty
@@ -291,7 +344,7 @@ func _process_crafting_step(emp: Dictionary, recipe_path: String, delta: float) 
 					if gc and b_prov != "":
 						var holder = gc.call("get_office_holder", b_prov, "Materials Steward")
 						var faction = "Player" if building.ownership_type == "Player" else ("Rival" if building.ownership_type == "NPC" and building.owner_id == "Rival" else "")
-						if holder != "" and faction == holder and randf() < 0.10:
+						if holder != "" and faction == holder and randf() < GameState.balance_config.get("materials_steward_refund_chance", 0.10):
 							for item in recipe.inputs:
 								if item.get_item_category() in [0, 1]:
 									building_storage.add_item(item, recipe.inputs[item])

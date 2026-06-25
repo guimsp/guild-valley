@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "fiat_currency_matrix"
+name = "Fiat Currency Matrix"
+item_level = 10
+base_value = 1200
+weight = 1.0
+category = "Product"
+market_category = "Finished Goods"
+description = "A masterpiece currency matrix defining imperial fiat standards."

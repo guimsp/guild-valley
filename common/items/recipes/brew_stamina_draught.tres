@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/dried_shives.tres" id="2_shives"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/water.tres" id="3_water"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/stamina_draught.tres" id="4_stamina"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Brew Stamina Draught"
+required_career = "herbalist"
+required_level = 1
+inputs = {
+ExtResource("2_shives"): 1,
+ExtResource("3_water"): 1
+}
+output_item = ExtResource("4_stamina")
+output_amount = 1
+xp_reward = 12

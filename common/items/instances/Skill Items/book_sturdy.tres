@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillBook" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/skill_book.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "book_sturdy"
+name = "Sturdy Guide"
+base_value = 500
+weight = 0.5
+category = "Product"
+market_category = "Skill Items"
+description = "Permanently teaches an employee the Sturdy trait."
+trait_id = "Sturdy_Lvl1"

@@ -8,7 +8,7 @@
 
 [resource]
 script = ExtResource("1_script")
-recipe_name = "Host Noble Event"
+recipe_name = "Host Noble Merchant Gala"
 required_career = "patreon"
 required_level = 8
 inputs = {

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "monumental_bell"
+name = "Monumental Bell"
+item_level = 10
+base_value = 500
+weight = 20.0
+category = "Product"
+market_category = "Finished Goods"

@@ -129,7 +129,7 @@ grow_vertical = 2
 
 [node name="WindowPanel" type="PanelContainer" parent="CenterContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(680, 480)
+custom_minimum_size = Vector2(700, 580)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
@@ -297,15 +297,16 @@ theme_override_font_sizes/font_size = 13
 text = "Select Starting Career:"
 horizontal_alignment = 1
 
-[node name="CareerCardsHBox" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]
+[node name="CareerCardsHBox" type="GridContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 10
-alignment = 1
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 4
 
 [node name="Card_Patreon" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(145, 180)
+custom_minimum_size = Vector2(145, 160)
 layout_mode = 2
 focus_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
@@ -340,7 +341,7 @@ horizontal_alignment = 1
 
 [node name="Card_Craftsman" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(145, 180)
+custom_minimum_size = Vector2(145, 160)
 layout_mode = 2
 focus_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
@@ -375,7 +376,7 @@ horizontal_alignment = 1
 
 [node name="Card_Tailor" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(145, 180)
+custom_minimum_size = Vector2(145, 160)
 layout_mode = 2
 focus_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
@@ -410,7 +411,7 @@ horizontal_alignment = 1
 
 [node name="Card_Scholar" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(145, 180)
+custom_minimum_size = Vector2(145, 160)
 layout_mode = 2
 focus_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
@@ -441,6 +442,146 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
 theme_override_font_sizes/font_size = 8
 text = "Starts with Paper & Cotton"
+horizontal_alignment = 1
+
+[node name="Card_Woodworker" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 160)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Woodworker"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Woodworker/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.53, 0.34, 1)
+theme_override_font_sizes/font_size = 12
+text = "Woodworker"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Woodworker/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Saws raw timber, cures hardwood, builds handcarts/wagons, and handles civil engineering."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Woodworker/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Timber & Pegs"
+horizontal_alignment = 1
+
+[node name="Card_Herbalist" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 160)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Herbalist"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Herbalist/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.75, 0.56, 1)
+theme_override_font_sizes/font_size = 12
+text = "Herbalist"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Herbalist/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Formulates healing salves, distills serums and flasks, and produces sanitarium medical treatments."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Herbalist/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Herbs & Roots"
+horizontal_alignment = 1
+
+[node name="Card_Rogue" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 160)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Rogue"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Rogue/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.25, 0.25, 1)
+theme_override_font_sizes/font_size = 12
+text = "Rogue"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Rogue/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Steals items from local workshops, brews poisons, runs smuggling routes, and extorts businesses."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Rogue/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Metal Scrap & Bones"
+horizontal_alignment = 1
+
+[node name="Card_Showman" type="PanelContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(145, 160)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Showman"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Showman/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.65, 0.15, 1)
+theme_override_font_sizes/font_size = 12
+text = "Showman"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Showman/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 9
+text = "Constructs stages, paints backdrops, crafts musical instruments, and stages grand performances."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Starting" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/CareerCardsHBox/Card_Showman/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.73, 0.23, 1)
+theme_override_font_sizes/font_size = 8
+text = "Starts with Clay Mud & Raw Stone"
 horizontal_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]

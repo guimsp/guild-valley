@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rogue_cutpurse_apartments_l2"
+name = "Cutpurse Apartments L2"
+family = "rogue_cutpurse_apartments"
+building_level = 2
+career = "rogue"
+tier = 2
+level = 5
+cost = 800
+time = 10.0
+scene_path = "res://components/production/cutpurse_apartments.tscn"
+type = "production"
+description = "An upgraded crime hub featuring a Commercial Protection Desk to extort virtual businesses."

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "raw_log"
+item_level = 1
+name = "Raw Log"
+base_value = 6
+weight = 1.0
+category = "Resource"
+market_category = "Raw Materials"
+item_type = "Raw Material"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "A heavy raw tree log chopped from local forests."

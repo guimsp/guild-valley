@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "herbalist_sanitarium_l1"
+name = "Imperial Sanitarium"
+family = "herbalist_sanitarium"
+building_level = 1
+career = "herbalist"
+tier = 4
+level = 8
+cost = 2000
+time = 10.0
+scene_path = "res://components/production/imperial_sanitarium.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "A prestigious institution providing Provincial Sanitarium Desk services and resolving grand contracts."

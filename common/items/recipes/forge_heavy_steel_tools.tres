@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/iron_ingot.tres" id="2_iron"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/tool_handle.tres" id="3_handle"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/charcoal.tres" id="4_charcoal"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/heavy_steel_tools.tres" id="5_tools"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Forge Heavy Steel Tools"
+required_career = "craftsman"
+required_level = 2
+inputs = {
+ExtResource("2_iron"): 1,
+ExtResource("3_handle"): 1,
+ExtResource("4_charcoal"): 1
+}
+output_item = ExtResource("5_tools")
+output_amount = 1
+xp_reward = 25

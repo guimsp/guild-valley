@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "woodworker_carpentry_workshop_l1"
+name = "Carpentry Workshop"
+family = "woodworker_carpentry_workshop"
+building_level = 1
+career = "woodworker"
+tier = 1
+level = 1
+cost = 150
+time = 6.0
+scene_path = "res://components/production/carpentry_workshop.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 1 Carpentry (Level 1). Assemble basic crates and carve tool handles."

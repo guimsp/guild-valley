@@ -1,8 +1,40 @@
 extends Node
 
+enum ProfessionType { PATREON, CRAFTSMAN, WOODWORKER, TAILOR, HERBALIST, SCHOLAR, ROGUE, SHOWMAN }
+enum ServiceType { BASIC, MANDATORY_INPUT, DYNAMIC_BOOST }
+
+const PROFESSION_PROFILES: Dictionary = {
+	ProfessionType.PATREON: { "labor_base": 0.2, "time_mult": 2.0, "floor_mult": 8.0, "base_stock": 100, "scalar": 1.15 },
+	ProfessionType.CRAFTSMAN: { "labor_base": 0.6, "time_mult": 6.0, "floor_mult": 15.0, "base_stock": 40, "scalar": 1.40 },
+	ProfessionType.WOODWORKER: { "labor_base": 0.4, "time_mult": 4.0, "floor_mult": 12.0, "base_stock": 60, "scalar": 1.25 },
+	ProfessionType.TAILOR: { "labor_base": 0.3, "time_mult": 3.0, "floor_mult": 10.0, "base_stock": 80, "scalar": 1.20 },
+	ProfessionType.HERBALIST: { "labor_base": 0.5, "time_mult": 3.5, "floor_mult": 11.0, "base_stock": 50, "scalar": 1.35 },
+	ProfessionType.SCHOLAR: { "labor_base": 1.0, "time_mult": 8.0, "floor_mult": 25.0, "base_stock": 30, "scalar": 1.75 },
+	ProfessionType.ROGUE: { "labor_base": 0.8, "time_mult": 5.0, "floor_mult": 18.0, "base_stock": 45, "scalar": 1.50 },
+	ProfessionType.SHOWMAN: { "labor_base": 0.8, "time_mult": 4.0, "floor_mult": 20.0, "base_stock": 30, "scalar": 1.60 }
+}
+
+const CAREER_TO_PROFESSION: Dictionary = {
+	"patreon": ProfessionType.PATREON,
+	"craftsman": ProfessionType.CRAFTSMAN,
+	"woodworker": ProfessionType.WOODWORKER,
+	"tailor": ProfessionType.TAILOR,
+	"herbalist": ProfessionType.HERBALIST,
+	"scholar": ProfessionType.SCHOLAR,
+	"rogue": ProfessionType.ROGUE,
+	"showman": ProfessionType.SHOWMAN
+}
+
 # Dictionary of item_id (String) -> ItemData
 var item_database: Dictionary = {}
 var item_career_map: Dictionary = {}
+var recipes_database: Dictionary = {} # output_item.id -> Recipe
+
+var trade_activity: Dictionary = {}
+var guild_stabilization_timer: float = 0.0
+const GUILD_STABILIZATION_INTERVAL: float = 120.0
+
+var _visiting_items: Dictionary = {}
 
 # Queue of pending search query requests:
 # Each entry is a Dictionary: { "npc": CharacterBody2D, "item_id": String, "callback": Callable }
@@ -10,8 +42,6 @@ var query_queue: Array[Dictionary] = []
 
 # Global toggle to show floating debug emotes above NPCs (for testing purposes)
 var show_debug_emotes: bool = true
-
-var empty_items_timers: Dictionary = {}
 
 func _ready() -> void:
 	# Load all items on launch
@@ -21,8 +51,11 @@ func _ready() -> void:
 			TimeManager.time_changed.connect(_on_time_changed)
 
 func _physics_process(delta: float) -> void:
-	_process_restock_timers(delta)
-	
+	guild_stabilization_timer += delta
+	if guild_stabilization_timer >= GUILD_STABILIZATION_INTERVAL:
+		guild_stabilization_timer = 0.0
+		_run_guild_stabilization()
+		
 	# Stagger shop queries: process a maximum of 5 requests per frame
 	var processed_count = 0
 	while processed_count < 5 and not query_queue.is_empty():
@@ -73,6 +106,7 @@ func _scan_item_dir_recursive(path: String) -> void:
 
 func _build_item_career_map() -> void:
 	item_career_map.clear()
+	recipes_database.clear()
 	var dir_path = "res://common/items/recipes/"
 	var dir = DirAccess.open(dir_path)
 	if dir:
@@ -85,11 +119,13 @@ func _build_item_career_map() -> void:
 					clean_name = clean_name.replace(".remap", "")
 				if clean_name.ends_with(".tres"):
 					var res = load(dir_path + clean_name)
-					if res and "output_item" in res and res.output_item and "required_career" in res:
-						item_career_map[res.output_item.id] = res.required_career
+					if res and res is Recipe:
+						if res.output_item:
+							item_career_map[res.output_item.id] = res.required_career
+							recipes_database[res.output_item.id] = res
 			file_name = dir.get_next()
 		dir.list_dir_end()
-		print("[EconomyManager] Built recipe-to-career registry with %d items." % item_career_map.size())
+		print("[EconomyManager] Built recipe-to-career registry with %d items and %d recipes." % [item_career_map.size(), recipes_database.size()])
 
 func get_item_career(item_id: String) -> String:
 	if item_career_map.has(item_id):
@@ -348,9 +384,13 @@ func _process_background_guild_consumption() -> void:
 					if deduction > 0:
 						stall.inventory.remove_item(item_id, deduction)
 
-func _process_merchant_caravan_balancing() -> void:
+func register_trade_activity(stall_path: String, item_id: String) -> void:
+	var key = stall_path + ":" + item_id
+	trade_activity[key] = true
+
+func _run_guild_stabilization() -> void:
 	var stalls = get_tree().get_nodes_in_group("MarketStall")
-	var public_stalls = []
+	var public_stalls: Array = []
 	for stall in stalls:
 		if is_instance_valid(stall) and stall.ownership_type == "Public" and stall.inventory:
 			public_stalls.append(stall)
@@ -358,7 +398,6 @@ func _process_merchant_caravan_balancing() -> void:
 	if public_stalls.is_empty():
 		return
 		
-	# Process shortage and glut for each public stall
 	for stall in public_stalls:
 		var stall_key = String(stall.get_path())
 		for item_id in item_database:
@@ -366,119 +405,182 @@ func _process_merchant_caravan_balancing() -> void:
 			if not item.is_tradable:
 				continue
 				
-			var target = stall.target_stock.get(item, item.get_target_stock())
+			var act_key = stall_key + ":" + item_id
+			if trade_activity.has(act_key):
+				trade_activity.erase(act_key)
+				continue
+				
+			var target_mid = stall.target_stock.get(item, item.get_target_stock())
+			if stall.has_method("get_target_mid_stock_for"):
+				target_mid = stall.call("get_target_mid_stock_for", item)
+				
+			var min_stock = int(target_mid * 0.25)
+			var max_stock = int(target_mid * 2.0)
 			var current_stock = stall.inventory.get_item_amount(item_id)
 			
-			# 1. Shortage Intervention
-			if current_stock < target * 0.25:
-				var key = stall_key + ":" + item_id
-				var consecutive = shortage_days.get(key, 0) + 1
-				shortage_days[key] = consecutive
-				if consecutive >= 2:
-					var mid_amount = int(target * 0.5)
-					var needed = mid_amount - current_stock
-					if needed > 0:
-						stall.inventory.add_item(item, needed)
-						print("[EconomyManager] Caravan shortage intervention: added %d %s to %s" % [needed, item_id, stall.name])
-					shortage_days[key] = 0
-			else:
-				var key = stall_key + ":" + item_id
-				shortage_days[key] = 0
-				
-			# 2. Glut Intervention
-			if current_stock > target * 1.5:
-				var excess = current_stock - target
-				var to_remove = int(excess * 0.5)
-				if to_remove > 0:
-					stall.inventory.remove_item(item_id, to_remove)
-					print("[EconomyManager] Caravan glut intervention: removed %d %s from %s" % [to_remove, item_id, stall.name])
-					
-	# 3. Market Disruption (Random Oversupply)
-	if randf() < 0.20:
-		var commodities = []
-		for item_id in item_database:
-			var item = item_database[item_id]
-			var cat = item.get_item_category()
-			if cat == 0 or cat == 1:
-				commodities.append(item)
-		if not commodities.is_empty():
-			commodities.shuffle()
-			var dump_count = randi_range(1, min(3, commodities.size()))
-			for i in range(dump_count):
-				var item = commodities[i]
-				var target = public_stalls[0].target_stock.get(item, item.get_target_stock())
-				var dump_amount = randi_range(int(target * 0.5), int(target * 1.0))
-				if dump_amount > 0:
-					for stall in public_stalls:
-						stall.inventory.add_item(item, dump_amount)
-					print("[EconomyManager] Caravan Market Disruption: dumped %d units of %s into public markets!" % [dump_amount, item.id])
-					if GameState and GameState.has_method("spawn_ui_floating_text"):
-						GameState.spawn_ui_floating_text("Caravan Disruption: Oversupply of %s!" % item.name)
+			if current_stock < min_stock:
+				var target_range_min = int(target_mid * 0.8)
+				var target_range_max = int(target_mid * 1.2)
+				var nudge_target = randi_range(target_range_min, target_range_max)
+				var needed = nudge_target - current_stock
+				var small_batch = int(clamp(needed * randf_range(0.15, 0.35), 1.0, needed))
+				if small_batch > 0:
+					stall.inventory.add_item(item, small_batch)
+					print("[EconomyManager] Guild stabilization: added %d %s to %s" % [small_batch, item_id, stall.name])
+			elif current_stock > max_stock:
+				var target_range_min = int(target_mid * 0.8)
+				var target_range_max = int(target_mid * 1.2)
+				var nudge_target = randi_range(target_range_min, target_range_max)
+				var excess = current_stock - nudge_target
+				var small_batch = int(clamp(excess * randf_range(0.15, 0.35), 1.0, excess))
+				if small_batch > 0:
+					stall.inventory.remove_item(item_id, small_batch)
+					print("[EconomyManager] Guild stabilization: removed %d %s from %s" % [small_batch, item_id, stall.name])
+
+func get_algorithmic_craft_time(recipe: Recipe) -> float:
+	if not recipe:
+		return 5.0
+	var L = recipe.required_level
+	if recipe.output_item:
+		L = recipe.output_item.item_level
+	var N = recipe.inputs.size()
+	var career = recipe.required_career
+	var type = CAREER_TO_PROFESSION.get(career, ProfessionType.PATREON)
+	var profile = PROFESSION_PROFILES[type]
+	return 5.0 + (L * profile.time_mult) + (N * 4.0)
+
+func get_algorithmic_gathering_time(item_level: int) -> float:
+	return 5.0 + (item_level * 3.0)
+
+func evaluate_modifiers(base_val: float, modifiers: Array) -> float:
+	var current_val = base_val
+	# Apply FLAT modifiers first
+	for mod in modifiers:
+		if mod and mod.get("type") == StatModifier.ModificationType.FLAT:
+			current_val += mod.value
+	# Apply MULTIPLIER modifiers second
+	for mod in modifiers:
+		if mod and mod.get("type") == StatModifier.ModificationType.MULTIPLIER:
+			current_val *= mod.value
+	return current_val
+
+func is_operation_pristine(recipe: Recipe) -> bool:
+	if not recipe:
+		return false
+	if recipe.output_item and recipe.output_item.item_level >= 6:
+		return true
+	for input_item in recipe.inputs:
+		if input_item and input_item.item_level >= 6:
+			return true
+	return false
 
 func register_public_stall(stall: MarketStall) -> void:
-	if is_instance_valid(stall) and stall.inventory:
-		if not stall.inventory.inventory_changed.is_connected(_on_public_stall_inventory_changed.bind(stall)):
-			stall.inventory.inventory_changed.connect(_on_public_stall_inventory_changed.bind(stall))
-		_check_stall_stock_level(stall)
+	pass
 
-func _on_public_stall_inventory_changed(stall: MarketStall) -> void:
-	_check_stall_stock_level(stall)
+func resolve_grand_event(consumed_items: Array, contract_data: Dictionary = {}) -> Dictionary:
+	var total_input_value: float = 0.0
+	var min_item_level: int = 999
+	var max_item_level: int = -999
 
-func _check_stall_stock_level(stall: MarketStall) -> void:
-	if not is_instance_valid(stall) or not stall.inventory:
-		return
-	if stall.ownership_type != "Public":
-		return
-	var stall_key = String(stall.get_path())
-	for item in stall.target_stock:
-		var item_id = item.id
-		var key = stall_key + ":" + item_id
-		var current_stock = stall.inventory.get_item_amount(item_id)
-		
-		# If it hits 0 and is not already tracked, start a 1-3 min timer
-		if current_stock == 0:
-			if not empty_items_timers.has(key):
-				var wait_time = randf_range(60.0, 180.0) # 1 to 3 real-time minutes
-				empty_items_timers[key] = {
-					"stall": stall,
-					"item": item,
-					"time_left": wait_time
-				}
-				print("[EconomyManager] Stall %s: item %s is out of stock. Restock scheduled in %.1f seconds." % [stall.name, item_id, wait_time])
-		else:
-			# If it has a timer and is no longer at 0, check if we should remove it (e.g. player/rival restocked it)
-			if empty_items_timers.has(key):
-				var target = stall.target_stock.get(item, item.get_target_stock())
-				var mid_stock = target * 0.5
-				# If stock is now above 20% of mid stock, we can safely clear the replenishment timer
-				if current_stock >= max(1, int(mid_stock * 0.20)):
-					empty_items_timers.erase(key)
-					print("[EconomyManager] Stall %s: item %s restocked externally to %d. Cleared timer." % [stall.name, item_id, current_stock])
+	for item in consumed_items:
+		if item is ItemData:
+			total_input_value += float(item.base_value)
+			var level: int = item.item_level
+			if level < min_item_level:
+				min_item_level = level
+			if level > max_item_level:
+				max_item_level = level
 
-func _process_restock_timers(delta: float) -> void:
-	var to_erase = []
-	for key in empty_items_timers:
-		var data = empty_items_timers[key]
-		data["time_left"] -= delta
-		if data["time_left"] <= 0.0:
-			to_erase.append(key)
-			_restock_item(data["stall"], data["item"])
-			
-	for key in to_erase:
-		empty_items_timers.erase(key)
+	# Guard against empty arrays
+	if min_item_level == 999:
+		min_item_level = 1
+	if max_item_level == -999:
+		max_item_level = 1
 
-func _restock_item(stall: MarketStall, item: ItemData) -> void:
-	if not is_instance_valid(stall) or not stall.inventory:
-		return
-		
-	var target = stall.target_stock.get(item, item.get_target_stock())
-	var mid_stock = target * 0.5
-	var restock_pct = randf_range(0.20, 0.40)
-	var restock_amount = max(1, int(mid_stock * restock_pct))
+	var bad_chance: float = 0.0
+	var reg_chance: float = 0.0
+	var good_chance: float = 0.0
+	var exc_chance: float = 0.0
+	var pri_chance: float = 0.0
+
+	if min_item_level >= 5:
+		# Profile D
+		bad_chance = 0.0
+		reg_chance = 0.02
+		good_chance = 0.06
+		exc_chance = 0.12
+		pri_chance = 0.80
+	elif min_item_level >= 4:
+		# Profile C
+		bad_chance = 0.0
+		reg_chance = 0.10
+		good_chance = 0.15
+		exc_chance = 0.25
+		pri_chance = 0.50
+	elif max_item_level >= 4:
+		# Profile B
+		bad_chance = 0.20
+		reg_chance = 0.40
+		good_chance = 0.30
+		exc_chance = 0.10
+		pri_chance = 0.0
+	else:
+		# Profile A
+		bad_chance = 0.35
+		reg_chance = 0.45
+		good_chance = 0.20
+		exc_chance = 0.0
+		pri_chance = 0.0
+
+	var roll: float = randf()
+	var outcome_tier: int = 1 # 0=BAD, 1=REGULAR, 2=GOOD, 3=EXCELLENT, 4=PRISTINE
+
+	var cum_bad: float = bad_chance
+	var cum_reg: float = cum_bad + reg_chance
+	var cum_good: float = cum_reg + good_chance
+	var cum_exc: float = cum_good + exc_chance
+
+	if roll < cum_bad:
+		outcome_tier = 0
+	elif roll < cum_reg:
+		outcome_tier = 1
+	elif roll < cum_good:
+		outcome_tier = 2
+	elif roll < cum_exc:
+		outcome_tier = 3
+	else:
+		outcome_tier = 4
+
+	var multiplier: float = 1.00
+	var prestige_multiplier: float = 1.00
 	
-	var current_stock = stall.inventory.get_item_amount(item.id)
-	if current_stock < restock_amount:
-		var needed = restock_amount - current_stock
-		stall.inventory.add_item(item, needed)
-		print("[EconomyManager] Centrally restocked %d units of %s to %s (current: %d, mid-stock: %f, restock target: %d)." % [needed, item.id, stall.name, current_stock, mid_stock, restock_amount])
+	match outcome_tier:
+		0:
+			multiplier = 0.50
+			prestige_multiplier = 1.00
+		1:
+			multiplier = 1.00
+			prestige_multiplier = 1.00
+		2:
+			multiplier = 1.30
+			prestige_multiplier = 1.00
+		3:
+			multiplier = 1.75
+			prestige_multiplier = 1.50
+		4:
+			multiplier = 2.50
+			prestige_multiplier = 2.50
+
+	var base_reward: float = total_input_value * 1.5
+	var final_payout: int = int(round(base_reward * multiplier))
+
+	return {
+		"outcome_tier": outcome_tier,
+		"payout": final_payout,
+		"prestige_multiplier": prestige_multiplier,
+		"total_input_value": total_input_value,
+		"min_item_level": min_item_level,
+		"max_item_level": max_item_level
+	}
+
 

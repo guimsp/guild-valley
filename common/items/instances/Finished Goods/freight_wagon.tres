@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "freight_wagon"
+item_level = 5
+name = "Freight Wagon"
+base_value = 400
+weight = 15.0
+category = "Product"
+market_category = "Finished Goods"
+item_type = "Raw Material"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 5
+description = "A heavy-duty cargo wagon for long-distance transport."

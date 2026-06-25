@@ -150,6 +150,8 @@ func _trigger_arrest_dialogue(player: CharacterBody2D, law_name: String, action:
 		bubble.show_choices(["Pay 200g Fine", "Face Arrest"], func(choice):
 			if choice == 0:
 				if GameState.gold >= 200:
+					GameState.next_change_reason = "Guard Fine"
+					GameState.next_change_detail = "Illegal Harvesting Fine"
 					GameState.gold -= 200
 					GameState.spawn_ui_floating_text("Paid Fine: -200 Gold!")
 					# Stop player harvesting/smelting activity to prevent immediately re-triggering scan

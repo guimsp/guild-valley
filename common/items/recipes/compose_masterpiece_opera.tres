@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/grand_stage_set.tres" id="2_input1"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/registry_ledger.tres" id="3_input2"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/masterpiece_opera_partiture.tres" id="4_output"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Compose Masterpiece Opera"
+required_career = "showman"
+required_level = 10
+inputs = {
+ExtResource("2_input1"): 4,
+ExtResource("3_input2"): 2
+}
+output_item = ExtResource("4_output")
+output_amount = 1
+xp_reward = 250
+is_breakthrough_only = false
+is_service = false
+service_type = 0

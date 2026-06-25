@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "spice_grubs"
+name = "Concentrated Spice Grubs"
+item_level = 8
+base_value = 35
+weight = 0.2
+category = "Resource"
+market_category = "Raw Materials"
+item_type = "Raw Material"
+equipment_slot = "None"
+is_tradable = true
+is_stackable = true
+max_stack = 20
+description = "Spicy dried grubs from the herbalist, used as an exotic culinary flavor booster."

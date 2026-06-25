@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "herbalist_infirmary_l2"
+name = "Infusion Infirmary L2"
+family = "herbalist_infirmary"
+building_level = 2
+career = "herbalist"
+tier = 3
+level = 7
+cost = 1200
+time = 7.0
+scene_path = "res://components/production/infusion_infirmary.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "An expanded medical facility providing advanced healing and clinic services."

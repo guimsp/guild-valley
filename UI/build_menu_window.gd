@@ -1,9 +1,81 @@
 extends PanelContainer
 
+const CATEGORIES_METADATA = {
+	"general": {
+		"name": "General",
+		"icon": "🏠",
+		"color": Color(0.85, 0.85, 0.85),
+		"base_color": Color(0.16, 0.16, 0.22, 0.8),
+		"border_color": Color(0.35, 0.35, 0.45, 0.6)
+	},
+	"patreon": {
+		"name": "Patreon",
+		"icon": "🌾",
+		"color": Color(0.3, 0.8, 0.4),
+		"base_color": Color(0.12, 0.28, 0.18, 0.8),
+		"border_color": Color(0.24, 0.56, 0.36, 0.6)
+	},
+	"scholar": {
+		"name": "Scholar",
+		"icon": "📜",
+		"color": Color(0.3, 0.6, 0.9),
+		"base_color": Color(0.12, 0.2, 0.3, 0.8),
+		"border_color": Color(0.24, 0.44, 0.66, 0.6)
+	},
+	"craftsman": {
+		"name": "Craftsman",
+		"icon": "⚒️",
+		"color": Color(0.85, 0.55, 0.25),
+		"base_color": Color(0.25, 0.2, 0.15, 0.8),
+		"border_color": Color(0.55, 0.44, 0.32, 0.6)
+	},
+	"tailor": {
+		"name": "Tailor",
+		"icon": "🧵",
+		"color": Color(0.75, 0.35, 0.85),
+		"base_color": Color(0.24, 0.14, 0.28, 0.8),
+		"border_color": Color(0.52, 0.32, 0.62, 0.6)
+	},
+	"woodworker": {
+		"name": "Woodworker",
+		"icon": "🪵",
+		"color": Color(0.65, 0.45, 0.25),
+		"base_color": Color(0.22, 0.16, 0.12, 0.8),
+		"border_color": Color(0.48, 0.35, 0.26, 0.6)
+	},
+	"herbalist": {
+		"name": "Herbalist",
+		"icon": "🌿",
+		"color": Color(0.25, 0.75, 0.55),
+		"base_color": Color(0.1, 0.25, 0.2, 0.8),
+		"border_color": Color(0.2, 0.55, 0.44, 0.6)
+	},
+	"rogue": {
+		"name": "Rogue",
+		"icon": "👥",
+		"color": Color(0.55, 0.55, 0.6),
+		"base_color": Color(0.16, 0.16, 0.18, 0.8),
+		"border_color": Color(0.35, 0.35, 0.4, 0.6)
+	},
+	"showman": {
+		"name": "Showman",
+		"icon": "🎭",
+		"color": Color(0.9, 0.25, 0.5),
+		"base_color": Color(0.26, 0.12, 0.18, 0.8),
+		"border_color": Color(0.58, 0.26, 0.4, 0.6)
+	}
+}
+
 var _main_hud: CanvasLayer = null
 var _filter_only_buildable: bool = false
 var _last_focused_card: Control = null
 
+# Map tab keys to their respective list container and nodes
+var _tab_lists: Dictionary = {}
+var _tab_nodes: Dictionary = {}
+var _active_tab_keys: Array = []
+
+# Backward compatible variables (general/patreon/scholar/craftsman/tailor lists)
 var all_list: VBoxContainer = null
 var patreon_list: VBoxContainer = null
 var scholar_list: VBoxContainer = null
@@ -17,6 +89,9 @@ var levels_overlay: PanelContainer = null
 
 func setup(p_hud: CanvasLayer) -> void:
 	_main_hud = p_hud
+	
+	# Force premium sizing dynamically
+	custom_minimum_size = Vector2(700, 480)
 	
 	if get_viewport() and not get_viewport().gui_focus_changed.is_connected(_on_viewport_focus_changed):
 		get_viewport().gui_focus_changed.connect(_on_viewport_focus_changed)
@@ -32,12 +107,15 @@ func setup(p_hud: CanvasLayer) -> void:
 			build_tab_container.remove_child(child)
 			child.queue_free()
 			
-		# Create the 5 lists dynamically
-		var lists = []
-		var tab_names = ["General", "Patreon", "Scholar", "Craftsman", "Tailor"]
-		for tab_name in tab_names:
+		# Create lists for all 9 categories dynamically
+		_tab_lists.clear()
+		_tab_nodes.clear()
+		
+		var tab_keys = ["general", "patreon", "scholar", "craftsman", "tailor", "woodworker", "herbalist", "rogue", "showman"]
+		for key in tab_keys:
+			var meta = CATEGORIES_METADATA[key]
 			var margin_container = MarginContainer.new()
-			margin_container.name = tab_name
+			margin_container.name = meta["name"]
 			margin_container.add_theme_constant_override("margin_left", 20)
 			margin_container.add_theme_constant_override("margin_right", 20)
 			margin_container.add_theme_constant_override("margin_top", 16)
@@ -51,54 +129,37 @@ func setup(p_hud: CanvasLayer) -> void:
 			var vbox = VBoxContainer.new()
 			vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			vbox.add_theme_constant_override("separation", 14)
 			scroll_container.add_child(vbox)
 			
 			build_tab_container.add_child(margin_container)
-			lists.append(vbox)
+			_tab_lists[key] = vbox
+			_tab_nodes[key] = margin_container
 			
-		all_list = lists[0]
-		patreon_list = lists[1]
-		scholar_list = lists[2]
-		craftsman_list = lists[3]
-		tailor_list = lists[4]
+		# Populate legacy backward compatible references
+		all_list = _tab_lists["general"]
+		patreon_list = _tab_lists["patreon"]
+		scholar_list = _tab_lists["scholar"]
+		craftsman_list = _tab_lists["craftsman"]
+		tailor_list = _tab_lists["tailor"]
 		
 		build_tab_container.focus_mode = Control.FOCUS_NONE
-		build_tab_container.tab_changed.connect(func(tab_idx):
+		build_tab_container.tab_changed.connect(func(_tab_idx):
 			_update_category_bar_highlight()
 			_focus_first_card_in_active_tab()
 		)
 		
-		# Category Bar with small window icons/buttons in a line
+		# Category Bar with small window icons/buttons in a Grid (5 columns to prevent overflow)
 		var main_layout = get_node("VBox")
-		var category_hbox = HBoxContainer.new()
-		category_hbox.name = "CategoryBar"
-		category_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		category_hbox.add_theme_constant_override("separation", 16)
-		main_layout.add_child(category_hbox)
-		main_layout.move_child(category_hbox, 1) # between Header and BuildTabContainer
+		var category_grid = GridContainer.new()
+		category_grid.name = "CategoryBar"
+		category_grid.columns = 5
+		category_grid.add_theme_constant_override("h_separation", 8)
+		category_grid.add_theme_constant_override("v_separation", 6)
+		category_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		main_layout.add_child(category_grid)
+		main_layout.move_child(category_grid, 1) # between Header and BuildTabContainer
 		
-		var categories = [
-			{"name": "General", "icon": "🏠"},
-			{"name": "Patreon", "icon": "🌾"},
-			{"name": "Scholar", "icon": "📜"},
-			{"name": "Craftsman", "icon": "⚒️"},
-			{"name": "Tailor", "icon": "🧵"}
-		]
-		
-		for i in range(categories.size()):
-			var cat = categories[i]
-			var btn = Button.new()
-			btn.text = cat["icon"] + " " + cat["name"]
-			btn.custom_minimum_size = Vector2(90, 28)
-			btn.add_theme_font_size_override("font_size", 11)
-			btn.focus_mode = Control.FOCUS_NONE
-			if _main_hud and _main_hud.has_method("_setup_button_hover"):
-				_main_hud._setup_button_hover(btn)
-			btn.pressed.connect(func():
-				_switch_build_tab(i)
-			)
-			category_hbox.add_child(btn)
-			
 		# Legend label just above CloseButton
 		legend_lbl = Label.new()
 		legend_lbl.name = "LegendLabel"
@@ -108,8 +169,6 @@ func setup(p_hud: CanvasLayer) -> void:
 		legend_lbl.add_theme_color_override("font_color", Color(0.9, 0.8, 0.4))
 		main_layout.add_child(legend_lbl)
 		main_layout.move_child(legend_lbl, main_layout.get_child_count() - 2)
-
-	# Time changed updates are bypassed to prevent card recreation flickering
 
 func refresh() -> void:
 	if not visible:
@@ -132,15 +191,16 @@ func refresh_build_menu() -> void:
 	if focused and is_instance_valid(focused) and is_ancestor_of(focused):
 		focused_family = focused.get_meta("building_family", "")
 
+	_reorder_tabs_and_category_bar()
+
 	_populate_general_tab()
-	_populate_profession_tab(1, "patreon")
-	_populate_profession_tab(2, "scholar")
-	_populate_profession_tab(3, "craftsman")
-	_populate_profession_tab(4, "tailor")
+	var career_keys = ["patreon", "scholar", "craftsman", "tailor", "woodworker", "herbalist", "rogue", "showman"]
+	for career in career_keys:
+		_populate_profession_tab(career)
+		
 	_update_category_bar_highlight()
 
 	if focused_family != "":
-		# Wait for layout updates to complete
 		await get_tree().process_frame
 		if not visible:
 			return
@@ -157,21 +217,97 @@ func _switch_build_tab(idx: int) -> void:
 	if build_tab_container:
 		build_tab_container.current_tab = idx
 
-func _update_category_bar_highlight() -> void:
-	var category_hbox = get_node_or_null("VBox/CategoryBar")
-	if not category_hbox:
-		return
-	var active_idx = build_tab_container.current_tab
-	var active_color = Color(1.0, 0.85, 0.4) # Warm gold
-	var inactive_color = Color(0.9, 0.9, 0.95)
+func _reorder_tabs_and_category_bar() -> void:
+	var active_careers = []
+	var inactive_careers = []
+	var career_keys = ["patreon", "scholar", "craftsman", "tailor", "woodworker", "herbalist", "rogue", "showman"]
+	for c in career_keys:
+		if GameState.career_levels.get(c, 0) > 0:
+			active_careers.append(c)
+		else:
+			inactive_careers.append(c)
+			
+	# General is always first, followed by unlocked careers, followed by locked ones
+	_active_tab_keys = ["general"] + active_careers + inactive_careers
 	
-	for i in category_hbox.get_child_count():
-		var btn = category_hbox.get_child(i) as Button
+	# Move the children in the TabContainer
+	for i in range(_active_tab_keys.size()):
+		var key = _active_tab_keys[i]
+		var node = _tab_nodes.get(key)
+		if node:
+			build_tab_container.move_child(node, i)
+			
+	# Rebuild Category Bar Buttons
+	var category_grid = get_node_or_null("VBox/CategoryBar")
+	if category_grid:
+		for child in category_grid.get_children():
+			category_grid.remove_child(child)
+			child.queue_free()
+			
+		for i in range(_active_tab_keys.size()):
+			var key = _active_tab_keys[i]
+			var meta = CATEGORIES_METADATA[key]
+			var is_active = (key == "general" or GameState.career_levels.get(key, 0) > 0)
+			
+			var btn = Button.new()
+			btn.text = meta["icon"] + " " + meta["name"]
+			btn.custom_minimum_size = Vector2(100, 24)
+			btn.add_theme_font_size_override("font_size", 9)
+			btn.focus_mode = Control.FOCUS_NONE
+			
+			if _main_hud and _main_hud.has_method("_setup_button_hover"):
+				_main_hud._setup_button_hover(btn)
+				
+			if is_active:
+				btn.add_theme_color_override("font_color", meta["color"])
+			else:
+				btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+				btn.modulate = Color(0.7, 0.7, 0.7, 0.7)
+				
+			var tab_idx = i
+			btn.pressed.connect(func():
+				_switch_build_tab(tab_idx)
+			)
+			category_grid.add_child(btn)
+
+func _update_category_bar_highlight() -> void:
+	var category_grid = get_node_or_null("VBox/CategoryBar")
+	if not category_grid:
+		return
+	var active_idx = build_tab_container.current_tab if build_tab_container else 0
+	
+	for i in category_grid.get_child_count():
+		var btn = category_grid.get_child(i) as Button
 		if btn:
-			btn.add_theme_color_override("font_color", active_color if i == active_idx else inactive_color)
+			var key = _active_tab_keys[i]
+			var meta = CATEGORIES_METADATA[key]
+			var is_active = (key == "general" or GameState.career_levels.get(key, 0) > 0)
+			
+			if i == active_idx:
+				btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+				
+				var style_selected = StyleBoxFlat.new()
+				style_selected.bg_color = meta["color"].darkened(0.4)
+				style_selected.set_border_width_all(1)
+				style_selected.border_color = meta["color"]
+				style_selected.set_corner_radius_all(6)
+				style_selected.content_margin_left = 6
+				style_selected.content_margin_right = 6
+				btn.add_theme_stylebox_override("normal", style_selected)
+				btn.add_theme_stylebox_override("hover", style_selected)
+				btn.add_theme_stylebox_override("pressed", style_selected)
+			else:
+				btn.remove_theme_stylebox_override("normal")
+				btn.remove_theme_stylebox_override("hover")
+				btn.remove_theme_stylebox_override("pressed")
+				if is_active:
+					btn.add_theme_color_override("font_color", meta["color"])
+				else:
+					btn.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
 func _populate_general_tab() -> void:
-	if not all_list:
+	var list_node = _tab_lists.get("general")
+	if not list_node:
 		return
 	var items = []
 	for item in GameState.build_database:
@@ -179,76 +315,129 @@ func _populate_general_tab() -> void:
 			if item.type == "home" or item.type == "renting" or item.type == "warehouse":
 				if not _filter_only_buildable or _is_building_buildable(item):
 					items.append(item)
-	_populate_grid_tab(all_list, items)
+	_populate_grid_tab(list_node, items)
 
-func _populate_profession_tab(tab_idx: int, career_name: String) -> void:
-	var list_node: VBoxContainer = null
-	match tab_idx:
-		1: list_node = patreon_list
-		2: list_node = scholar_list
-		3: list_node = craftsman_list
-		4: list_node = tailor_list
-		
+func _populate_profession_tab(career_name: String) -> void:
+	var list_node = _tab_lists.get(career_name)
 	if not list_node:
 		return
-		
 	var items = []
 	for item in GameState.build_database:
 		if item.career == career_name:
 			if not _filter_only_buildable or _is_building_buildable(item):
 				items.append(item)
-				
 	_populate_grid_tab(list_node, items)
+
+func _create_tier_header(tier_num: int) -> PanelContainer:
+	var header = PanelContainer.new()
+	header.name = "TierHeader_T%d" % tier_num
+	header.custom_minimum_size = Vector2(0, 30)
+	
+	var style = StyleBoxFlat.new()
+	style.set_corner_radius_all(4)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	style.border_width_left = 4
+	
+	var active_title_lvl = GameState.title_level
+	var title_name = GameState.get_title_name(tier_num)
+	var is_unlocked = (tier_num <= active_title_lvl)
+	
+	if is_unlocked:
+		style.bg_color = Color(0.08, 0.14, 0.1, 0.6)
+		style.border_color = Color(0.24, 0.65, 0.44)
+	else:
+		style.bg_color = Color(0.14, 0.08, 0.08, 0.6)
+		style.border_color = Color(0.86, 0.24, 0.24)
+		
+	header.add_theme_stylebox_override("panel", style)
+	
+	var hbox = HBoxContainer.new()
+	header.add_child(hbox)
+	
+	var title_lbl = Label.new()
+	title_lbl.text = "Tier %d: %s" % [tier_num, title_name]
+	title_lbl.add_theme_font_size_override("font_size", 11)
+	title_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 0.9))
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(title_lbl)
+	
+	var status_lbl = Label.new()
+	status_lbl.add_theme_font_size_override("font_size", 10)
+	
+	if is_unlocked:
+		status_lbl.text = "✓ Unlocked & Active"
+		status_lbl.add_theme_color_override("font_color", Color(0.3, 0.8, 0.4))
+	else:
+		var cost = GameState.get_title_upgrade_cost(tier_num)
+		status_lbl.text = "🔒 Requires: %d Gold, %d Influence" % [cost["gold"], cost["influence"]]
+		status_lbl.add_theme_color_override("font_color", Color(0.9, 0.6, 0.3))
+		
+	hbox.add_child(status_lbl)
+	return header
 
 func _populate_grid_tab(list_node: VBoxContainer, items: Array) -> void:
 	for child in list_node.get_children():
 		list_node.remove_child(child)
 		child.queue_free()
 		
-	var grid = GridContainer.new()
-	grid.name = "GridContainer"
-	grid.columns = 5
-	grid.add_theme_constant_override("h_separation", 16)
-	grid.add_theme_constant_override("v_separation", 16)
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	list_node.add_child(grid)
-	
-	var scroll = list_node.get_parent() as ScrollContainer
-	if scroll:
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	# Separate items into groups by tier
+	var tier_items = {}
+	for tier_idx in range(1, 6):
+		tier_items[tier_idx] = []
 		
-	# Group items by family
-	var families = {}
 	for item in items:
-		if not families.has(item.family):
-			families[item.family] = []
-		families[item.family].append(item)
+		var t = item.tier
+		if not tier_items.has(t):
+			tier_items[t] = []
+		tier_items[t].append(item)
 		
-	# Sort each family items by building_level
-	for fam in families:
-		families[fam].sort_custom(func(a, b):
-			return a.building_level < b.building_level
+	# Populate each tier's content with header and items GridContainer
+	for tier_idx in range(1, 6):
+		var tier_list = tier_items[tier_idx]
+		if tier_list.size() == 0:
+			continue
+			
+		var header = _create_tier_header(tier_idx)
+		list_node.add_child(header)
+		
+		var grid = GridContainer.new()
+		grid.name = "GridContainer_T%d" % tier_idx
+		grid.columns = 5
+		grid.add_theme_constant_override("h_separation", 16)
+		grid.add_theme_constant_override("v_separation", 16)
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		list_node.add_child(grid)
+		
+		var families = {}
+		for item in tier_list:
+			if not families.has(item.family):
+				families[item.family] = []
+			families[item.family].append(item)
+			
+		for fam in families:
+			families[fam].sort_custom(func(a, b):
+				return a.building_level < b.building_level
+			)
+			
+		var family_names = families.keys()
+		family_names.sort_custom(func(a, b):
+			return families[a][0].cost < families[b][0].cost
 		)
 		
-	var family_names = families.keys()
-	# Sort families by the cost of their first building
-	family_names.sort_custom(func(a, b):
-		return families[a][0].cost < families[b][0].cost
-	)
-	
-	for fam in family_names:
-		var family_items = families[fam]
-		var base_item = family_items[0]
-		
-		var card = _create_premium_card(base_item, true)
-		card.set_meta("building_family", fam)
-		card.set_meta("building_levels", family_items)
-		card.set_meta("building_name", base_item.name)
-		grid.add_child(card)
-		
-	_link_grid_focus_neighbors(grid)
+		for fam in family_names:
+			var family_items = families[fam]
+			var base_item = family_items[0]
+			
+			var card = _create_premium_card(base_item, true)
+			card.set_meta("building_family", fam)
+			card.set_meta("building_levels", family_items)
+			card.set_meta("building_name", base_item.name)
+			grid.add_child(card)
+			
+	_link_multi_grid_focus(list_node)
 
 func _link_grid_focus_neighbors(grid: GridContainer) -> void:
 	if not grid or grid.get_child_count() == 0:
@@ -265,25 +454,21 @@ func _link_grid_focus_neighbors(grid: GridContainer) -> void:
 		var r = i / cols
 		var c = i % cols
 		
-		# Left neighbor
 		if c > 0:
 			child.focus_neighbor_left = grid.get_child(i - 1).get_path()
 		else:
 			child.focus_neighbor_left = child.get_path()
 			
-		# Right neighbor
 		if c < cols - 1 and i < child_count - 1:
 			child.focus_neighbor_right = grid.get_child(i + 1).get_path()
 		else:
 			child.focus_neighbor_right = child.get_path()
 			
-		# Top neighbor
 		if r > 0:
 			child.focus_neighbor_top = grid.get_child(i - cols).get_path()
 		else:
 			child.focus_neighbor_top = child.get_path()
 				
-		# Bottom neighbor
 		var next_row_idx = i + cols
 		if next_row_idx < child_count:
 			child.focus_neighbor_bottom = grid.get_child(next_row_idx).get_path()
@@ -292,6 +477,45 @@ func _link_grid_focus_neighbors(grid: GridContainer) -> void:
 			
 		if not child.focus_entered.is_connected(_on_card_focused.bind(child)):
 			child.focus_entered.connect(_on_card_focused.bind(child))
+
+func _link_multi_grid_focus(list_node: VBoxContainer) -> void:
+	var grids = []
+	for child in list_node.get_children():
+		if child is GridContainer:
+			if child.get_child_count() > 0:
+				grids.append(child)
+				
+	if grids.size() == 0:
+		return
+		
+	for grid in grids:
+		_link_grid_focus_neighbors(grid)
+		
+	for g_idx in range(grids.size() - 1):
+		var upper_grid = grids[g_idx]
+		var lower_grid = grids[g_idx + 1]
+		
+		var cols = upper_grid.columns
+		var upper_count = upper_grid.get_child_count()
+		var lower_count = lower_grid.get_child_count()
+		
+		if upper_count == 0 or lower_count == 0:
+			continue
+			
+		var upper_last_row_start = ((upper_count - 1) / cols) * cols
+		for c in range(cols):
+			var upper_item_idx = upper_last_row_start + c
+			if upper_item_idx >= upper_count:
+				break
+			var upper_item = upper_grid.get_child(upper_item_idx) as Control
+			if not upper_item:
+				continue
+				
+			var lower_item_idx = min(c, lower_count - 1)
+			var lower_item = lower_grid.get_child(lower_item_idx) as Control
+			if lower_item:
+				upper_item.focus_neighbor_bottom = lower_item.get_path()
+				lower_item.focus_neighbor_top = upper_item.get_path()
 
 func _ensure_card_visible(card: Control, main_scroll: ScrollContainer) -> void:
 	if not main_scroll or not is_instance_valid(main_scroll):
@@ -322,11 +546,11 @@ func _ensure_card_visible(card: Control, main_scroll: ScrollContainer) -> void:
 
 func _on_card_focused(card: Control) -> void:
 	_last_focused_card = card
-	var grid = card.get_parent()
-	if grid:
-		var scroll = grid.get_parent() as ScrollContainer
-		if scroll:
-			_ensure_card_visible(card, scroll)
+	var scroll = card.get_parent()
+	while scroll and not (scroll is ScrollContainer):
+		scroll = scroll.get_parent()
+	if scroll and scroll is ScrollContainer:
+		_ensure_card_visible(card, scroll)
 		
 	if is_instance_valid(legend_lbl):
 		if card.has_meta("building_levels"):
@@ -461,7 +685,7 @@ func _is_building_buildable(building: BuildingData) -> bool:
 	var is_title_locked = building.tier > GameState.title_level
 	return not is_level_locked and not is_locked_placeholder and not is_title_locked
 
-func _create_premium_card(building: BuildingData, compact: bool) -> PanelContainer:
+func _create_premium_card(building: BuildingData, _compact: bool) -> PanelContainer:
 	var career = building.career
 	var req_lvl = building.level
 	var type = building.type
@@ -489,29 +713,32 @@ func _create_premium_card(building: BuildingData, compact: bool) -> PanelContain
 	
 	var base_color = Color(0.16, 0.16, 0.22, 0.8)
 	var border_color = Color(0.35, 0.35, 0.45, 0.6)
+	var icon_color = Color(0.3, 0.3, 0.35)
+	
+	var meta = CATEGORIES_METADATA.get(career, CATEGORIES_METADATA.get("general"))
 	
 	if not is_disabled:
-		if career == "patreon":
-			base_color = Color(0.12, 0.28, 0.18, 0.8)
-			border_color = Color(0.24, 0.56, 0.36, 0.6)
-		elif career == "craftsman":
-			base_color = Color(0.25, 0.2, 0.15, 0.8)
-			border_color = Color(0.55, 0.44, 0.32, 0.6)
-		elif career == "tailor":
-			base_color = Color(0.24, 0.14, 0.28, 0.8)
-			border_color = Color(0.52, 0.32, 0.62, 0.6)
-		elif career == "scholar":
-			base_color = Color(0.12, 0.2, 0.3, 0.8)
-			border_color = Color(0.24, 0.44, 0.66, 0.6)
-		elif type == "home":
-			base_color = Color(0.24, 0.12, 0.12, 0.8)
-			border_color = Color(0.65, 0.24, 0.24, 0.6)
-		elif type == "renting":
-			base_color = Color(0.12, 0.24, 0.24, 0.8)
-			border_color = Color(0.24, 0.65, 0.65, 0.6)
+		if career != "":
+			base_color = meta.base_color
+			border_color = meta.border_color
+			icon_color = meta.color
+		else:
+			if type == "home":
+				base_color = Color(0.24, 0.12, 0.12, 0.8)
+				border_color = Color(0.65, 0.24, 0.24, 0.6)
+				icon_color = Color(0.8, 0.3, 0.3)
+			elif type == "renting":
+				base_color = Color(0.12, 0.24, 0.24, 0.8)
+				border_color = Color(0.24, 0.65, 0.65, 0.6)
+				icon_color = Color(0.3, 0.7, 0.7)
+			else:
+				base_color = meta.base_color
+				border_color = meta.border_color
+				icon_color = meta.color
 	else:
 		base_color = Color(0.1, 0.1, 0.12, 0.45)
 		border_color = Color(0.2, 0.2, 0.22, 0.3)
+		icon_color = Color(0.15, 0.15, 0.18)
 		
 	style.bg_color = base_color
 	style.border_color = border_color
@@ -538,24 +765,6 @@ func _create_premium_card(building: BuildingData, compact: bool) -> PanelContain
 	
 	var icon_style = StyleBoxFlat.new()
 	icon_style.set_corner_radius_all(6)
-	
-	var icon_color = Color(0.3, 0.3, 0.35)
-	if not is_disabled:
-		if career == "patreon":
-			icon_color = Color(0.2, 0.6, 0.3)
-		elif career == "craftsman":
-			icon_color = Color(0.7, 0.45, 0.2)
-		elif career == "tailor":
-			icon_color = Color(0.6, 0.25, 0.7)
-		elif career == "scholar":
-			icon_color = Color(0.2, 0.45, 0.7)
-		elif type == "home":
-			icon_color = Color(0.8, 0.3, 0.3)
-		elif type == "renting":
-			icon_color = Color(0.3, 0.7, 0.7)
-	else:
-		icon_color = Color(0.15, 0.15, 0.18)
-		
 	icon_style.bg_color = icon_color
 	icon_container.add_theme_stylebox_override("panel", icon_style)
 	
@@ -689,7 +898,6 @@ func _create_premium_card(building: BuildingData, compact: bool) -> PanelContain
 				
 			if card.get_meta("is_gold_locked", false):
 				_shake_card_node(card)
-				
 				_spawn_floating_text_via_hud("Need Gold!", card.global_position + card.size / 2.0)
 				return
 				
@@ -705,9 +913,9 @@ func _create_premium_card(building: BuildingData, compact: bool) -> PanelContain
 			self.hide()
 			if _main_hud and _main_hud._active_player:
 				_main_hud._active_player.unfreeze()
-			var focused = get_viewport().gui_get_focus_owner()
-			if focused:
-				focused.release_focus()
+			var focused_node = get_viewport().gui_get_focus_owner()
+			if focused_node:
+				focused_node.release_focus()
 			if _main_hud:
 				_main_hud.build_requested.emit(building)
 	)
@@ -749,7 +957,7 @@ func _grab_focus_deferred(control: Control) -> void:
 
 func _find_first_focusable_card(node: Node) -> Control:
 	if node is PanelContainer and node.focus_mode == Control.FOCUS_ALL and node.visible:
-		if not node.name.ends_with("_Window"):
+		if not node.name.ends_with("_Window") and not node.name.begins_with("TierHeader"):
 			return node
 	for child in node.get_children():
 		var found = _find_first_focusable_card(child)
@@ -811,7 +1019,6 @@ func _on_viewport_focus_changed(control: Control) -> void:
 		if is_instance_valid(levels_overlay) and levels_overlay.visible:
 			if control and (levels_overlay.is_ancestor_of(control) or is_ancestor_of(control)):
 				return
-			# If focus left both levels_overlay and build_menu, grab focus to first card in levels_overlay
 			var first_card = _find_first_focusable_card(levels_overlay)
 			if first_card:
 				first_card.call_deferred("grab_focus")
@@ -828,13 +1035,13 @@ func _on_gold_changed(_new_gold: int) -> void:
 		_update_all_card_states()
 
 func _update_all_card_states() -> void:
-	for list_node in [all_list, patreon_list, scholar_list, craftsman_list, tailor_list]:
+	for list_node in _tab_lists.values():
 		if list_node:
-			var grid = list_node.get_node_or_null("GridContainer")
-			if grid:
-				for card in grid.get_children():
-					if card is PanelContainer:
-						_update_card_style_and_state(card)
+			for child in list_node.get_children():
+				if child is GridContainer:
+					for card in child.get_children():
+						if card is PanelContainer:
+							_update_card_style_and_state(card)
 
 func _update_card_style_and_state(card: PanelContainer) -> void:
 	var building = card.get_meta("building_data") as BuildingData
@@ -857,31 +1064,26 @@ func _update_card_style_and_state(card: PanelContainer) -> void:
 	var border_color = Color(0.35, 0.35, 0.45, 0.6)
 	var icon_color = Color(0.3, 0.3, 0.35)
 	
+	var meta = CATEGORIES_METADATA.get(career, CATEGORIES_METADATA.get("general"))
+	
 	if not is_disabled:
-		if career == "patreon":
-			base_color = Color(0.12, 0.28, 0.18, 0.8)
-			border_color = Color(0.24, 0.56, 0.36, 0.6)
-			icon_color = Color(0.2, 0.6, 0.3)
-		elif career == "craftsman":
-			base_color = Color(0.25, 0.2, 0.15, 0.8)
-			border_color = Color(0.55, 0.44, 0.32, 0.6)
-			icon_color = Color(0.7, 0.45, 0.2)
-		elif career == "tailor":
-			base_color = Color(0.24, 0.14, 0.28, 0.8)
-			border_color = Color(0.52, 0.32, 0.62, 0.6)
-			icon_color = Color(0.6, 0.25, 0.7)
-		elif career == "scholar":
-			base_color = Color(0.12, 0.2, 0.3, 0.8)
-			border_color = Color(0.24, 0.44, 0.66, 0.6)
-			icon_color = Color(0.2, 0.45, 0.7)
-		elif building.type == "home":
-			base_color = Color(0.24, 0.12, 0.12, 0.8)
-			border_color = Color(0.65, 0.24, 0.24, 0.6)
-			icon_color = Color(0.8, 0.3, 0.3)
-		elif building.type == "renting":
-			base_color = Color(0.12, 0.24, 0.24, 0.8)
-			border_color = Color(0.24, 0.65, 0.65, 0.6)
-			icon_color = Color(0.3, 0.7, 0.7)
+		if career != "":
+			base_color = meta.base_color
+			border_color = meta.border_color
+			icon_color = meta.color
+		else:
+			if building.type == "home":
+				base_color = Color(0.24, 0.12, 0.12, 0.8)
+				border_color = Color(0.65, 0.24, 0.24, 0.6)
+				icon_color = Color(0.8, 0.3, 0.3)
+			elif building.type == "renting":
+				base_color = Color(0.12, 0.24, 0.24, 0.8)
+				border_color = Color(0.24, 0.65, 0.65, 0.6)
+				icon_color = Color(0.3, 0.7, 0.7)
+			else:
+				base_color = meta.base_color
+				border_color = meta.border_color
+				icon_color = meta.color
 	else:
 		base_color = Color(0.1, 0.1, 0.12, 0.45)
 		border_color = Color(0.2, 0.2, 0.22, 0.3)

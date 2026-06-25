@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_smelter"]
+
+[resource]
+script = ExtResource("1_smelter")
+id = "craftsman_alloy_blast_furnace"
+name = "Alloy Blast Furnace"
+family = "craftsman_alloy_blast_furnace"
+career = "craftsman"
+tier = 2
+level = 4
+cost = 600
+time = 12.0
+scene_path = "res://components/production/alloy_blast_furnace.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 2: Refine carbon steel ingots and smelt brass alloy bars."

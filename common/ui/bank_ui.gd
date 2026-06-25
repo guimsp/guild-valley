@@ -53,6 +53,8 @@ func _on_deposit_pressed() -> void:
 	if GameState.gold < amt:
 		_spawn_floating_text("Not enough gold!")
 		return
+	GameState.next_change_reason = "Bank Deposit"
+	GameState.next_change_detail = "Savings Account"
 	GameState.gold -= amt
 	GameState.bank_balance += amt
 	_update_balances()
@@ -66,6 +68,8 @@ func _on_withdraw_pressed() -> void:
 	if GameState.bank_balance < amt:
 		_spawn_floating_text("Not enough in bank!")
 		return
+	GameState.next_change_reason = "Bank Withdrawal"
+	GameState.next_change_detail = "Savings Account"
 	GameState.bank_balance -= amt
 	GameState.gold += amt
 	_update_balances()
@@ -76,6 +80,8 @@ func _on_deposit_all_pressed() -> void:
 	if amt <= 0:
 		_spawn_floating_text("No gold to deposit!")
 		return
+	GameState.next_change_reason = "Bank Deposit"
+	GameState.next_change_detail = "Deposit All Savings"
 	GameState.gold = 0
 	GameState.bank_balance += amt
 	_update_balances()
@@ -86,6 +92,8 @@ func _on_withdraw_all_pressed() -> void:
 	if amt <= 0:
 		_spawn_floating_text("No savings to withdraw!")
 		return
+	GameState.next_change_reason = "Bank Withdrawal"
+	GameState.next_change_detail = "Withdraw All Savings"
 	GameState.bank_balance = 0
 	GameState.gold += amt
 	_update_balances()

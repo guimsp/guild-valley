@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "private_security_voucher"
+name = "Private Security Voucher"
+item_level = 4
+base_value = 95
+weight = 0.1
+category = "Product"
+market_category = "Finished Goods"
+description = "A document certifying localized protection services sold to virtual businesses."

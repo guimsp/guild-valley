@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "showman_busking_stage_l3"
+name = "Busking Stage Level 3"
+family = "showman_busking_stage"
+building_level = 3
+career = "showman"
+tier = 3
+level = 6
+cost = 1000
+time = 10.0
+scene_path = "res://components/production/busking_stage.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "A regional attraction stage for street artists and theatre groups."

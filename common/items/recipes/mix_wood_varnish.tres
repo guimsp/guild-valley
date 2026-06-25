@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/flora_oil.tres" id="2_oil"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/dried_shives.tres" id="3_shives"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/industrial_varnish.tres" id="4_varnish"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Mix Wood Varnish"
+required_career = "herbalist"
+required_level = 1
+inputs = {
+ExtResource("2_oil"): 1,
+ExtResource("3_shives"): 1
+}
+output_item = ExtResource("4_varnish")
+output_amount = 1
+xp_reward = 10

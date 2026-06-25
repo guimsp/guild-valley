@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "marble_block"
+name = "Marble Block"
+item_level = 4
+base_value = 25
+weight = 4.0
+category = "Resource"
+market_category = "Raw Materials"
+is_luxury_product = true
+description = "Premium marble blocks harvested from rare deposits."

@@ -925,7 +925,7 @@ function applyViewFilters() {
         visible = targetProfs.includes(node.profession);
       } else {
         visible = targetProfs.some(profId => isItemInCareerChain(node, profId)) || 
-                  (node.type === 'finished_good' && node.id.includes('ticket') && targetProfs.includes('patreon'));
+                  (node.type === 'finished_good' && node.id.includes('ticket') && (targetProfs.includes('patreon') || targetProfs.includes('showman')));
       }
     } else if (viewMode === 'item') {
       if (node.type === 'profession' || node.type === 'building' || node.type === 'law' || node.type === 'mechanic') {
@@ -2136,9 +2136,12 @@ function spawnCareerNetwork() {
     }
   });
 
-  if (professionId === 'patreon') {
+  if (professionId === 'patreon' || professionId === 'showman') {
     data.items.forEach(item => {
-      if (item.category === 'finished_good' && item.id.includes('ticket')) {
+      if (item.category === 'finished_good' && item.id.includes('ticket') && (
+        (professionId === 'patreon' && (item.id.includes('taproom') || item.id.includes('entertainment') || item.id.includes('bathhouse') || item.id.includes('kitchen') || item.id.includes('dining'))) ||
+        (professionId === 'showman' && (item.id.includes('busking') || item.id.includes('concert')))
+      )) {
         relatedNodeIds.add(`item_${item.id}`);
       }
     });
@@ -2285,15 +2288,35 @@ function spawnCareerNetwork() {
 
   if (professionId === 'patreon') {
     data.items.forEach(item => {
-      if (item.category === 'finished_good' && item.id.includes('ticket')) {
+      if (item.category === 'finished_good' && item.id.includes('ticket') && (item.id.includes('taproom') || item.id.includes('entertainment') || item.id.includes('bathhouse') || item.id.includes('kitchen') || item.id.includes('dining'))) {
         let bId = '';
         if (item.id.includes('bathhouse') || item.id.includes('kitchen')) bId = 'patreon_inn';
-        else if (item.id.includes('entertainment')) bId = 'patreon_tavern';
+        else if (item.id.includes('entertainment') || item.id.includes('taproom')) bId = 'patreon_tavern';
         else if (item.id.includes('dining')) bId = 'patreon_inn';
         
         if (bId) {
           defaultConns.push({
             id: `conn_patreon_ticket_${item.id}`,
+            from: `build_${bId}`,
+            to: `item_${item.id}`,
+            type: 'output',
+            label: 'Service'
+          });
+        }
+      }
+    });
+  }
+
+  if (professionId === 'showman') {
+    data.items.forEach(item => {
+      if (item.category === 'finished_good' && item.id.includes('ticket') && (item.id.includes('busking') || item.id.includes('concert'))) {
+        let bId = '';
+        if (item.id.includes('busking')) bId = 'showman_busking_stage';
+        else if (item.id.includes('concert')) bId = 'showman_music_salon';
+        
+        if (bId) {
+          defaultConns.push({
+            id: `conn_showman_ticket_${item.id}`,
             from: `build_${bId}`,
             to: `item_${item.id}`,
             type: 'output',

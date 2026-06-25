@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_study"]
+
+[resource]
+script = ExtResource("1_study")
+id = "scholar_study_l2"
+name = "Scholar's Study"
+family = "scholar_study"
+building_level = 2
+career = "scholar"
+tier = 1
+level = 3
+cost = 500
+time = 8.0
+scene_path = "res://components/production/scholars_study.tscn"
+type = "production"
+description = "An upgraded study to bind apprenticeship books and draft architectural blueprints."

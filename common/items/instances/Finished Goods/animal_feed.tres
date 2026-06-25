@@ -5,8 +5,9 @@
 [resource]
 script = ExtResource("1_script")
 id = "animal_feed"
-name = "Animal Feed"
-base_value = 6
+name = "Coarse Animal Feed"
+item_level = 1
+base_value = 10
 min_price = 1
 max_price = 60
 weight = 1.0

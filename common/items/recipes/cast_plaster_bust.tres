@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/raw_stone.tres" id="2_input"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/plaster_bust.tres" id="3_output"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Cast Plaster Bust"
+required_career = "showman"
+required_level = 6
+inputs = {
+ExtResource("2_input"): 2
+}
+output_item = ExtResource("3_output")
+output_amount = 1
+xp_reward = 45

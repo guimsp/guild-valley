@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/modular_wing.tres" id="2_wing"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/ornate_fittings.tres" id="3_fittings"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/fine_linens.tres" id="4_linens"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/palace_remodeling_contract.tres" id="5_contract"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Contract B: Palace Remodeling"
+required_career = "woodworker"
+required_level = 8
+inputs = {
+ExtResource("2_wing"): 4,
+ExtResource("3_fittings"): 4,
+ExtResource("4_linens"): 2
+}
+output_item = ExtResource("5_contract")
+output_amount = 1
+xp_reward = 200

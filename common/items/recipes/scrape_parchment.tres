@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/river_reeds.tres" id="2_reeds"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/parchment_sheet.tres" id="3_parchment"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Scrape Parchment"
+required_career = "scholar"
+required_level = 1
+inputs = {
+ExtResource("2_reeds"): 2
+}
+output_item = ExtResource("3_parchment")
+output_amount = 1
+xp_reward = 12

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/venture_certificate.tres" id="2_cert"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/registry_ledger.tres" id="3_ledger"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/masterwork_vault_door.tres" id="4_door"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/central_banking_charter.tres" id="5_charter"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Engrave Central Banking Charter"
+required_career = "scholar"
+required_level = 10
+inputs = {
+ExtResource("2_cert"): 4,
+ExtResource("3_ledger"): 2,
+ExtResource("4_door"): 1
+}
+output_item = ExtResource("5_charter")
+output_amount = 1
+xp_reward = 350

@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = "bread"
-name = "Bread"
+name = "Hearth Bread"
+item_level = 1
 base_value = 25
 weight = 0.5
 category = "Food"

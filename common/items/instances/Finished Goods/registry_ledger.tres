@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "registry_ledger"
+name = "Registry Ledger"
+item_level = 1
+base_value = 60
+weight = 0.5
+category = "Product"
+market_category = "Finished Goods"
+description = "A bound ledger used for recording municipal registries."

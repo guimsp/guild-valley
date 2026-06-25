@@ -147,6 +147,22 @@ var quest_templates = [
 var last_checked_day: int = 1
 
 func _ready() -> void:
+	# Load templates from JSON if available
+	var file = FileAccess.open("res://common/singletons/quest_templates.json", FileAccess.READ)
+	if file:
+		var json_text = file.get_as_text()
+		var json = JSON.new()
+		var error = json.parse(json_text)
+		if error == OK:
+			if json.data is Array:
+				quest_templates = json.data
+			else:
+				print("[QuestManager] JSON data is not an Array, using defaults.")
+		else:
+			print("[QuestManager] Failed to parse quest_templates.json: ", json.get_error_message())
+	else:
+		print("[QuestManager] quest_templates.json not found, using default templates.")
+
 	TimeManager.time_changed.connect(_on_time_changed)
 	# Initial generation for Day 1
 	call_deferred("generate_quests_for_day", 1)

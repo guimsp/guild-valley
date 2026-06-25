@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/standard_timber.tres" id="2_timber"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/basic_crate.tres" id="3_basic_crate"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/iron_nails.tres" id="4_nails"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/shipping_crate.tres" id="5_shipping_crate"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Construct Shipping Crate"
+required_career = "woodworker"
+required_level = 3
+inputs = {
+ExtResource("2_timber"): 4,
+ExtResource("3_basic_crate"): 1,
+ExtResource("4_nails"): 2
+}
+output_item = ExtResource("5_shipping_crate")
+output_amount = 1
+xp_reward = 45

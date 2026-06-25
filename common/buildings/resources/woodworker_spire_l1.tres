@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "woodworker_spire_l1"
+name = "Citadel Engineering Spire"
+family = "woodworker_spire"
+building_level = 1
+career = "woodworker"
+tier = 4
+level = 10
+cost = 5000
+time = 10.0
+scene_path = "res://components/production/citadel_spire.tscn"
+type = "production"
+allowed_settlement = "any"
+description = "Tier 4 Masterwork Spire. Forge masterwork vault doors and erect monumental trusses."

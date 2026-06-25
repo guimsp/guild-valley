@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/corrosive_acid.tres" id="2_acid"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/pure_sulfur.tres" id="3_sulfur"]
+[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/lethal_poison_base.tres" id="4_poison"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Blend Poison Base"
+required_career = "herbalist"
+required_level = 7
+inputs = {
+ExtResource("2_acid"): 1,
+ExtResource("3_sulfur"): 1
+}
+output_item = ExtResource("4_poison")
+output_amount = 1
+xp_reward = 45

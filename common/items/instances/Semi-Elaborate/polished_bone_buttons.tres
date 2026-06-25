@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://common/items/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "polished_bone_buttons"
+name = "Polished Bone Buttons"
+item_level = 1
+base_value = 8
+weight = 0.2
+category = "Material"
+market_category = "Semi-Elaborate"
+description = "Smoothly carved buttons sold in bulk to tailors to fasten early jackets and bags."

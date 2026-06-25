@@ -6,9 +6,10 @@
 script = ExtResource("1_script")
 id = "fine_aged_schnapps"
 name = "Fine Aged Schnapps"
+item_level = 8
 base_value = 95
-min_price = 15
-max_price = 950
+min_price = 50
+max_price = 200
 weight = 0.8
 category = "Food"
 market_category = "Finished Goods"

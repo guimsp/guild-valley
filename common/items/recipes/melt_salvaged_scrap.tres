@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
+[ext_resource type="Resource" path="res://common/items/instances/Raw Materials/scraped_metal.tres" id="2_input"]
+[ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/utility_solder_bar.tres" id="3_output"]
+
+[resource]
+script = ExtResource("1_script")
+recipe_name = "Melt Salvaged Scrap"
+required_career = "rogue"
+required_level = 1
+inputs = {
+ExtResource("2_input"): 2
+}
+output_item = ExtResource("3_output")
+output_amount = 1
+xp_reward = 10

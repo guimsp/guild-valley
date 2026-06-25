@@ -96,6 +96,8 @@ func start_demolish_building(building: Node2D) -> void:
 	var db_item = _hovered_workstation.building_data
 	var refund = int(db_item.cost * 0.8) if db_item else 0
 	
+	GameState.next_change_reason = "Demolish Property"
+	GameState.next_change_detail = db_item.name if db_item else "Workstation"
 	GameState.gold += refund
 	_spawn_floating_text("Demolished! +%d Gold" % refund, _hovered_workstation.global_position)
 	
@@ -562,13 +564,79 @@ func _unhandled_input(event: InputEvent) -> void:
 				is_collision_valid = _is_position_clear(target_pos, _placement_ghost_shape)
 				
 			if is_range_valid and is_env_valid and is_collision_valid:
+				# Construction check overrides
+				if _placement_building_db_item and _placement_building_db_item.id == "craftsman_spire_l1":
+					if GameState.career_levels.get("craftsman", 0) < 10:
+						_spawn_floating_text("Requires Craftsman Lvl 10!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+				elif _placement_building_db_item and _placement_building_db_item.id == "woodworker_spire_l1":
+					if GameState.career_levels.get("woodworker", 0) < 10:
+						_spawn_floating_text("Requires Woodworker Lvl 10!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+				elif _placement_building_db_item and _placement_building_db_item.id == "herbalist_spire_l1":
+					if GameState.career_levels.get("herbalist", 0) < 10:
+						_spawn_floating_text("Requires Herbalist Lvl 10!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+				elif _placement_building_db_item and _placement_building_db_item.id == "scholar_bank_l1":
+					if not GameState.player_inventory or GameState.player_inventory.get_item_amount("advanced_structural_beam") < 2:
+						_spawn_floating_text("Requires 2x Advanced Structural Beam!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+				elif _placement_building_db_item and _placement_building_db_item.id == "scholar_mint_l1":
+					if GameState.career_levels.get("scholar", 0) < 10:
+						_spawn_floating_text("Requires Scholar Lvl 10!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+				elif _placement_building_db_item and _placement_building_db_item.id == "rogue_palace_spire_l1":
+					if GameState.career_levels.get("rogue", 0) < 10:
+						_spawn_floating_text("Requires Rogue Lvl 10!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+					if not GameState.is_married:
+						_spawn_floating_text("Requires a Spouse with an active career!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+					var spouse_valid = false
+					var spouse_career = ""
+					for npc in get_tree().get_nodes_in_group("NPCs"):
+						if is_instance_valid(npc) and npc.get("quest_npc_id") == GameState.spouse_npc_id:
+							spouse_valid = true
+							spouse_career = npc.get("career")
+							break
+					if not spouse_valid or spouse_career == "patreon" or spouse_career == "":
+						_spawn_floating_text("Spouse must hold active non-Patreon career!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+				elif _placement_building_db_item and _placement_building_db_item.id == "showman_royal_opera_house_l1":
+					if GameState.career_levels.get("showman", 0) < 10:
+						_spawn_floating_text("Requires Showman Lvl 10!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+					if not GameState.player_inventory or GameState.player_inventory.get_item_amount("monumental_truss") < 1:
+						_spawn_floating_text("Requires 1x Monumental Truss!", target_pos)
+						get_viewport().set_input_as_handled()
+						return
+
+
 				var lot_price = _placement_active_lot.calculate_lot_cost()
 				var total_cost = lot_price + _placement_gold_cost
 				if GameState.gold < total_cost:
 					_spawn_floating_text("Need %d Gold!" % total_cost, target_pos)
 					return
 					
+				GameState.next_change_reason = "Construct Building"
+				GameState.next_change_detail = _placement_building_name
 				GameState.gold -= total_cost
+
+				if _placement_building_db_item and _placement_building_db_item.id == "scholar_bank_l1":
+					if GameState.player_inventory:
+						GameState.player_inventory.remove_item("advanced_structural_beam", 2)
+				elif _placement_building_db_item and _placement_building_db_item.id == "showman_royal_opera_house_l1":
+					if GameState.player_inventory:
+						GameState.player_inventory.remove_item("monumental_truss", 1)
 				
 				var const_site_scene = load("res://components/placement/construction_site.tscn")
 				var const_site = const_site_scene.instantiate()
@@ -627,6 +695,8 @@ func _unhandled_input(event: InputEvent) -> void:
 						_spawn_floating_text("Need %d Gold!" % total_cost, target_pos)
 						return
 						
+					GameState.next_change_reason = "Relocate Building"
+					GameState.next_change_detail = db_item.name if db_item else "Workstation"
 					GameState.gold -= total_cost
 					
 					var const_site_scene = load("res://components/placement/construction_site.tscn")
@@ -750,6 +820,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				var db_item = _hovered_workstation.building_data
 				var refund = int(db_item.cost * 0.8) if db_item else 0
 				
+				GameState.next_change_reason = "Demolish Property"
+				GameState.next_change_detail = db_item.name if db_item else "Workstation"
 				GameState.gold += refund
 				_spawn_floating_text("Demolished! +%d Gold" % refund, _hovered_workstation.global_position)
 				

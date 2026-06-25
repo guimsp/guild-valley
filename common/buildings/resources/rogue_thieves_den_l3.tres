@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingData" format=3]
+
+[ext_resource type="Script" path="res://common/buildings/building_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rogue_thieves_den_l3"
+name = "Thieves' Den L3"
+family = "rogue_thieves_den"
+building_level = 3
+career = "rogue"
+tier = 1
+level = 6
+cost = 1000
+time = 10.0
+scene_path = "res://components/production/thieves_den.tscn"
+type = "production"
+description = "A fortified den for concocting signal flash powder bombs."
