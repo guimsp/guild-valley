@@ -1092,7 +1092,11 @@ func try_hire_employees() -> void:
 											"patreon": candidate.patreon_level if "patreon_level" in candidate else 1,
 											"scholar": candidate.scholar_level if "scholar_level" in candidate else 1,
 											"craftsman": candidate.craftsman_level if "craftsman_level" in candidate else 1,
-											"tailor": candidate.tailor_level if "tailor_level" in candidate else 1
+											"tailor": candidate.tailor_level if "tailor_level" in candidate else 1,
+											"woodworker": candidate.woodworker_level if "woodworker_level" in candidate else 1,
+											"herbalist": candidate.herbalist_level if "herbalist_level" in candidate else 1,
+											"rogue": candidate.rogue_level if "rogue_level" in candidate else 1,
+											"showman": candidate.showman_level if "showman_level" in candidate else 1
 										},
 										"active_recipe_path": recipe_path,
 										"craft_timer": 5.0,

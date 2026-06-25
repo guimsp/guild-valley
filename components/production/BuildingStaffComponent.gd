@@ -82,13 +82,13 @@ func spawn_dynamic_npc_in_province(prov_name: String) -> CharacterBody2D:
 		level = pm.get_level_for_prosperity(val)
 	
 	var min_skill = 1
-	var max_skill = 3
+	var max_skill = 2
 	if level == 2:
-		min_skill = 4
-		max_skill = 6
+		min_skill = 3
+		max_skill = 5
 	elif level >= 3:
-		min_skill = 7
-		max_skill = 10
+		min_skill = 6
+		max_skill = 9
 		
 	var final_lvl = randi_range(min_skill, max_skill)
 	if "skills_data" in npc:

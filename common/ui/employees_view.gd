@@ -61,11 +61,14 @@ func _populate_candidates() -> void:
 		var s_lvl = cand.scholar_level if "scholar_level" in cand else 1
 		var c_lvl = cand.craftsman_level if "craftsman_level" in cand else 1
 		var t_lvl = cand.tailor_level if "tailor_level" in cand else 1
-		var max_lvl = max(p_lvl, max(s_lvl, max(c_lvl, t_lvl)))
+		var w_lvl = cand.woodworker_level if "woodworker_level" in cand else 1
+		var h_lvl = cand.herbalist_level if "herbalist_level" in cand else 1
+		var r_lvl = cand.rogue_level if "rogue_level" in cand else 1
+		var sh_lvl = cand.showman_level if "showman_level" in cand else 1
 		
 		var panel = PanelContainer.new()
 		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		panel.custom_minimum_size = Vector2(180, 95)
+		panel.custom_minimum_size = Vector2(180, 105)
 		
 		var style = StyleBoxFlat.new()
 		style.bg_color = Color(0.12, 0.12, 0.15, 0.7)
@@ -107,8 +110,8 @@ func _populate_candidates() -> void:
 		vbox.add_child(stats_lbl)
 		
 		var levels_lbl = Label.new()
-		levels_lbl.text = "P:%d  S:%d  C:%d  T:%d" % [p_lvl, s_lvl, c_lvl, t_lvl]
-		levels_lbl.add_theme_font_size_override("font_size", 9)
+		levels_lbl.text = "P:%d S:%d C:%d T:%d | W:%d H:%d R:%d Sh:%d" % [p_lvl, s_lvl, c_lvl, t_lvl, w_lvl, h_lvl, r_lvl, sh_lvl]
+		levels_lbl.add_theme_font_size_override("font_size", 8)
 		levels_lbl.modulate = Color(0.6, 0.7, 0.8)
 		vbox.add_child(levels_lbl)
 		
@@ -119,10 +122,18 @@ func _populate_candidates() -> void:
 		traits_lbl.add_theme_font_size_override("font_size", 8)
 		traits_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		traits_lbl.modulate = Color(1.0, 0.85, 0.4)
-		if max_lvl >= 8:
-			traits_lbl.text = "★ Double Output, Fast Craft"
-		elif max_lvl >= 5:
-			traits_lbl.text = "★ Double Output"
+		
+		var active_traits: Array = []
+		if is_instance_valid(cand) and cand.get("character_resource") != null:
+			active_traits = cand.character_resource.active_mods
+			
+		if not active_traits.is_empty():
+			var trait_strs: Array[String] = []
+			for t in active_traits:
+				trait_strs.append(t.replace("_", " "))
+			traits_lbl.text = "★ " + ", ".join(trait_strs)
+		else:
+			traits_lbl.text = "No Traits"
 		bottom_hbox.add_child(traits_lbl)
 		
 		var hire_btn = Button.new()
@@ -167,7 +178,11 @@ func _hire_candidate(idx: int) -> void:
 					"patreon": cand.patreon_level,
 					"scholar": cand.scholar_level,
 					"craftsman": cand.craftsman_level,
-					"tailor": cand.tailor_level
+					"tailor": cand.tailor_level,
+					"woodworker": cand.woodworker_level,
+					"herbalist": cand.herbalist_level,
+					"rogue": cand.rogue_level,
+					"showman": cand.showman_level
 				},
 				"active_recipe_path": "",
 				"craft_timer": 0.0,
@@ -260,68 +275,59 @@ func _populate_workforce() -> void:
 		# Career levels
 		var levels = emp.get("levels")
 		if not levels:
-			levels = {"patreon": 1, "scholar": 1, "craftsman": 1, "tailor": 1}
+			levels = {
+				"patreon": 1, "scholar": 1, "craftsman": 1, "tailor": 1,
+				"woodworker": 1, "herbalist": 1, "rogue": 1, "showman": 1
+			}
 			emp["levels"] = levels
 			
 		var p_lvl = levels.get("patreon", 1)
 		var s_lvl = levels.get("scholar", 1)
 		var c_lvl = levels.get("craftsman", 1)
 		var t_lvl = levels.get("tailor", 1)
+		var w_lvl = levels.get("woodworker", 1)
+		var h_lvl = levels.get("herbalist", 1)
+		var r_lvl = levels.get("rogue", 1)
+		var sh_lvl = levels.get("showman", 1)
 		
 		var levels_lbl = Label.new()
-		levels_lbl.text = "Patreon: Lvl %d | Scholar: Lvl %d | Craftsman: Lvl %d | Tailor: Lvl %d" % [p_lvl, s_lvl, c_lvl, t_lvl]
+		levels_lbl.text = "Pat: Lvl %d | Sch: Lvl %d | Cra: Lvl %d | Tai: Lvl %d\nWoo: Lvl %d | Herb: Lvl %d | Rog: Lvl %d | Sho: Lvl %d" % [p_lvl, s_lvl, c_lvl, t_lvl, w_lvl, h_lvl, r_lvl, sh_lvl]
 		levels_lbl.add_theme_font_size_override("font_size", 10)
 		levels_lbl.modulate = Color(0.65, 0.75, 0.9)
 		info_vbox.add_child(levels_lbl)
 		
 		# Traits
-		var max_lvl = max(p_lvl, max(s_lvl, max(c_lvl, t_lvl)))
-		if max_lvl >= 5:
+		var active_traits: Array = []
+		var npc_ref = emp.get("npc_ref")
+		if is_instance_valid(npc_ref) and npc_ref.get("character_resource") != null:
+			active_traits = npc_ref.character_resource.active_mods
+		elif emp.has("character_resource") and emp["character_resource"].has("traits"):
+			active_traits = emp["character_resource"]["traits"]
+			
+		if not active_traits.is_empty():
 			var traits_hbox = HBoxContainer.new()
 			traits_hbox.add_theme_constant_override("separation", 6)
 			info_vbox.add_child(traits_hbox)
 			
-			var trait1 = PanelContainer.new()
-			var style_t1 = StyleBoxFlat.new()
-			style_t1.bg_color = Color(0.18, 0.14, 0.05, 0.8)
-			style_t1.border_color = Color(0.9, 0.75, 0.15, 1.0)
-			style_t1.set_border_width_all(1)
-			style_t1.set_corner_radius_all(4)
-			style_t1.content_margin_left = 6
-			style_t1.content_margin_right = 6
-			style_t1.content_margin_top = 2
-			style_t1.content_margin_bottom = 2
-			trait1.add_theme_stylebox_override("panel", style_t1)
-			
-			var lbl_t1 = Label.new()
-			if max_lvl >= 8:
-				lbl_t1.text = "Bountiful Harvest (35% Double Output)"
-			else:
-				lbl_t1.text = "Bountiful Harvest (20% Double Output)"
-			lbl_t1.add_theme_font_size_override("font_size", 9)
-			lbl_t1.modulate = Color(1.0, 0.9, 0.5)
-			trait1.add_child(lbl_t1)
-			traits_hbox.add_child(trait1)
-			
-			if max_lvl >= 8:
-				var trait2 = PanelContainer.new()
-				var style_t2 = StyleBoxFlat.new()
-				style_t2.bg_color = Color(0.18, 0.14, 0.05, 0.8)
-				style_t2.border_color = Color(0.9, 0.75, 0.15, 1.0)
-				style_t2.set_border_width_all(1)
-				style_t2.set_corner_radius_all(4)
-				style_t2.content_margin_left = 6
-				style_t2.content_margin_right = 6
-				style_t2.content_margin_top = 2
-				style_t2.content_margin_bottom = 2
-				trait2.add_theme_stylebox_override("panel", style_t2)
+			for trait_id in active_traits:
+				var tr_panel = PanelContainer.new()
+				var tr_style = StyleBoxFlat.new()
+				tr_style.bg_color = Color(0.18, 0.14, 0.05, 0.8)
+				tr_style.border_color = Color(0.9, 0.75, 0.15, 0.8)
+				tr_style.set_border_width_all(1)
+				tr_style.set_corner_radius_all(4)
+				tr_style.content_margin_left = 6
+				tr_style.content_margin_right = 6
+				tr_style.content_margin_top = 2
+				tr_style.content_margin_bottom = 2
+				tr_panel.add_theme_stylebox_override("panel", tr_style)
 				
-				var lbl_t2 = Label.new()
-				lbl_t2.text = "Artisan's Efficiency (Luxury -15% craft time)"
-				lbl_t2.add_theme_font_size_override("font_size", 9)
-				lbl_t2.modulate = Color(1.0, 0.9, 0.5)
-				trait2.add_child(lbl_t2)
-				traits_hbox.add_child(trait2)
+				var tr_lbl = Label.new()
+				tr_lbl.text = trait_id.replace("_", " ")
+				tr_lbl.add_theme_font_size_override("font_size", 9)
+				tr_lbl.modulate = Color(1.0, 0.9, 0.5)
+				tr_panel.add_child(tr_lbl)
+				traits_hbox.add_child(tr_panel)
 
 		workforce_list.add_child(panel)
 

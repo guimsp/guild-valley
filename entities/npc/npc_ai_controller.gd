@@ -68,7 +68,11 @@ var skills_data: Dictionary = {
 	"patreon": { "level": 1, "xp": 0 },
 	"scholar": { "level": 1, "xp": 0 },
 	"craftsman": { "level": 1, "xp": 0 },
-	"tailor": { "level": 1, "xp": 0 }
+	"tailor": { "level": 1, "xp": 0 },
+	"woodworker": { "level": 1, "xp": 0 },
+	"herbalist": { "level": 1, "xp": 0 },
+	"rogue": { "level": 1, "xp": 0 },
+	"showman": { "level": 1, "xp": 0 }
 }
 
 var patreon_level: int:
@@ -83,6 +87,18 @@ var craftsman_level: int:
 var tailor_level: int:
 	get: return skills_data["tailor"]["level"]
 	set(val): skills_data["tailor"]["level"] = val
+var woodworker_level: int:
+	get: return skills_data["woodworker"]["level"]
+	set(val): skills_data["woodworker"]["level"] = val
+var herbalist_level: int:
+	get: return skills_data["herbalist"]["level"]
+	set(val): skills_data["herbalist"]["level"] = val
+var rogue_level: int:
+	get: return skills_data["rogue"]["level"]
+	set(val): skills_data["rogue"]["level"] = val
+var showman_level: int:
+	get: return skills_data["showman"]["level"]
+	set(val): skills_data["showman"]["level"] = val
 
 var productivity: float:
 	get:
@@ -277,13 +293,31 @@ func _ready() -> void:
 	# Randomize levels and stats
 	if not is_loaded:
 		if npc_type != NPCType.TYPE_RELATION_TARGET:
-			var careers = ["patreon", "scholar", "craftsman", "tailor"]
+			var careers = ["patreon", "scholar", "craftsman", "tailor", "woodworker", "herbalist", "rogue", "showman"]
 			career = careers[randi() % careers.size()]
+			
+		var min_l = 1
+		var max_l = 2
+		var pm = get_node_or_null("/root/ProsperityManager")
+		if pm and province != "Unknown Province" and province != "":
+			var val = pm.province_prosperity.get(province, 100.0)
+			var p_level = pm.get_level_for_prosperity(val)
+			if p_level == 2:
+				min_l = 3
+				max_l = 4
+			elif p_level >= 3:
+				min_l = 5
+				max_l = 7
+				
 		skills_data = {
-			"patreon": { "level": randi_range(1, 5), "xp": 0 },
-			"scholar": { "level": randi_range(1, 5), "xp": 0 },
-			"craftsman": { "level": randi_range(1, 5), "xp": 0 },
-			"tailor": { "level": randi_range(1, 5), "xp": 0 }
+			"patreon": { "level": randi_range(min_l, max_l), "xp": 0 },
+			"scholar": { "level": randi_range(min_l, max_l), "xp": 0 },
+			"craftsman": { "level": randi_range(min_l, max_l), "xp": 0 },
+			"tailor": { "level": randi_range(min_l, max_l), "xp": 0 },
+			"woodworker": { "level": randi_range(min_l, max_l), "xp": 0 },
+			"herbalist": { "level": randi_range(min_l, max_l), "xp": 0 },
+			"rogue": { "level": randi_range(min_l, max_l), "xp": 0 },
+			"showman": { "level": randi_range(min_l, max_l), "xp": 0 }
 		}
 		if npc_type == NPCType.TYPE_RELATION_TARGET:
 			var rel = get_node_or_null("RelationshipComponent")
@@ -858,7 +892,11 @@ func transfer_to_building(new_building: Node2D) -> void:
 				"patreon": patreon_level,
 				"scholar": scholar_level,
 				"craftsman": craftsman_level,
-				"tailor": tailor_level
+				"tailor": tailor_level,
+				"woodworker": woodworker_level,
+				"herbalist": herbalist_level,
+				"rogue": rogue_level,
+				"showman": showman_level
 			},
 			"active_recipe_path": "",
 			"craft_timer": 0.0,

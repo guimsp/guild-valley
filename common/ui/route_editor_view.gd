@@ -1404,7 +1404,11 @@ func _hire_and_assign_candidate(cand_data: Dictionary) -> void:
 			"patreon": cand.patreon_level if "patreon_level" in cand else 1,
 			"scholar": cand.scholar_level if "scholar_level" in cand else 1,
 			"craftsman": cand.craftsman_level if "craftsman_level" in cand else 1,
-			"tailor": cand.tailor_level if "tailor_level" in cand else 1
+			"tailor": cand.tailor_level if "tailor_level" in cand else 1,
+			"woodworker": cand.woodworker_level if "woodworker_level" in cand else 1,
+			"herbalist": cand.herbalist_level if "herbalist_level" in cand else 1,
+			"rogue": cand.rogue_level if "rogue_level" in cand else 1,
+			"showman": cand.showman_level if "showman_level" in cand else 1
 		},
 		"active_recipe_path": "",
 		"craft_timer": 0.0,

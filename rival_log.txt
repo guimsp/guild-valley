@@ -29613,3 +29613,101 @@
 [Day 1 - 09:16] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
 [Day 1 - 09:16] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
 [Day 1 - 09:16] Fugger Family: Safely joined active gatherers list for The Great Wheat Field
+[Day 1 - 09:39] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 09:39] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 09:40] Fugger Family: No raw materials owned (wheat). Heading back to WALKING_TO_RAW
+[Day 1 - 09:40] Fugger Family: Changed state to WALKING_TO_RAW (duration: 0.1s)
+[Day 1 - 09:40] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 09:40] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 09:40] Fugger Family: Safely joined active gatherers list for The Great Wheat Field
+[Day 1 - 10:03] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 10:03] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 10:04] Fugger Family: No raw materials owned (wheat). Heading back to WALKING_TO_RAW
+[Day 1 - 10:04] Fugger Family: Changed state to WALKING_TO_RAW (duration: 0.1s)
+[Day 1 - 10:04] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 10:04] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 10:04] Fugger Family: Safely joined active gatherers list for The Great Wheat Field
+[Day 1 - 10:27] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 10:27] Fugger Family: Decided to rest for 6.0s before heading to WALKING_TO_REFINERY
+[Day 1 - 10:33] Fugger Family: No raw materials owned (wheat). Heading back to WALKING_TO_RAW
+[Day 1 - 10:33] Fugger Family: Decided to rest for 3.2s before heading to WALKING_TO_RAW
+[Day 1 - 10:37] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 10:37] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 10:37] Fugger Family: Safely joined active gatherers list for The Great Wheat Field
+[Day 1 - 11:00] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 11:00] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 11:01] Fugger Family: No raw materials owned (wheat). Heading back to WALKING_TO_RAW
+[Day 1 - 11:01] Fugger Family: Changed state to WALKING_TO_RAW (duration: 0.1s)
+[Day 1 - 11:01] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 11:01] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 11:01] Fugger Family: Safely joined active gatherers list for The Great Wheat Field
+[Day 1 - 11:24] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 11:24] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 11:34] Fugger Family: Arrived at refinery Mill. Starting REFINING
+[Day 1 - 11:34] Fugger Family: Changed state to REFINING (duration: 2.5s)
+[Day 1 - 11:37] Fugger Family: Executing refining recipe: grind_wheat.tres
+[Day 1 - 11:37] Fugger Family: Career has finished product. Transitioning to WALKING_TO_FINISHED
+[Day 1 - 11:37] Fugger Family: Changed state to WALKING_TO_FINISHED (duration: 0.5s)
+[Day 1 - 11:37] Fugger Family: No refined materials owned (flour). Heading back to WALKING_TO_RAW
+[Day 1 - 11:37] Fugger Family: Changed state to WALKING_TO_RAW (duration: 0.1s)
+[Day 1 - 11:37] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 11:46] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 12:00] Fugger Family: Schedule transitioned from work to lunch
+[Day 1 - 12:00] Fugger Family: Schedule shifted away from work. Restored career behavior overrides.
+[Day 1 - 14:00] Fugger Family: Schedule transitioned from lunch to work
+[Day 1 - 14:09] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 14:31] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 14:31] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 14:40] Fugger Family: Arrived at refinery Mill. Starting REFINING
+[Day 1 - 14:40] Fugger Family: Changed state to REFINING (duration: 2.5s)
+[Day 1 - 14:43] Fugger Family: Executing refining recipe: grind_wheat.tres
+[Day 1 - 14:43] Fugger Family: Career has finished product. Transitioning to WALKING_TO_FINISHED
+[Day 1 - 14:43] Fugger Family: Decided to rest for 4.0s before heading to WALKING_TO_FINISHED
+[Day 1 - 14:47] Fugger Family: No refined materials owned (flour). Heading back to WALKING_TO_RAW
+[Day 1 - 14:47] Fugger Family: Changed state to WALKING_TO_RAW (duration: 0.1s)
+[Day 1 - 14:47] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 14:56] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 15:19] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 15:19] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 15:28] Fugger Family: Arrived at refinery Mill. Starting REFINING
+[Day 1 - 15:28] Fugger Family: Changed state to REFINING (duration: 2.5s)
+[Day 1 - 15:31] Fugger Family: Executing refining recipe: grind_wheat.tres
+[Day 1 - 15:31] Fugger Family: Career has finished product. Transitioning to WALKING_TO_FINISHED
+[Day 1 - 15:31] Fugger Family: Changed state to WALKING_TO_FINISHED (duration: 0.5s)
+[Day 1 - 15:32] Fugger Family: No refined materials owned (flour). Heading back to WALKING_TO_RAW
+[Day 1 - 15:32] Fugger Family: Changed state to WALKING_TO_RAW (duration: 0.1s)
+[Day 1 - 15:32] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 15:41] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 16:04] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 16:04] Fugger Family: Decided to rest for 3.2s before heading to WALKING_TO_REFINERY
+[Day 1 - 16:16] Fugger Family: Arrived at refinery Mill. Starting REFINING
+[Day 1 - 16:16] Fugger Family: Changed state to REFINING (duration: 2.5s)
+[Day 1 - 16:19] Fugger Family: Executing refining recipe: grind_wheat.tres
+[Day 1 - 16:19] Fugger Family: Career has finished product. Transitioning to WALKING_TO_FINISHED
+[Day 1 - 16:19] Fugger Family: Changed state to WALKING_TO_FINISHED (duration: 0.5s)
+[Day 1 - 16:19] Fugger Family: No refined materials owned (flour). Heading back to WALKING_TO_RAW
+[Day 1 - 16:19] Fugger Family: Changed state to WALKING_TO_RAW (duration: 0.1s)
+[Day 1 - 16:19] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 16:28] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 16:49] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 16:49] Fugger Family: Decided to rest for 3.4s before heading to WALKING_TO_REFINERY
+[Day 1 - 17:02] Fugger Family: Arrived at refinery Mill. Starting REFINING
+[Day 1 - 17:02] Fugger Family: Changed state to REFINING (duration: 2.5s)
+[Day 1 - 17:04] Fugger Family: Executing refining recipe: grind_wheat.tres
+[Day 1 - 17:04] Fugger Family: Career has finished product. Transitioning to WALKING_TO_FINISHED
+[Day 1 - 17:04] Fugger Family: Changed state to WALKING_TO_FINISHED (duration: 0.5s)
+[Day 1 - 17:05] Fugger Family: No refined materials owned (flour). Heading back to WALKING_TO_RAW
+[Day 1 - 17:05] Fugger Family: Decided to rest for 5.6s before heading to WALKING_TO_RAW
+[Day 1 - 17:10] Fugger Family: Paid permit of 50 gold for The Great Wheat Field
+[Day 1 - 17:19] Fugger Family: Arrived at raw resource The Great Wheat Field. Starting GATHERING
+[Day 1 - 17:40] Fugger Family: Collected harvest of 3 wheat from buffer. Transitioning to WALKING_TO_REFINERY
+[Day 1 - 17:40] Fugger Family: Changed state to WALKING_TO_REFINERY (duration: 0.5s)
+[Day 1 - 17:50] Fugger Family: Arrived at refinery Mill. Starting REFINING
+[Day 1 - 17:50] Fugger Family: Changed state to REFINING (duration: 2.5s)
+[Day 1 - 17:52] Fugger Family: Executing refining recipe: grind_wheat.tres
+[Day 1 - 17:52] Fugger Family: Career has finished product. Transitioning to WALKING_TO_FINISHED
+[Day 1 - 17:52] Fugger Family: Decided to rest for 4.4s before heading to WALKING_TO_FINISHED
+[Day 1 - 17:57] Fugger Family: No refined materials owned (flour). Heading back to WALKING_TO_RAW
+[Day 1 - 17:57] Fugger Family: Decided to rest for 3.9s before heading to WALKING_TO_RAW
+[Day 1 - 18:00] Fugger Family: Schedule transitioned from work to evening
+[Day 1 - 18:00] Fugger Family: Schedule shifted away from work. Restored career behavior overrides.
