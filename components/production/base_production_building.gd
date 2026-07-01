@@ -1054,6 +1054,9 @@ func _tick_player_crafting(delta: float) -> void:
 						return
 						
 					GameState.add_xp(recipe.required_career, recipe.xp_reward)
+					if ownership_type == "Player" or owner_id == "Player":
+						GameState.influence += out_qty
+						GameState.permanent_influence += out_qty
 					
 					var inputs_ok = true
 					for item in recipe.inputs:
@@ -1236,38 +1239,38 @@ func _resolve_completed_event(recipe: Resource) -> void:
 	if not sbox:
 		return
 		
-	var base_influence: int = 15
-	var base_prestige: int = 30
+	var base_influence: int = 5
+	var base_prestige: int = 10
 	
 	var r_name = recipe.resource_path.get_file().replace(".tres", "")
 	match r_name:
 		"contract_bridge_reconstruction":
-			base_influence = 30
-			base_prestige = 60
+			base_influence = 10
+			base_prestige = 20
 		"contract_palace_remodeling":
-			base_influence = 50
-			base_prestige = 100
-		"contract_crop_blight":
-			base_influence = 50
-			base_prestige = 100
-		"contract_treat_archduke":
-			base_influence = 75
-			base_prestige = 150
-		"contract_ballista_fleet":
-			base_influence = 25
-			base_prestige = 50
-		"contract_honor_guard":
-			base_influence = 40
-			base_prestige = 80
-		"noble_event":
 			base_influence = 15
 			base_prestige = 30
+		"contract_crop_blight":
+			base_influence = 15
+			base_prestige = 30
+		"contract_treat_archduke":
+			base_influence = 20
+			base_prestige = 40
+		"contract_ballista_fleet":
+			base_influence = 8
+			base_prestige = 15
+		"contract_honor_guard":
+			base_influence = 12
+			base_prestige = 25
+		"noble_event":
+			base_influence = 5
+			base_prestige = 10
 		"royal_event":
-			base_influence = 30
-			base_prestige = 60
+			base_influence = 10
+			base_prestige = 20
 		_:
-			base_influence = recipe.required_level * 5
-			base_prestige = recipe.required_level * 10
+			base_influence = int(recipe.required_level * 1.5)
+			base_prestige = recipe.required_level * 3
 			
 	var contract_data: Dictionary = {
 		"influence": base_influence,

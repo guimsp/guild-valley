@@ -306,8 +306,8 @@ func get_title_name(lvl: int) -> String:
 
 func get_title_upgrade_cost(target_level: int) -> Dictionary:
 	return {
-		"gold": 100,
-		"influence": 10 * (target_level - 1)
+		"gold": 1000 * int(pow(2, target_level - 2)),
+		"influence": 500 * (target_level - 1)
 	}
 
 func can_upgrade_title() -> bool:
@@ -320,14 +320,13 @@ func can_upgrade_title() -> bool:
 	if QuestManager.is_title_promotion_locked(next_title_name):
 		return false
 		
-	return gold >= cost["gold"] and influence >= cost["influence"]
+	return gold >= cost["gold"] and permanent_influence >= cost["influence"]
 
 func upgrade_title() -> bool:
 	if not can_upgrade_title():
 		return false
 	var cost = get_title_upgrade_cost(title_level + 1)
 	gold -= cost["gold"]
-	influence -= cost["influence"]
 	title_level += 1
 	spawn_ui_floating_text("Title Upgraded to: %s!" % get_title_name(title_level))
 	return true

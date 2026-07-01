@@ -28,6 +28,16 @@ func interact(player: CharacterBody2D) -> void:
 		_interact_fixed_municipal_npc(player)
 		return
 		
+	if npc.has_meta("is_guild_master") or npc.has_meta("is_guild_office_npc"):
+		var npc_prov = GameState.get_province_of_node(npc)
+		if not ProvinceMasterData.has_province_license(npc_prov):
+			var lines = [
+				"Hold on. You are not from around here.",
+				"To access local guild services in %s, you must first obtain an operating license from the City Hall." % npc_prov
+			]
+			GameState.show_npc_dialogue(npc, npc.npc_name, lines)
+			return
+
 	if npc.has_meta("is_guild_master"):
 		_interact_guild_master(player)
 		return
@@ -261,7 +271,7 @@ func _interact_fixed_municipal_npc(player: CharacterBody2D) -> void:
 			"How can I assist you today?"
 		]
 		lines = WindowManager.get_dialogue(dialogue_key, fallback)
-		choices = ["Review Lawhouse Politics", "Cancel"]
+		choices = ["Review Lawhouse Politics", "Request Title Promotion", "Cancel"]
 	elif npc.npc_rank in ["High Councilor"]:
 		var fallback = [
 			"Ah, welcome, traveler. I am {npc_name}, {npc_rank} of the council.",
@@ -269,7 +279,7 @@ func _interact_fixed_municipal_npc(player: CharacterBody2D) -> void:
 			"Would you like to manage council votes or complete active quests?"
 		]
 		lines = WindowManager.get_dialogue(dialogue_key, fallback)
-		choices = ["Access Council Politics", "Submit Quest Deliveries", "Cancel"]
+		choices = ["Access Council Politics", "Submit Quest Deliveries", "Request Title Promotion", "Cancel"]
 	else: # Town Clerk / Law Scribe
 		var fallback = [
 			"Welcome to the local administration chambers. I am {npc_name}, {npc_rank}.",
@@ -279,6 +289,16 @@ func _interact_fixed_municipal_npc(player: CharacterBody2D) -> void:
 		lines = WindowManager.get_dialogue(dialogue_key, fallback)
 		choices = ["Open Quest Board", "Cancel"]
 		
+	var avail_quests = QuestManager.get_available_npc_quests(npc.quest_npc_id)
+	var cancel_idx = choices.find("Cancel")
+	if cancel_idx != -1:
+		for q in avail_quests:
+			choices.insert(cancel_idx, "Accept Quest: " + q.title)
+			cancel_idx += 1
+	else:
+		for q in avail_quests:
+			choices.append("Accept Quest: " + q.title)
+			
 	var bubble_scene = load("res://UI/npc_dialogue_bubble.tscn")
 	if not bubble_scene:
 		return
@@ -300,6 +320,17 @@ func _interact_fixed_municipal_npc(player: CharacterBody2D) -> void:
 		bubble.show_choices(choices, func(choice_idx):
 			bubble._on_close_pressed()
 			
+			var base_quest_idx = choices.size() - 1 - avail_quests.size()
+			if choice_idx >= base_quest_idx and choice_idx < base_quest_idx + avail_quests.size():
+				var q = avail_quests[choice_idx - base_quest_idx]
+				QuestManager.accept_npc_quest(q.id)
+				return
+				
+			var selected_choice = choices[choice_idx]
+			if selected_choice == "Request Title Promotion":
+				_open_title_promotion_screen()
+				return
+				
 			if npc.npc_rank in ["Mayor", "Burgomeister"]:
 				if choice_idx == 0:
 					WindowManager.open_window(WindowManager.WindowType.WINDOW_POLITICS, npc)
@@ -312,6 +343,15 @@ func _interact_fixed_municipal_npc(player: CharacterBody2D) -> void:
 				if choice_idx == 0:
 					WindowManager.open_window(WindowManager.WindowType.WINDOW_QUEST_BOARD, npc)
 		)
+
+func _open_title_promotion_screen() -> void:
+	var hud = npc.get_tree().get_first_node_in_group("PlayerHUD")
+	if not hud:
+		hud = npc.get_tree().get_first_node_in_group("game_hud")
+	if hud:
+		var title_window = hud.get("title_upgrade_window")
+		if title_window and not title_window.visible:
+			hud.call("toggle_window", title_window)
 
 func _start_breakthrough_quest(data: Dictionary) -> void:
 	var fee = 100

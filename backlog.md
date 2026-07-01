@@ -11,10 +11,6 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 
 ## 📋 Planned Features & Ideas
 
-### 🏛️ 1. Dynamic Lot Spawning & Licensing
-- **Citizenship & Settlement Restrictions**: Characters default to a native City/Town. Building or settling in other cities requires purchasing a local license or paying a premium lot cost.
-- **Luxury Spawners**: High-prosperity zones spawn luxury materials and premium goods in the overworld.
-
 ### 🤖 2. Dynamic Navigation Obstacle Avoidance
 - **Dynamic Avoidance**: Enable obstacle avoidance (RVO pathfinding steering) so competitor NPCs, couriers, and wandering villagers naturally route around player-placed workstations and houses.
 
@@ -43,9 +39,12 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 - **Legal System & Jail Time**: Employees and characters face legal consequences. Misconduct or illegal actions can result in lawsuits, legal cases, and active jail sentences.
 - **Injuries & Hospitalization**: Accidents in workplaces or physical altercations result in temporary injuries and recovery time in hospitals, disabling workers.
 
-### 🏰 8. Province Travel & Guild Alliances
-- **Walled City Entrance Tolls**: Entry tolls applied when entering walled cities via gated checkpoints guarded by city sentries. Bypassed by being affiliated with the local city/province guild.
-- **Guild Trade Alliances**: Set up diplomatic treaties, trading agreements, and guild alliances at the macro level.
+### 👑 8. Guild Politics & Political Positions
+- **Guild Political Elections**: Introduce a system where players can postulate themselves for political positions within the guild hierarchy upon reaching specific profession levels.
+- **Election Competitions**: Compete against active opponent NPCs (with matching professions) and non-interactable guild members for vacant positions.
+- **Influence Campaigning**: Spend Influence to lobby and increase election odds, featuring tiers showing how different levels of Influence investment improve chances.
+- **Guild Relationship Meter**: Completing dedicated guild quests and submitting donations increases the Guild Relationship rating, directly boosting eligibility and voting bias in elections.
+- **Office Privileges**: Holding a political position unlocks unique guild actions and macro-economic decisions.
 
 ### ⛪ 9. Religion System
 - **State Religion**: Interact with a centralized state religion. Players can donate gold/money to temples to accumulate political and social influence.
@@ -64,9 +63,23 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 - **Labor Buffs & Debuffs**: High sentiment grants productivity, crafting speed, or reduced wage demands. Low sentiment triggers threat of strikes, slower craft speeds, or sudden resignations.
 - **Employer Actions Impact**: Player actions (e.g. prompt wage payments, bonuses, working hour updates, or demanding overtime) dynamically adjust employee sentiment.
 
+### 💰 13. Paid Trade-Information System & Gossip Intel
+- **The Paid Trade-Information System**: A dedicated economic loop handled by a specific NPC (Information Broker, Innkeeper, or Caravan Leader) operating as a short-lived Market Arbitrage Event.
+- **Interaction Flow**: Talk to the broker and purchase "Buy Market Intel" for gold to obtain a random "Intel Event" dialogue (e.g., a shipping disaster causing Oakhaven to run out of timber).
+- **Temporal Arbitrage Mechanics**: A real-time timer (120 to 180 seconds) starts, changing the price of the specific commodity in that province's public markets (e.g. timber sells for 2.5x).
+- **Gameplay Rush**: The player has exactly 3 minutes to manually transfer goods, redirect courier routes, or sprint cargo carts to dump stock at high arbitrage prices before the market stabilizes.
+
 ---
 
 ## ✅ Completed Features
+
+### 🏛️ Province Licensing & Dynamic Luxury Spawning Update
+- Implemented dynamic checkpoint gates toll system (15 Gold tolls) with physics pushback safety.
+- Added operating licenses permanently purchasable from Councilors/Mayors via quests (paying 500 Gold or delivering 10 Flour).
+- Enforced operating licenses for building placement/movement and courier public market routes (10 Gold transaction toll).
+- Restricted Guild Master and office NPC interactions in unauthorized provinces.
+- Implemented dynamic resource node spawning matching province prosperity milestone levels (Level 3 -> Prosperity Level 3; Level 4 -> Prosperity Level 4).
+- Ensured volatile rebuilding of luxury nodes on save loading sequences.
 
 ### 🎭 Showman (Entertainer) Profession Tier 1-4 Update
 - Re-aligned Showman career progression loop from levels 1 to 10.

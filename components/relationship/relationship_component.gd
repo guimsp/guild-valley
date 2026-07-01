@@ -58,8 +58,8 @@ func _check_milestones(old_val: float, new_val: float) -> void:
 	if new_val >= 20.0 and old_val < 20.0 and not has_granted_influence_bonus:
 		has_granted_influence_bonus = true
 		if GameState:
-			GameState.influence += 50
-			GameState.spawn_ui_floating_text("+50 Global Influence (Friend Milestone)")
+			GameState.influence += 20
+			GameState.spawn_ui_floating_text("+20 Global Influence (Friend Milestone)")
 
 func can_interact() -> bool:
 	if relationship_value <= -50:

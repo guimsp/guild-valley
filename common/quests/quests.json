@@ -16,7 +16,7 @@
     "is_one_time": true,
     "gold_reward": 180,
     "xp_reward": 100,
-    "influence_reward": 15
+    "influence_reward": 5
   },
   {
     "id": "deliver_ingot_1",
@@ -35,7 +35,7 @@
     "is_one_time": true,
     "gold_reward": 300,
     "xp_reward": 250,
-    "influence_reward": 20
+    "influence_reward": 8
   },
   {
     "id": "deliver_cloth_1",
@@ -54,7 +54,7 @@
     "is_one_time": true,
     "gold_reward": 250,
     "xp_reward": 200,
-    "influence_reward": 20
+    "influence_reward": 8
   },
   {
     "id": "title_citizen",
@@ -73,6 +73,90 @@
     "is_one_time": true,
     "gold_reward": 350,
     "xp_reward": 300,
-    "influence_reward": 40
+    "influence_reward": 15
+  },
+  {
+    "id": "license_oakhaven_gold",
+    "title": "Oakhaven License: Gold Registry",
+    "description": "Register Oakhaven Province operating license by paying a fee of 500 Gold directly to the council.",
+    "category": "MUNICIPAL",
+    "quest_level": 1,
+    "giver_npc_id": "councilor_elena",
+    "region": "Oakhaven Province",
+    "target_item_id": "",
+    "target_amount": 0,
+    "target_gold": 500,
+    "next_quest_id": "None",
+    "is_hidden_lead": false,
+    "gates_profession_promotion": "None",
+    "gates_title_promotion": "None",
+    "is_one_time": true,
+    "gold_reward": 0,
+    "xp_reward": 150,
+    "influence_reward": 10,
+    "unlocks_province_license": "Oakhaven Province"
+  },
+  {
+    "id": "license_oakhaven_goods",
+    "title": "Oakhaven License: Commercial Goods",
+    "description": "Deliver 10 Flour to Councilor Elena to register Oakhaven Province operating license.",
+    "category": "MUNICIPAL",
+    "quest_level": 1,
+    "giver_npc_id": "councilor_elena",
+    "region": "Oakhaven Province",
+    "target_item_id": "flour",
+    "target_amount": 10,
+    "target_gold": 0,
+    "next_quest_id": "None",
+    "is_hidden_lead": false,
+    "gates_profession_promotion": "None",
+    "gates_title_promotion": "None",
+    "is_one_time": true,
+    "gold_reward": 0,
+    "xp_reward": 150,
+    "influence_reward": 10,
+    "unlocks_province_license": "Oakhaven Province"
+  },
+  {
+    "id": "license_highland_gold",
+    "title": "Highland License: Gold Registry",
+    "description": "Register Highland Province operating license by paying a fee of 500 Gold directly to the council.",
+    "category": "MUNICIPAL",
+    "quest_level": 1,
+    "giver_npc_id": "councilor_marcus",
+    "region": "Valley Province",
+    "target_item_id": "",
+    "target_amount": 0,
+    "target_gold": 500,
+    "next_quest_id": "None",
+    "is_hidden_lead": false,
+    "gates_profession_promotion": "None",
+    "gates_title_promotion": "None",
+    "is_one_time": true,
+    "gold_reward": 0,
+    "xp_reward": 150,
+    "influence_reward": 10,
+    "unlocks_province_license": "Highland Province"
+  },
+  {
+    "id": "license_highland_goods",
+    "title": "Highland License: Commercial Goods",
+    "description": "Deliver 10 Flour to Councilor Marcus to register Highland Province operating license.",
+    "category": "MUNICIPAL",
+    "quest_level": 1,
+    "giver_npc_id": "councilor_marcus",
+    "region": "Valley Province",
+    "target_item_id": "flour",
+    "target_amount": 10,
+    "target_gold": 0,
+    "next_quest_id": "None",
+    "is_hidden_lead": false,
+    "gates_profession_promotion": "None",
+    "gates_title_promotion": "None",
+    "is_one_time": true,
+    "gold_reward": 0,
+    "xp_reward": 150,
+    "influence_reward": 10,
+    "unlocks_province_license": "Highland Province"
   }
 ]

@@ -203,6 +203,12 @@ func _start_placement(mode: String, scene_path: String, cost: int, build_time: f
 		
 		var player_settlement = _get_current_settlement(_active_player.global_position)
 		if player_settlement:
+			var prov_name = GameState.get_province_of_node(player_settlement)
+			if not ProvinceMasterData.has_province_license(prov_name):
+				_spawn_floating_text("No operating license for " + prov_name + "!", _active_player.global_position)
+				exit_placement_mode()
+				return
+				
 			if db_item and mode == "place":
 				var is_city = player_settlement.is_in_group("Cities")
 				var is_town = player_settlement.is_in_group("Towns")

@@ -23,13 +23,13 @@ func refresh() -> void:
 	if exchange_button:
 		var can_afford = GameState.gold >= 100
 		exchange_button.disabled = not can_afford
-		exchange_button.text = "Buy 10 Influence (100 Gold)" if can_afford else "Lacking Gold"
+		exchange_button.text = "Buy 4 Influence (100 Gold)" if can_afford else "Lacking Gold"
 
 func _on_exchange_influence_pressed() -> void:
 	if GameState.gold >= 100:
 		GameState.gold -= 100
-		GameState.influence += 10
-		GameState.spawn_ui_floating_text("+10 Influence!")
+		GameState.influence += 4
+		GameState.spawn_ui_floating_text("+4 Influence!")
 		if _main_hud and _main_hud.has_method("flash_element"):
 			_main_hud.flash_element(self, Color(0.4, 1.0, 0.4))
 		if _main_hud and _main_hud.has_method("update_hud_values"):

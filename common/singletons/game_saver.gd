@@ -30,7 +30,8 @@ func save_game(manager: Node) -> void:
 		"completed_relation_quests": GameState.completed_relation_quests,
 		"active_trial_recipes": GameState.active_trial_recipes,
 		"shortage_days": manager.get_node("/root/EconomyManager").shortage_days if manager.has_node("/root/EconomyManager") else {},
-		"province_prosperity": ProsperityManager.province_prosperity
+		"province_prosperity": ProsperityManager.province_prosperity,
+		"purchased_province_licenses": ProvinceMasterData.purchased_province_licenses
 	}
 	
 	var file = FileAccess.open("user://savegame.json", FileAccess.WRITE)

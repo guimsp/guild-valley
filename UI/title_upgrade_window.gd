@@ -98,9 +98,9 @@ func _refresh_title_details() -> void:
 		upgrade_title_button.disabled = true
 		upgrade_title_button.text = "Locked"
 	else:
-		title_upgrade_cost_label.text = "Upgrade Cost: %d Gold, %d Influence" % [cost["gold"], cost["influence"]]
+		title_upgrade_cost_label.text = "Cost: %d Gold\nReq: %d Permanent Influence (Have %d)" % [cost["gold"], cost["influence"], GameState.permanent_influence]
 		var can_afford_gold = GameState.gold >= cost["gold"]
-		var can_afford_influence = GameState.influence >= cost["influence"]
+		var can_afford_influence = GameState.permanent_influence >= cost["influence"]
 		
 		if can_afford_gold and can_afford_influence:
 			title_upgrade_cost_label.modulate = Color(0.4, 1.0, 0.4)

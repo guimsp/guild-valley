@@ -107,6 +107,11 @@ func _deserialize_core_states(manager: Node, save_dict: Dictionary) -> void:
 	if save_dict.has("province_prosperity"):
 		ProsperityManager.province_prosperity = save_dict["province_prosperity"]
 		ProsperityManager.sync_settlements()
+		
+	if save_dict.has("purchased_province_licenses"):
+		var raw_list = save_dict["purchased_province_licenses"]
+		ProvinceMasterData.purchased_province_licenses = Array(raw_list).duplicate() as Array[String]
+
 
 func _deserialize_player_instance(p_data: Dictionary, player: Node) -> void:
 	if player:

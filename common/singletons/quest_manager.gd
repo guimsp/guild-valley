@@ -106,6 +106,9 @@ func load_quests_from_json() -> void:
 		q.gates_profession_promotion = _sanitize_str(q_dict.get("gates_profession_promotion", "None"))
 		q.gates_title_promotion = _sanitize_str(q_dict.get("gates_title_promotion", "None"))
 		q.is_one_time = bool(q_dict.get("is_one_time", false))
+		q.target_gold = int(q_dict.get("target_gold", 0))
+		q.unlocks_province_license = _sanitize_str(q_dict.get("unlocks_province_license", ""))
+
 		
 		q.gold_reward = int(q_dict.get("gold_reward", 0))
 		q.xp_reward = int(q_dict.get("xp_reward", 0))
@@ -312,31 +315,48 @@ func try_complete_quest(npc_id: String, player: CharacterBody2D) -> void:
 							var item_id = q.target_item.id if q.target_item else ""
 							var req_amount = q.target_amount
 							var current_amount = GameState.player_inventory.get_item_amount(item_id) if item_id != "" else 0
+							var req_gold = q.target_gold if "target_gold" in q else 0
 							
-							if item_id == "" or current_amount >= req_amount:
+							if (item_id == "" or current_amount >= req_amount) and (req_gold == 0 or GameState.gold >= req_gold):
 								if item_id != "":
 									GameState.player_inventory.remove_item(item_id, req_amount)
+								if req_gold > 0:
+									GameState.gold -= req_gold
 								
 								complete_quest(q)
 								
 								var reward_g = q.get_gold_reward()
-								var lines = [
-									"Ah, the " + str(req_amount) + " " + (q.target_item.name if q.target_item else "items") + "! Fantastic work.",
-									"Thank you for your help, citizen.",
-									"Here is your reward of " + str(reward_g) + " Gold."
-								]
+								var lines = []
+								if item_id != "":
+									lines.append("Ah, the " + str(req_amount) + " " + (q.target_item.name if q.target_item else "items") + "! Fantastic work.")
+								if req_gold > 0:
+									lines.append("And the processing fee of " + str(req_gold) + " Gold has been cleared. Excellent.")
+								lines.append("Thank you for your help, citizen.")
+								if reward_g > 0:
+									lines.append("Here is your reward of " + str(reward_g) + " Gold.")
 								
 								GameState.show_npc_dialogue(talk_anchor, npc_display_name, lines, func():
-									GameState.spawn_ui_floating_text("Quest Completed: " + q.title + "! Received " + str(reward_g) + " Gold")
+									if reward_g > 0:
+										GameState.spawn_ui_floating_text("Quest Completed: " + q.title + "! Received " + str(reward_g) + " Gold")
+									else:
+										GameState.spawn_ui_floating_text("Quest Completed: " + q.title + "!")
 								)
 								completed_any = true
 								break
 						if not completed_any:
-							var lines = ["You have active quests for me, but you do not have all the required items yet:"]
+							var lines = ["You have active quests for me, but you do not meet the requirements yet:"]
 							for q in matching_quests:
 								var item_id = q.target_item.id if q.target_item else ""
 								var current = GameState.player_inventory.get_item_amount(item_id) if item_id != "" else 0
-								lines.append("- " + q.title + ": Need " + str(q.target_amount) + " " + (q.target_item.name if q.target_item else "") + " (Have " + str(current) + ")")
+								var req_gold = q.target_gold if "target_gold" in q else 0
+								var req_str = ""
+								if item_id != "":
+									req_str += "Need " + str(q.target_amount) + " " + (q.target_item.name if q.target_item else "") + " (Have " + str(current) + ")"
+								if req_gold > 0:
+									if req_str != "":
+										req_str += " and "
+									req_str += "Need " + str(req_gold) + " Gold (Have " + str(GameState.gold) + ")"
+								lines.append("- " + q.title + ": " + req_str)
 							GameState.show_npc_dialogue(talk_anchor, npc_display_name, lines)
 				else:
 					bubble._on_close_pressed()
@@ -352,6 +372,10 @@ func complete_quest(quest: Resource) -> void:
 		
 	# Apply rewards
 	GameState.gold += quest.get_gold_reward()
+	
+	if "unlocks_province_license" in quest and quest.unlocks_province_license != "":
+		ProvinceMasterData.grant_province_license(quest.unlocks_province_license)
+
 	
 	var career_ref = quest.gates_profession_promotion if quest.gates_profession_promotion != "" else "patreon"
 	if career_ref != "None":
@@ -431,3 +455,24 @@ func accept_relationship_quest(quest_dict: Dictionary) -> void:
 	active_quests_list.append(q)
 	quests_updated.emit()
 	GameState.spawn_ui_floating_text("Quest Accepted: " + q.title)
+
+func get_available_npc_quests(npc_id: String) -> Array[QuestData]:
+	var list: Array[QuestData] = []
+	for q in all_quests:
+		if q.giver_npc_id == npc_id:
+			if q.unlocks_province_license != "" and ProvinceMasterData.has_province_license(q.unlocks_province_license):
+				continue
+			if not completed_quest_ids.has(q.id) and not active_quests_list.has(q) and not locked_quests.has(q):
+				list.append(q)
+	return list
+
+func accept_npc_quest(q_id: String) -> void:
+	if quest_map.has(q_id):
+		var q = quest_map[q_id]
+		if not active_quests_list.has(q):
+			active_quests_list.append(q)
+			_update_quest_states()
+			quests_updated.emit()
+			if GameState.has_method("spawn_ui_floating_text"):
+				GameState.spawn_ui_floating_text("Quest Accepted: " + q.title)
+

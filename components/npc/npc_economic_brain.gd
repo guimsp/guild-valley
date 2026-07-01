@@ -517,6 +517,17 @@ func process_internal_trade_route(delta: float) -> void:
 					npc.last_processed_stop_index = npc.current_stop_index
 					npc.current_stop_transacted_count = 0
 					
+					if stop.target_building.get("ownership_type") == "Public":
+						var market_prov = stop.target_building.province_name if "province_name" in stop.target_building else ""
+						if market_prov != "" and not ProvinceMasterData.has_province_license(market_prov):
+							var fee = 10
+							var strongbox = npc.hired_by_building.get_node_or_null("StrongboxComponent") if is_instance_valid(npc.hired_by_building) else null
+							if strongbox and strongbox.gold >= fee:
+								strongbox.gold -= fee
+							else:
+								GameState.gold = max(0, GameState.gold - fee)
+							npc.spawn_debug_emote("Market Toll Fee (-%d G)" % fee, Color.GOLDENROD)
+					
 				if npc.current_stop_transacted_count >= stop.target_quantity:
 					advance_to_next_stop()
 					return

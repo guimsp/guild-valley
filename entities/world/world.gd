@@ -275,7 +275,9 @@ func _setup_terrain_obstacles() -> void:
 
 func _generate_physics_colliders(node: Node) -> void:
 	if node is ColorRect:
-		if not node.name.begins_with("Label") and not "Anchor" in node.name and not "Gate" in node.name:
+		if "Gate" in node.name:
+			_spawn_toll_gate_trigger(node)
+		elif not node.name.begins_with("Label") and not "Anchor" in node.name:
 			var rect = node.get_global_rect()
 			var center = rect.position + rect.size / 2.0
 			
@@ -323,3 +325,43 @@ func _generate_physics_colliders(node: Node) -> void:
 				
 	for child in node.get_children():
 		_generate_physics_colliders(child)
+
+func _spawn_toll_gate_trigger(gate_node: ColorRect) -> void:
+	var toll_gate_scene = load("res://components/settlements/toll_gate_trigger.tscn")
+	if not toll_gate_scene:
+		return
+		
+	var rect = gate_node.get_global_rect()
+	var center = rect.position + rect.size / 2.0
+	
+	var trigger = toll_gate_scene.instantiate()
+	trigger.name = "TollGate_" + gate_node.name
+	trigger.global_position = center
+	
+	var prov = GameState.get_province_of_node(gate_node)
+	trigger.target_province = prov
+	
+	var col_shape = trigger.get_node_or_null("CollisionShape2D")
+	if not col_shape:
+		col_shape = CollisionShape2D.new()
+		col_shape.name = "CollisionShape2D"
+		trigger.add_child(col_shape)
+		
+	var shape = RectangleShape2D.new()
+	shape.size = rect.size
+	col_shape.shape = shape
+	
+	var lower_name = gate_node.name.to_lower()
+	if "south" in lower_name:
+		trigger.push_direction = Vector2.DOWN
+	elif "north" in lower_name:
+		trigger.push_direction = Vector2.UP
+	elif "west" in lower_name:
+		trigger.push_direction = Vector2.LEFT
+	elif "east" in lower_name:
+		trigger.push_direction = Vector2.RIGHT
+		
+	add_child(trigger)
+	gate_node.hide()
+	print("[World] Automatically compiled toll gate trigger for ", gate_node.name, " in ", prov, " with size ", rect.size, " pushing ", trigger.push_direction)
+

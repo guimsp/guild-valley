@@ -82,11 +82,14 @@ var custom_prices: Dictionary = {}
 # Map of ItemData -> Target stock count (the ideal amount the market wants)
 var target_stock: Dictionary = {}
 
+var province_name: String = ""
+
 @onready var inventory: InventoryComponent = $InventoryComponent
 @onready var interaction_area: Area2D = $InteractionArea
 
 func _ready() -> void:
 	GameState.ensure_strongbox(self)
+	province_name = GameState.get_province_of_node(self) if GameState else "Unknown Province"
 	if not building_data:
 		building_data = GameState.get_building_data_for_node(self)
 	if building_data and "attractiveness" in building_data:

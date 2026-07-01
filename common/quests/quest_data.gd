@@ -18,6 +18,9 @@ enum QuestCategory { STORY_EVENT, MUNICIPAL, GUILD, AMBIENT_LEAD }
 @export var gates_profession_promotion: String = "None"
 @export var gates_title_promotion: String = "None"
 @export var is_one_time: bool = false
+@export var target_gold: int = 0
+@export var unlocks_province_license: String = ""
+
 
 @export var gold_reward: int = 0
 @export var xp_reward: int = 0

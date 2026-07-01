@@ -751,6 +751,20 @@ Cities automatically check for expansions overnight during sleep transition:
 - When Level 3 is reached, the province's road segment network is overhauled to paved cobblestone.
 - **Speeds**: Dirt roads apply a standard `+10%` travel speed multiplier. Paved roads apply a `+13%` multiplier (+3% speed boost on top of default road speeds) for all automated cargo carts, couriers, and characters.
 
+### Settlement Operating Licenses & Checkpoint Toll Gates
+- **Dynamic Toll Checkpoints**: Editor-placed `ColorRect` nodes named with "Gate" under `TerrainObstacles` are dynamically compiled at runtime into `TollGateTrigger` collision areas.
+- **Border Tolls**: Traveling into any province other than the player's starting province triggers a 15 Gold toll prompt at checkpoint gates.
+- **Physics Pushback Guardrail**: Rejecting the toll triggers a smooth, jitter-free 80px pushback. The player's physics processing is temporarily disabled (`set_physics_process(false)`) and they are translated backward via a Tween, restoring full control once verified to be completely outside the gate Area2D boundary.
+- **Operating Licenses**: Permanently purchased at the local City Hall from the Councilor or Mayor via licensing quests (choice of paying 500 Gold or delivering 10 Flour). 
+- **License Privileges**: Bypasses gate tolls, removes a 10 Gold Courier public market transaction fee, allows building/moving structures within the province lot grids, and grants access to local Guild Masters and Office NPCs (which otherwise reject unlicensed players with "You are not from around here" greetings).
+
+### Prosperity-based Luxury Spawners
+- **Prosperity Resource Scaling**: Spawning of higher-tier gathering nodes is locked behind province prosperity milestone levels:
+  - **Level 1 Nodes** (timber, wheat, coal, etc.): Always spawned.
+  - **Level 3 Nodes** (copper, zinc, hardwood, venison): Spawned when the province prosperity reaches Level 3 (Prosperity >= 500.0).
+  - **Level 4 Nodes** (marble, hops, fungi, hides): Spawned when the province prosperity reaches Level 4 (Prosperity >= 750.0).
+- **Volatile Rebuilding**: Dynamic luxury nodes are strictly volatile (not serialized in game saves). On load, the world spawner naturally queries the province's saved Prosperity Level to cleanly reconstruct the resource landscape, avoiding duplicate overlapping node bugs.
+
 ---
 
 ## 🎒 20. Wealth Ledger & Inventory Interactions
