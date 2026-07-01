@@ -3,6 +3,7 @@ extends Resource
 
 @export var is_breakthrough_only: bool = false
 @export var is_service: bool = false
+@export var is_event: bool = false
 @export_enum("Basic", "Mandatory Input", "Dynamic Boost") var service_type: int = 0
 @export var booster_item: ItemData = null
 

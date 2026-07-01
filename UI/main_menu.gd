@@ -28,6 +28,7 @@ extends Control
 @onready var card_showman: PanelContainer = %Card_Showman
 @onready var creator_back_button: Button = %CreatorBackButton
 @onready var creator_launch_button: Button = %CreatorLaunchButton
+@onready var town_option_button: OptionButton = %TownOptionButton
 
 # Selected career path (default: patreon)
 var _selected_career: String = "patreon"
@@ -78,6 +79,12 @@ func _ready() -> void:
 	map_option_button.clear()
 	map_option_button.add_item("Guild Valley (Standard)")
 	map_option_button.select(0)
+	
+	# Setup Town Selection Options
+	town_option_button.clear()
+	town_option_button.add_item("Mineville (Valley Province)")
+	town_option_button.add_item("Oakville (Oakhaven Province)")
+	town_option_button.select(0)
 	
 	# Setup default sandbox AI toggle state
 	if GameState:
@@ -132,11 +139,8 @@ func _on_start_pressed() -> void:
 func _on_load_pressed() -> void:
 	# Transition directly to map and load save
 	if GameState:
-		# Temporarily set main scene running, and load the game
-		# Since load_game clears and instantiates the world, we can transition first
+		SaveLoadManager.is_loading_game = true
 		TransitionScreen.transition_to_scene("res://entities/world/world.tscn", Vector2(1550, 500))
-		await TransitionScreen.faded_out
-		SaveLoadManager.load_game()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
@@ -202,6 +206,7 @@ func _on_launch_pressed() -> void:
 	if GameState:
 		# Save name and reset career levels
 		GameState.player_name = p_name
+		GameState.selected_spawn_town = "Mineville" if town_option_button.selected == 0 else "Oakville"
 		for career in GameState.career_levels.keys():
 			GameState.career_levels[career] = 1 if career == _selected_career else 0
 			GameState.career_xp[career] = 0
@@ -209,6 +214,18 @@ func _on_launch_pressed() -> void:
 		# Populate starter inventory based on selection
 		if GameState.player_inventory:
 			GameState.player_inventory.clear()
+			
+			# Add starting copper tools (bronze pickaxe, sickle, scythe)
+			var start_tools = [
+				"res://common/items/instances/Equipment/bronze_pickaxe.tres",
+				"res://common/items/instances/Equipment/bronze_sickle.tres",
+				"res://common/items/instances/Equipment/bronze_scythe.tres"
+			]
+			for path in start_tools:
+				if ResourceLoader.exists(path):
+					var item = load(path)
+					if item:
+						GameState.player_inventory.add_item(item, 1)
 			
 			# Define starting item resource files
 			var wheat_res = load("res://common/items/instances/Raw Materials/wheat.tres")
@@ -219,7 +236,7 @@ func _on_launch_pressed() -> void:
 			var paper_res = load("res://common/items/instances/Semi-Elaborate/paper.tres")
 			
 			# New career starting items
-			var timber_res = load("res://common/items/instances/Raw Materials/standard_timber.tres")
+			var timber_res = load("res://common/items/instances/Semi-Elaborate/standard_timber.tres")
 			var pegs_res = load("res://common/items/instances/Semi-Elaborate/wooden_pegs.tres")
 			var herbs_res = load("res://common/items/instances/Raw Materials/raw_wild_herbs.tres")
 			var root_res = load("res://common/items/instances/Raw Materials/overworld_root.tres")

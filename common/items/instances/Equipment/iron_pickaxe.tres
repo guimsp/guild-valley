@@ -4,13 +4,15 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "trade_passport"
-name = "Regional Trade Passport"
-item_level = 6
-base_value = 200
-weight = 0.2
+id = "iron_pickaxe"
+name = "Iron Pickaxe"
+base_value = 180
+weight = 2.5
 category = "Product"
 market_category = "Equipment"
 item_type = "Equipment"
-equipment_slot = "Necklace"
-description = "An elite passport bypassing automated border tolls for logistics."
+equipment_slot = "Tool"
+gathering_multiplier_bonus = 0.0
+durability = 150
+max_durability = 150
+is_tool = true

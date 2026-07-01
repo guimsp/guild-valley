@@ -124,5 +124,24 @@
     "due_days": 3,
     "req_level": 5,
     "difficulty": "Expert"
+  },
+  {
+    "id": "integration_test_quest",
+    "title": "Verify Integration",
+    "description": "Integration Test Description",
+    "category": "AMBIENT_LEAD",
+    "quest_level": 1,
+    "giver_npc_id": "councilor_marcus",
+    "region": "Valley Province",
+    "target_item_id": "iron_ore",
+    "target_amount": 15,
+    "next_quest_id": "None",
+    "is_hidden_lead": false,
+    "gates_profession_promotion": "None",
+    "gates_title_promotion": "None",
+    "is_one_time": false,
+    "gold_reward": 0,
+    "xp_reward": 0,
+    "influence_reward": 0
   }
 ]

@@ -5,49 +5,31 @@ signal conclave_resolved(province: String, results: Dictionary)
 
 # Province -> Office Name -> { "holder": String, "career": String }
 # Factions: "Player", "Fugger Family", "Medici Family", "Welser Family", "Guild Elder"
-var office_holders: Dictionary = {
-	"Valley Province": {
-		"Grand Chairman": { "holder": "Guild Elder", "career": "craftsman" },
-		"Logistics Overseer": { "holder": "Guild Elder", "career": "craftsman" },
-		"Materials Steward": { "holder": "Guild Elder", "career": "craftsman" }
-	},
-	"Oakhaven Province": {
-		"Grand Chairman": { "holder": "Guild Elder", "career": "craftsman" },
-		"Logistics Overseer": { "holder": "Guild Elder", "career": "craftsman" },
-		"Materials Steward": { "holder": "Guild Elder", "career": "craftsman" }
-	}
-}
-
-# Province -> Office Name -> { faction_name (String) -> bid_amount (int) }
-var active_bids: Dictionary = {
-	"Valley Province": {
-		"Grand Chairman": {},
-		"Logistics Overseer": {},
-		"Materials Steward": {}
-	},
-	"Oakhaven Province": {
-		"Grand Chairman": {},
-		"Logistics Overseer": {},
-		"Materials Steward": {}
-	}
-}
-
-# Global persistent audit cooldown (days)
+var office_holders: Dictionary = {}
+var active_bids: Dictionary = {}
+var current_candidates: Dictionary = {}
 var guild_audit_cooldown: float = 0.0
 
-# Registered candidates for current cycle: Province -> Office -> Array of Dict: { "name": String, "career": String }
-var current_candidates: Dictionary = {
-	"Valley Province": {
-		"Grand Chairman": [],
-		"Logistics Overseer": [],
-		"Materials Steward": []
-	},
-	"Oakhaven Province": {
-		"Grand Chairman": [],
-		"Logistics Overseer": [],
-		"Materials Steward": []
-	}
-}
+func initialize_guild_states(provinces: Array[String]) -> void:
+	office_holders.clear()
+	active_bids.clear()
+	current_candidates.clear()
+	for prov in provinces:
+		office_holders[prov] = {
+			"Grand Chairman": { "holder": "Guild Elder", "career": "craftsman" },
+			"Logistics Overseer": { "holder": "Guild Elder", "career": "craftsman" },
+			"Materials Steward": { "holder": "Guild Elder", "career": "craftsman" }
+		}
+		active_bids[prov] = {
+			"Grand Chairman": {},
+			"Logistics Overseer": {},
+			"Materials Steward": {}
+		}
+		current_candidates[prov] = {
+			"Grand Chairman": [],
+			"Logistics Overseer": [],
+			"Materials Steward": []
+		}
 
 var last_checked_day: int = 1
 var last_checked_hour: int = -1
@@ -66,6 +48,7 @@ func _ready() -> void:
 			TimeManager.time_changed.connect(_on_time_changed)
 		last_checked_day = TimeManager.time_days
 		last_checked_hour = TimeManager.time_hours
+		initialize_guild_states(["Valley Province", "Oakhaven Province", "Highland Province"])
 
 func _process(delta: float) -> void:
 	bundle_refresh_time_left -= delta
@@ -134,12 +117,12 @@ func _on_time_changed(hours: int, minutes: int, days: int) -> void:
 	
 	# Day 1, 06:00 AM: Candidates scanned, bids open
 	if conclave_day == 1 and hours == 6 and minutes == 0:
-		for prov in ["Valley Province", "Oakhaven Province"]:
+		for prov in GameState.get_provinces():
 			_start_conclave_bidding(prov)
 			
 	# Day 2, 00:00 Midnight (start of Day 2 / end of Day 1): Bids close, resolved
 	if conclave_day == 2 and hours == 0 and minutes == 0:
-		for prov in ["Valley Province", "Oakhaven Province"]:
+		for prov in GameState.get_provinces():
 			_resolve_conclave_election(prov)
 
 func get_office_holder(province: String, office_name: String) -> String:
@@ -231,15 +214,15 @@ func _resolve_conclave_election(province: String) -> void:
 		results[office] = []
 		
 		for cand in candidates:
-			var name = cand.name
+			var cand_name = cand.name
 			var career = cand.career
-			var bid = active_bids[province][office].get(name, 0)
+			var bid = active_bids[province][office].get(cand_name, 0)
 			
 			if bid > 0:
 				var title_mod = 0.0
 				var prestige_mod = 0.0
 				
-				if name == "Player":
+				if cand_name == "Player":
 					var tl = GameState.title_level
 					if tl == 2: title_mod = 0.10
 					elif tl == 3: title_mod = 0.20
@@ -248,10 +231,10 @@ func _resolve_conclave_election(province: String) -> void:
 					
 					prestige_mod = clamp(float(GameState.permanent_influence) / 1000.0 * 0.30, 0.0, 0.30)
 				else:
-					if name == "Fugger Family":
+					if cand_name == "Fugger Family":
 						title_mod = 0.35
 						prestige_mod = 0.20
-					elif name == "Medici Family":
+					elif cand_name == "Medici Family":
 						title_mod = 0.50
 						prestige_mod = 0.30
 					else: # Welser Family
@@ -261,7 +244,7 @@ func _resolve_conclave_election(province: String) -> void:
 				var total_votes = float(bid) * (1.0 + title_mod + prestige_mod)
 				
 				results[office].append({
-					"candidate": name,
+					"candidate": cand_name,
 					"bid": bid,
 					"votes": total_votes
 				})
@@ -285,10 +268,10 @@ func _resolve_conclave_election(province: String) -> void:
 		GameState.spawn_ui_floating_text("Guild Conclave Resolved! New office holders swapped.")
 		var lines = [
 			"The Seasonal Guild Conclave has completed!",
-			"Valley Province Guild Offices hold new leaders:",
-			"- Grand Chairman: " + office_holders["Valley Province"]["Grand Chairman"]["holder"],
-			"- Logistics Overseer: " + office_holders["Valley Province"]["Logistics Overseer"]["holder"],
-			"- Materials Steward: " + office_holders["Valley Province"]["Materials Steward"]["holder"]
+			province + " Guild Offices hold new leaders:",
+			"- Grand Chairman: " + office_holders[province]["Grand Chairman"]["holder"],
+			"- Logistics Overseer: " + office_holders[province]["Logistics Overseer"]["holder"],
+			"- Materials Steward: " + office_holders[province]["Materials Steward"]["holder"]
 		]
 		GameState.show_npc_dialogue(null, "Guild Edict", lines)
 

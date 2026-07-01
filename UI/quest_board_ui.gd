@@ -16,6 +16,10 @@ extends PanelContainer
 var current_region: String = "Valley Province"
 var selected_quest: Dictionary = {}
 var show_accepted_tab: bool = false
+var active_npc: Node2D = null
+
+func set_active_npc(npc: Node2D) -> void:
+	active_npc = npc
 
 var confirm_hbox: HBoxContainer
 var btn_confirm_yes: Button
@@ -119,7 +123,13 @@ func refresh() -> void:
 			if q.region == current_region:
 				quests.append(q)
 	else:
-		quests = QuestManager.active_quests.get(current_region, [])
+		if is_instance_valid(active_npc) and active_npc.get("npc_runtime_state"):
+			var q_ids = active_npc.npc_runtime_state.local_state.get("available_quest_ids", [])
+			for q_id in q_ids:
+				if QuestManager.quest_map.has(q_id):
+					quests.append(QuestManager.quest_map[q_id])
+		else:
+			quests = QuestManager.active_quests.get(current_region, [])
 		
 	var first_btn = null
 	for q in quests:
@@ -229,6 +239,10 @@ func _on_action_button_pressed() -> void:
 func _on_confirm_yes_pressed() -> void:
 	if not selected_quest.is_empty() and not show_accepted_tab:
 		if QuestManager.accept_quest(selected_quest.id, current_region):
+			if is_instance_valid(active_npc) and active_npc.get("npc_runtime_state"):
+				var local_state = active_npc.npc_runtime_state.local_state
+				if local_state.has("available_quest_ids"):
+					local_state["available_quest_ids"].erase(selected_quest.id)
 			confirm_hbox.visible = false
 			action_button.visible = true
 			_clear_details()

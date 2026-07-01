@@ -52,13 +52,48 @@ func _draw() -> void:
 			draw_rect(Rect2(center - p_size / 2.0, p_size), Color(0.26, 0.26, 0.29, 0.8))
 			draw_rect(Rect2(center - p_size / 2.0, p_size), Color(0.42, 0.42, 0.46, 0.6), false, 1.5)
 			
-	# 2. Draw roads
-	var roads = get_tree().get_nodes_in_group("Roads")
-	for road in roads:
-		if is_instance_valid(road) and "size" in road:
-			var center = to_map.call(road.global_position)
-			var r_size = road.size * scale_factor
-			draw_rect(Rect2(center - r_size / 2.0, r_size), Color(0.24, 0.24, 0.27, 0.8))
+	# 2. Draw blueprint Line2D paths (Roads, Rivers, Walls, MapLimits) and ColorRect visual assets (Lakes/Water)
+	var bp = get_node_or_null("/root/World/world_map_blueprint")
+	if bp:
+		var bp_queue = [bp]
+		while not bp_queue.is_empty():
+			var curr = bp_queue.pop_back()
+			if not is_instance_valid(curr):
+				continue
+				
+			if curr is Line2D:
+				var points = curr.points
+				if points.size() > 1:
+					var path_lower = str(curr.get_path()).to_lower()
+					var line_color = Color(0.24, 0.24, 0.27, 0.8) # Road gray
+					var line_width = max(1.5, curr.width * scale_factor)
+					
+					if "river" in path_lower:
+						line_color = Color(0.14, 0.3, 0.75, 0.9) # River blue
+						line_width = max(3.0, curr.width * scale_factor)
+					elif "wall" in path_lower:
+						line_color = Color(0.55, 0.45, 0.35, 0.8) # Wall brown
+						line_width = max(1.5, curr.width * scale_factor)
+					elif "maplimit" in path_lower:
+						line_color = Color(0.1, 0.1, 0.1, 0.9) # Border
+						line_width = max(1.0, 2.0 * scale_factor)
+						
+					for i in range(points.size() - 1):
+						var p1 = to_map.call(curr.to_global(points[i]))
+						var p2 = to_map.call(curr.to_global(points[i + 1]))
+						draw_line(p1, p2, line_color, line_width)
+						
+			elif curr is ColorRect:
+				var path_lower = str(curr.get_path()).to_lower()
+				if "lake" in path_lower or "water" in path_lower or "sea" in path_lower or "river" in path_lower:
+					var rect = curr.get_global_rect()
+					var center = to_map.call(rect.position + rect.size / 2.0)
+					var size_val = rect.size * scale_factor
+					var color = Color(0.14, 0.3, 0.75, 0.9) # Deep blue lake/water
+					draw_rect(Rect2(center - size_val / 2.0, size_val), color)
+						
+			for child in curr.get_children():
+				bp_queue.append(child)
 			
 	# 3. Draw building lots
 	var lots = get_tree().get_nodes_in_group("BuildingLots")
@@ -157,14 +192,19 @@ func _draw() -> void:
 	var font = get_theme_font("font")
 	
 	# A. Province Headers
-	var province_centers = {
-		"Valley Province": Vector2(1500, 150),
-		"Oakhaven Province": Vector2(6500, 150)
-	}
-	for prov in province_centers:
-		var pos = to_map.call(province_centers[prov])
-		draw_string_outline(font, pos, prov, HORIZONTAL_ALIGNMENT_CENTER, 300, 16, 4, Color.BLACK)
-		draw_string(font, pos, prov, HORIZONTAL_ALIGNMENT_CENTER, 300, 16, Color(0.88, 0.73, 0.23, 1))
+	var bp_l = get_node_or_null("/root/World/world_map_blueprint")
+	if bp_l:
+		var prov_folder = bp_l.get_node_or_null("Provinces")
+		if prov_folder:
+			for prov_node in prov_folder.get_children():
+				if is_instance_valid(prov_node):
+					var label_anchor = prov_node.get_node_or_null("Label_Anchor")
+					var label_pos = label_anchor.global_position if label_anchor else prov_node.global_position
+					var prov_name = prov_node.name.replace("_", " ")
+					var pos = to_map.call(label_pos)
+					var draw_pos = pos - Vector2(150, 0)
+					draw_string_outline(font, draw_pos, prov_name, HORIZONTAL_ALIGNMENT_CENTER, 300, 16, 4, Color.BLACK)
+					draw_string(font, draw_pos, prov_name, HORIZONTAL_ALIGNMENT_CENTER, 300, 16, Color(0.88, 0.73, 0.23, 1))
 		
 	# B. Cities & Towns Labels
 	var settlements = []
@@ -177,15 +217,16 @@ func _draw() -> void:
 			var font_size = 11 if s.is_in_group("Cities") else 10
 			var font_color = Color(1.0, 0.9, 0.6) if s.is_in_group("Cities") else Color(0.95, 0.95, 0.95)
 			
-			draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size, 3, Color.BLACK)
-			draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size, font_color)
+			var draw_pos = pos - Vector2(100, 0)
+			draw_string_outline(font, draw_pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size, 3, Color.BLACK)
+			draw_string(font, draw_pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size, font_color)
 			
 			if get_tree().get_nodes_in_group("InformantLookouts").size() > 0:
 				var w = s.get("wealth_level") if "wealth_level" in s else 0.5
 				var sec = s.get("security_level") if "security_level" in s else 0.8
 				var h = s.get("criminal_heat") if "criminal_heat" in s else 0.0
 				var attr_text = "W: %.1f | S: %.1f | H: %.1f" % [w, sec, h]
-				var attr_pos = pos + Vector2(0, 12)
+				var attr_pos = pos + Vector2(-100, 12)
 				draw_string_outline(font, attr_pos, attr_text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size - 2, 2, Color.BLACK)
 				draw_string(font, attr_pos, attr_text, HORIZONTAL_ALIGNMENT_CENTER, 200, font_size - 2, Color(0.7, 0.9, 0.7))
 			
@@ -194,33 +235,76 @@ func _draw() -> void:
 		if is_instance_valid(mn):
 			var pos = to_map.call(mn.global_position) + Vector2(0, 18)
 			var text = mn.node_name
-			draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 9, 3, Color.BLACK)
-			draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 9, Color(0.8, 0.8, 0.8))
+			var draw_pos = pos - Vector2(100, 0)
+			draw_string_outline(font, draw_pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 9, 3, Color.BLACK)
+			draw_string(font, draw_pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 9, Color(0.8, 0.8, 0.8))
 			
 	# D. Influence Broker Labels
 	for broker in get_tree().get_nodes_in_group("InfluenceBroker"):
 		if is_instance_valid(broker):
 			var pos = to_map.call(broker.global_position) + Vector2(0, -14)
 			var text = "Influence Broker"
-			draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 10, 3, Color.BLACK)
-			draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 10, Color(1.0, 0.85, 0.0))
+			var draw_pos = pos - Vector2(100, 0)
+			draw_string_outline(font, draw_pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 10, 3, Color.BLACK)
+			draw_string(font, draw_pos, text, HORIZONTAL_ALIGNMENT_CENTER, 200, 10, Color(1.0, 0.85, 0.0))
 
 func get_world_bounds() -> Rect2:
+	var min_x = INF
+	var min_y = INF
+	var max_x = -INF
+	var max_y = -INF
+	
+	# Find starting nodes
+	var search_queue = []
+	for node in get_tree().get_nodes_in_group("MapLimits"):
+		search_queue.append(node)
+		
+	if search_queue.is_empty():
+		var bp = get_node_or_null("/root/World/world_map_blueprint")
+		var target = null
+		if bp:
+			target = bp.get_node_or_null("MapLimits")
+		if not target:
+			target = get_node_or_null("/root/World/MapLimits")
+		if target:
+			search_queue.append(target)
+			
+	# Process queue iteratively (avoids GDScript lambda capture and recursion errors)
+	while not search_queue.is_empty():
+		var current = search_queue.pop_back()
+		if not is_instance_valid(current):
+			continue
+			
+		if current is Line2D:
+			for pt in current.points:
+				var gpt = current.to_global(pt)
+				if gpt.x < min_x: min_x = gpt.x
+				if gpt.y < min_y: min_y = gpt.y
+				if gpt.x > max_x: max_x = gpt.x
+				if gpt.y > max_y: max_y = gpt.y
+				
+		for child in current.get_children():
+			search_queue.append(child)
+			
+	# If we found any valid bounds from Line2D nodes, return them!
+	if min_x != INF:
+		return Rect2(min_x, min_y, max_x - min_x, max_y - min_y)
+
 	var nodes = []
 	nodes.append_array(get_tree().get_nodes_in_group("Roads"))
 	nodes.append_array(get_tree().get_nodes_in_group("Plazas"))
 	
-	var groups = ["Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Banks", "Inns", "Houses", "BuildingLots", "Player", "InfluenceBroker"]
+	var groups = ["Mills", "Smelters", "Looms", "Bakeries", "PaperMakers", "PrintingPresses", "Banks", "Inns", "Houses", "BuildingLots", "Player", "InfluenceBroker", "MegaNodes"]
 	for g in groups:
 		nodes.append_array(get_tree().get_nodes_in_group(g))
 		
 	if nodes.is_empty():
 		return Rect2(0, 0, 4000, 3000)
 		
-	var min_x = INF
-	var min_y = INF
-	var max_x = -INF
-	var max_y = -INF
+	min_x = INF
+	min_y = INF
+	max_x = -INF
+	max_y = -INF
 	
 	for n in nodes:
 		if is_instance_valid(n) and "global_position" in n:

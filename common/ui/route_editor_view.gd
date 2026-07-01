@@ -25,6 +25,8 @@ var selected_item_id: String = ""
 var _current_configuring_building: Node2D = null
 var current_view_province: String = "Valley Province"
 var _prev_view_province: String = "Valley Province"
+var _last_focused_popup_control: Control = null
+var is_map_selection_mode: bool = false
 
 var route_map_control: Control = null
 var map_buttons: Dictionary = {}
@@ -69,7 +71,7 @@ func _ready() -> void:
 		
 		create_new_route_btn.pressed.connect(func():
 			clear_waypoints()
-			_focus_first_map_node()
+			set_map_selection_mode(true)
 		)
 		
 	if stalls_list:
@@ -77,9 +79,28 @@ func _ready() -> void:
 		if right_col:
 			_setup_route_map(right_col)
 			
+	# Dynamic initial province fallback from editor blueprint
+	var bp_init = get_node_or_null("/root/World/world_map_blueprint")
+	if bp_init:
+		var prov_folder = bp_init.get_node_or_null("Provinces")
+		if prov_folder:
+			for child in prov_folder.get_children():
+				var has_rect = false
+				for sub in child.get_children():
+					if sub is ColorRect:
+						has_rect = true
+						break
+				if has_rect:
+					var first_prov = child.name.replace("_", " ")
+					current_view_province = first_prov
+					_prev_view_province = first_prov
+					break
+			
 	setup_new()
+	get_viewport().gui_focus_changed.connect(_on_viewport_gui_focus_changed)
 
 func setup_new() -> void:
+	set_map_selection_mode(false)
 	is_modifying = false
 	modifying_emp_data = {}
 	selected_waypoints.clear()
@@ -96,6 +117,7 @@ func setup_new() -> void:
 		create_new_route_btn.call_deferred("grab_focus")
 
 func setup_edit(emp_data: Dictionary, route_copy: Resource) -> void:
+	set_map_selection_mode(false)
 	is_modifying = true
 	modifying_emp_data = emp_data
 	selected_source_building = emp_data["workshop"]
@@ -352,14 +374,14 @@ func _setup_route_map(container: VBoxContainer) -> void:
 		
 	var title = container.get_node_or_null("StallsLabel")
 	if title:
-		title.text = "Select Route Waypoints on Map:"
+		title.text = "Select Route Waypoints on Map: (Press Z to Toggle Zoom)"
 		
 	var map_panel = PanelContainer.new()
 	map_panel.custom_minimum_size = Vector2(500, 360)
 	map_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.25, 0.45, 0.28, 1.0) # Grass green background
+	style.bg_color = Color(0.18, 0.23, 0.18, 1.0) # Premium muted forest green background
 	style.set_border_width_all(2)
 	style.border_color = Color(0.75, 0.55, 0.2, 0.8) # Antique gold border
 	style.set_corner_radius_all(8)
@@ -390,7 +412,14 @@ func _get_valid_targets() -> Array:
 				targets.append(h)
 	for stall in get_tree().get_nodes_in_group("MarketStall"):
 		if is_instance_valid(stall) and not targets.has(stall):
-			targets.append(stall)
+			# Filter out interior storage chests
+			if stall.name.contains("StorageChest") or stall.name.contains("Chest"):
+				continue
+			var parent = stall.get_parent()
+			if parent and (parent.is_in_group("Interiors") or parent.name.contains("Interior")):
+				continue
+			if stall.ownership_type == "Public" or stall.ownership_type == "Player" or (stall.ownership_type == "Rented" and stall.owner_id == "Player"):
+				targets.append(stall)
 				
 	if current_view_province != "":
 		var filtered = []
@@ -408,13 +437,27 @@ func _recreate_map_buttons() -> void:
 	map_buttons.clear()
 	
 	if current_view_province == "":
-		var provinces = ["Valley Province", "Oakhaven Province"]
+		var provinces = []
+		var bp = get_node_or_null("/root/World/world_map_blueprint")
+		if bp:
+			var prov_folder = bp.get_node_or_null("Provinces")
+			if prov_folder:
+				for child in prov_folder.get_children():
+					var has_rect = false
+					for sub in child.get_children():
+						if sub is ColorRect:
+							has_rect = true
+							break
+					if has_rect:
+						provinces.append(child.name.replace("_", " "))
+		if provinces.is_empty():
+			provinces = GameState.get_provinces()
 		for p in provinces:
 			var btn = Button.new()
 			btn.text = p
 			btn.tooltip_text = "Zoom into " + p
 			btn.custom_minimum_size = Vector2(145, 50)
-			btn.focus_mode = Control.FOCUS_ALL
+			btn.focus_mode = Control.FOCUS_ALL if is_map_selection_mode else Control.FOCUS_NONE
 			
 			var btn_style_normal = StyleBoxFlat.new()
 			btn_style_normal.bg_color = Color(0.18, 0.24, 0.35, 0.85)
@@ -454,7 +497,7 @@ func _recreate_map_buttons() -> void:
 		btn.text = abbr
 		btn.tooltip_text = b_name
 		btn.custom_minimum_size = Vector2(32, 32)
-		btn.focus_mode = Control.FOCUS_ALL
+		btn.focus_mode = Control.FOCUS_ALL if is_map_selection_mode else Control.FOCUS_NONE
 		
 		var btn_style_normal = StyleBoxFlat.new()
 		var is_stall = b.is_in_group("MarketStall")
@@ -518,9 +561,11 @@ func _reposition_map_buttons() -> void:
 			var target_pos: Vector2
 			if b is String:
 				if b == "Valley Province":
-					target_pos = Vector2(1500, 950)
+					target_pos = Vector2(1000, 1000)
+				elif b == "Oakhaven Province":
+					target_pos = Vector2(7000, 1000)
 				else:
-					target_pos = Vector2(6500, 950)
+					target_pos = Vector2(13000, 1000)
 			else:
 				target_pos = b.global_position
 			var center = offset + (target_pos - bounds.position) * scale_factor
@@ -546,6 +591,49 @@ func _on_map_draw() -> void:
 	var to_map = func(world_pos: Vector2) -> Vector2:
 		return offset + (world_pos - bounds.position) * scale_factor
 		
+	# Draw blueprint Line2D paths (Roads, Rivers, Walls, MapLimits) and ColorRect visual assets (Lakes/Water)
+	var bp = get_node_or_null("/root/World/world_map_blueprint")
+	if bp:
+		var bp_queue = [bp]
+		while not bp_queue.is_empty():
+			var curr = bp_queue.pop_back()
+			if not is_instance_valid(curr):
+				continue
+				
+			if curr is Line2D:
+				var points = curr.points
+				if points.size() > 1:
+					var path_lower = str(curr.get_path()).to_lower()
+					var line_color = Color(0.52, 0.48, 0.42, 0.8) # Muted road color
+					var line_width = max(1.5, curr.width * scale_factor)
+					
+					if "river" in path_lower:
+						line_color = Color(0.14, 0.3, 0.75, 0.9) # River blue
+						line_width = max(3.0, curr.width * scale_factor)
+					elif "wall" in path_lower:
+						line_color = Color(0.55, 0.45, 0.35, 0.8) # Wall brown
+						line_width = max(1.5, curr.width * scale_factor)
+					elif "maplimit" in path_lower:
+						line_color = Color(0.1, 0.1, 0.1, 0.9) # Map boundary border
+						line_width = 2.0
+						
+					for i in range(points.size() - 1):
+						var p1 = to_map.call(curr.to_global(points[i]))
+						var p2 = to_map.call(curr.to_global(points[i + 1]))
+						route_map_control.draw_line(p1, p2, line_color, line_width)
+						
+			elif curr is ColorRect:
+				var path_lower = str(curr.get_path()).to_lower()
+				if "lake" in path_lower or "water" in path_lower or "sea" in path_lower or "river" in path_lower:
+					var rect = curr.get_global_rect()
+					var center = to_map.call(rect.position + rect.size / 2.0)
+					var size_val = rect.size * scale_factor
+					var color = Color(0.14, 0.3, 0.75, 0.9) # Deep blue lake/water
+					route_map_control.draw_rect(Rect2(center - size_val / 2.0, size_val), color)
+						
+			for child in curr.get_children():
+				bp_queue.append(child)
+		
 	# Draw plazas
 	for plaza in get_tree().get_nodes_in_group("Plazas"):
 		if is_instance_valid(plaza) and "size" in plaza:
@@ -569,14 +657,48 @@ func _on_map_draw() -> void:
 				route_map_control.draw_rect(Rect2(center - m_size / 2.0, m_size), Color(0.5, 0.46, 0.42, 1.0))
 				route_map_control.draw_rect(Rect2(center - m_size / 2.0, m_size), Color(0.4, 0.36, 0.32, 0.5), false, 1.0)
 			
-	# Draw roads
-	for road in get_tree().get_nodes_in_group("Roads"):
-		if is_instance_valid(road) and "size" in road:
-			if current_view_province != "" and GameState.get_province_of_node(road) != current_view_province:
+
+
+
+
+	# Draw buildings (only personal player workshops, warehouses, and houses)
+	var groups_list = {
+		"Mills": "Mill",
+		"Smelters": "Smelter",
+		"Looms": "Loom",
+		"Bakeries": "Bakery",
+		"PaperMakers": "PaperMaker",
+		"PrintingPresses": "Press",
+		"Banks": "Bank",
+		"Inns": "Inn",
+		"Houses": "House"
+	}
+	
+	for g in groups_list:
+		for b in get_tree().get_nodes_in_group(g):
+			if is_instance_valid(b) and not b.is_queued_for_deletion():
+				if b.get("ownership_type") != "Player":
+					continue
+				if current_view_province != "" and GameState.get_province_of_node(b) != current_view_province:
+					continue
+				var center = to_map.call(b.global_position)
+				var b_size = Vector2(50, 50) * scale_factor
+				var color = Color(0.2, 0.62, 0.36) # Teal green for Player
+				route_map_control.draw_rect(Rect2(center - b_size / 2.0, b_size), color)
+				route_map_control.draw_rect(Rect2(center - b_size / 2.0, b_size), color.lightened(0.2), false, 1.0)
+				
+	# Draw public market stalls
+	for stall in get_tree().get_nodes_in_group("MarketStall"):
+		if is_instance_valid(stall) and stall.ownership_type == "Public":
+			var parent = stall.get_parent()
+			if parent and (parent.is_in_group("Interiors") or parent.name.contains("Interior")):
 				continue
-			var center = to_map.call(road.global_position)
-			var r_size = road.size * scale_factor
-			route_map_control.draw_rect(Rect2(center - r_size / 2.0, r_size), Color(0.4, 0.4, 0.42, 1.0))
+			if current_view_province != "" and GameState.get_province_of_node(stall) != current_view_province:
+				continue
+			var center = to_map.call(stall.global_position)
+			var s_size = Vector2(35, 35) * scale_factor
+			route_map_control.draw_rect(Rect2(center - s_size / 2.0, s_size), Color(0.75, 0.55, 0.25, 0.8)) # Gold/Orange stall box
+			route_map_control.draw_rect(Rect2(center - s_size / 2.0, s_size), Color(0.9, 0.7, 0.3, 0.9), false, 1.0)
 			
 	# Draw connection lines
 	var route_points = []
@@ -603,6 +725,111 @@ func _on_map_draw() -> void:
 				route_map_control.draw_circle(mid, 4.0, Color(0.88, 0.73, 0.23, 0.9))
 
 func get_world_bounds() -> Rect2:
+	# 1. Zoomed-out global view: use the MapLimits boundaries to show the entire world
+	if current_view_province == "":
+		var min_x = INF
+		var min_y = INF
+		var max_x = -INF
+		var max_y = -INF
+		
+		var limits = get_tree().get_nodes_in_group("MapLimits")
+		if limits.is_empty():
+			var bp = get_node_or_null("/root/World/world_map_blueprint")
+			if bp:
+				var target = bp.get_node_or_null("MapLimits")
+				if target:
+					limits = [target]
+		
+		var search_queue = []
+		search_queue.append_array(limits)
+		while not search_queue.is_empty():
+			var curr = search_queue.pop_back()
+			if is_instance_valid(curr):
+				if curr is Line2D:
+					for p in curr.points:
+						var gp = curr.to_global(p)
+						if gp.x < min_x: min_x = gp.x
+						if gp.y < min_y: min_y = gp.y
+						if gp.x > max_x: max_x = gp.x
+						if gp.y > max_y: max_y = gp.y
+				for child in curr.get_children():
+					search_queue.append(child)
+					
+		if min_x != INF:
+			return Rect2(min_x, min_y, max_x - min_x, max_y - min_y)
+
+	# 2. Try to find custom province ColorRect nodes in the blueprint editor for zoomed-in province views
+	var bp = get_node_or_null("/root/World/world_map_blueprint")
+	if bp and current_view_province != "":
+		var prov_folder = bp.get_node_or_null("Provinces")
+		if prov_folder:
+			var target_name = current_view_province.replace(" ", "_").to_lower()
+			for prov_node in prov_folder.get_children():
+				if prov_node.name.to_lower() == target_name or prov_node.name.replace("_", " ").to_lower() == current_view_province.to_lower():
+					for child in prov_node.get_children():
+						if child is ColorRect:
+							return child.get_global_rect()
+
+	# 2. Fallback to MapLimits or node positions
+	var min_x = INF
+	var min_y = INF
+	var max_x = -INF
+	var max_y = -INF
+	
+	# Find starting nodes
+	var search_queue = []
+	for node in get_tree().get_nodes_in_group("MapLimits"):
+		if current_view_province != "":
+			var node_name_lower = node.name.to_lower()
+			if current_view_province == "Valley Province" and not ("1" in node_name_lower or "valley" in node_name_lower):
+				continue
+			elif current_view_province == "Oakhaven Province" and not ("2" in node_name_lower or "oakhaven" in node_name_lower):
+				continue
+			elif current_view_province == "Highland Province" and not ("3" in node_name_lower or "highland" in node_name_lower):
+				continue
+		search_queue.append(node)
+		
+	if search_queue.is_empty():
+		var target = null
+		if bp:
+			target = bp.get_node_or_null("MapLimits")
+		if not target:
+			target = get_node_or_null("/root/World/MapLimits")
+		if target:
+			search_queue.append(target)
+			
+	# Process queue iteratively (avoids GDScript lambda capture and recursion errors)
+	while not search_queue.is_empty():
+		var current = search_queue.pop_back()
+		if not is_instance_valid(current):
+			continue
+			
+		# Filter children/current if zoomed in
+		if current_view_province != "":
+			var current_name_lower = current.name.to_lower()
+			if "maplimits" in current_name_lower or "maplimit" in current_name_lower:
+				if current_view_province == "Valley Province" and not ("1" in current_name_lower or "valley" in current_name_lower):
+					continue
+				elif current_view_province == "Oakhaven Province" and not ("2" in current_name_lower or "oakhaven" in current_name_lower):
+					continue
+				elif current_view_province == "Highland Province" and not ("3" in current_name_lower or "highland" in current_name_lower):
+					continue
+			
+		if current is Line2D:
+			for pt in current.points:
+				var gpt = current.to_global(pt)
+				if gpt.x < min_x: min_x = gpt.x
+				if gpt.y < min_y: min_y = gpt.y
+				if gpt.x > max_x: max_x = gpt.x
+				if gpt.y > max_y: max_y = gpt.y
+				
+		for child in current.get_children():
+			search_queue.append(child)
+			
+	# If we found any valid bounds from Line2D nodes, return them!
+	if min_x != INF:
+		return Rect2(min_x, min_y, max_x - min_x, max_y - min_y)
+
 	var raw_nodes = []
 	raw_nodes.append_array(get_tree().get_nodes_in_group("Roads"))
 	raw_nodes.append_array(get_tree().get_nodes_in_group("Plazas"))
@@ -622,10 +849,10 @@ func get_world_bounds() -> Rect2:
 	if nodes.is_empty():
 		return Rect2(450, 650, 3000, 2000)
 		
-	var min_x = INF
-	var min_y = INF
-	var max_x = -INF
-	var max_y = -INF
+	min_x = INF
+	min_y = INF
+	max_x = -INF
+	max_y = -INF
 	
 	for n in nodes:
 		if is_instance_valid(n) and "global_position" in n:
@@ -645,12 +872,28 @@ func get_world_bounds() -> Rect2:
 		
 	return Rect2(min_x, min_y, max_x - min_x, max_y - min_y)
 
+func set_map_selection_mode(enabled: bool) -> void:
+	is_map_selection_mode = enabled
+	
+	for key in map_buttons:
+		var btn = map_buttons[key]
+		if is_instance_valid(btn):
+			btn.focus_mode = Control.FOCUS_ALL if enabled else Control.FOCUS_NONE
+			
+	if enabled:
+		_focus_first_map_node()
+	else:
+		if create_new_route_btn:
+			create_new_route_btn.call_deferred("grab_focus")
+
 func _zoom_into_province(prov_name: String) -> void:
 	current_view_province = prov_name
 	_prev_view_province = prov_name
 	_recreate_map_buttons()
 	if route_map_control:
 		route_map_control.queue_redraw()
+	if is_map_selection_mode:
+		_focus_first_map_node()
 
 func _zoom_out_to_selection() -> void:
 	if current_view_province != "":
@@ -659,6 +902,35 @@ func _zoom_out_to_selection() -> void:
 	_recreate_map_buttons()
 	if route_map_control:
 		route_map_control.queue_redraw()
+	if is_map_selection_mode:
+		_focus_first_map_node()
+
+func toggle_zoom() -> void:
+	if current_view_province != "":
+		_zoom_out_to_selection()
+	else:
+		var target_prov = _prev_view_province
+		if target_prov == "":
+			target_prov = "Valley Province"
+			var bp = get_node_or_null("/root/World/world_map_blueprint")
+			if bp:
+				var prov_folder = bp.get_node_or_null("Provinces")
+				if prov_folder:
+					for child in prov_folder.get_children():
+						var has_rect = false
+						for sub in child.get_children():
+							if sub is ColorRect:
+								has_rect = true
+								break
+						if has_rect:
+							target_prov = child.name.replace("_", " ")
+							break
+							
+		if is_instance_valid(selected_source_building):
+			var src_prov = GameState.get_province_of_node(selected_source_building)
+			if src_prov != "":
+				target_prov = src_prov
+		_zoom_into_province(target_prov)
 
 # --- Waypoint Configurations ---
 
@@ -675,8 +947,19 @@ func _input(event: InputEvent) -> void:
 			_close_employee_popup()
 			get_viewport().set_input_as_handled()
 			return
+		elif is_map_selection_mode:
+			set_map_selection_mode(false)
+			get_viewport().set_input_as_handled()
+			return
 			
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		if event.keycode == KEY_Z:
+			if popup:
+				_close_popup(null)
+			toggle_zoom()
+			get_viewport().set_input_as_handled()
+			return
+			
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
 			if not popup and not employee_popup:
 				_on_start_or_save_pressed()
@@ -759,15 +1042,38 @@ func _focus_first_map_node() -> void:
 	if map_buttons.is_empty():
 		return
 		
-	var best_btn: Button = null
+	var best_key = null
+	
+	# 1. Search for first player-owned production building/house
 	for key in map_buttons:
-		var btn = map_buttons[key]
-		if is_instance_valid(btn) and btn.is_visible_in_tree():
-			best_btn = btn
+		if is_instance_valid(key) and key is Node2D:
+			if key.get("ownership_type") == "Player":
+				if key.is_in_group("Houses") or key.is_in_group("Mills") or key.is_in_group("Smelters") or key.is_in_group("Looms") or key.is_in_group("Bakeries") or key.is_in_group("PaperMakers") or key.is_in_group("PrintingPresses") or key.is_in_group("Banks") or key.is_in_group("Inns"):
+					best_key = key
+					break
+					
+	# 2. If no player building, find closest public market stall
+	if best_key == null:
+		var closest_dist = INF
+		var center_ref = Vector2(2591.4, -1823.7) # ValleyCity center coords
+		for key in map_buttons:
+			if is_instance_valid(key) and key is Node2D:
+				if key.is_in_group("MarketStall") and key.get("ownership_type") == "Public":
+					var dist = key.global_position.distance_to(center_ref)
+					if dist < closest_dist:
+						closest_dist = dist
+						best_key = key
+						
+	# 3. Fallback to first available map button
+	if best_key == null:
+		for key in map_buttons:
+			best_key = key
 			break
 			
-	if best_btn:
-		best_btn.grab_focus()
+	if best_key != null and map_buttons.has(best_key):
+		var btn = map_buttons[best_key]
+		if is_instance_valid(btn) and btn.is_visible_in_tree():
+			btn.grab_focus()
 
 func _show_waypoint_config_popup(building: Node2D) -> void:
 	if is_instance_valid(selected_source_building) and is_instance_valid(building):
@@ -847,12 +1153,14 @@ func _render_popup_step(building: Node2D) -> void:
 		content_area.add_child(action_hbox)
 		
 		var load_btn = Button.new()
+		load_btn.name = "LoadButton"
 		load_btn.text = "BUY" if is_stall else "LOAD"
 		load_btn.custom_minimum_size = Vector2(100, 40)
 		load_btn.focus_mode = Control.FOCUS_ALL
 		action_hbox.add_child(load_btn)
 		
 		var unload_btn = Button.new()
+		unload_btn.name = "UnloadButton"
 		unload_btn.text = "SELL" if is_stall else "UNLOAD"
 		unload_btn.custom_minimum_size = Vector2(100, 40)
 		unload_btn.focus_mode = Control.FOCUS_ALL
@@ -1043,6 +1351,7 @@ func _render_popup_step(building: Node2D) -> void:
 		content_area.add_child(item_lbl)
 		
 		var slider = HSlider.new()
+		slider.name = "QuantitySlider"
 		slider.min_value = 1
 		slider.max_value = 100
 		slider.step = 1
@@ -1077,6 +1386,7 @@ func _render_popup_step(building: Node2D) -> void:
 			content_area.add_child(price_prompt)
 			
 			price_slider = HSlider.new()
+			price_slider.name = "PriceSlider"
 			price_slider.min_value = 0
 			price_slider.max_value = 100
 			price_slider.step = 1
@@ -1101,11 +1411,13 @@ func _render_popup_step(building: Node2D) -> void:
 			)
 			
 		var confirm_btn = Button.new()
+		confirm_btn.name = "ConfirmButton"
 		confirm_btn.text = "Confirm"
 		confirm_btn.custom_minimum_size = Vector2(90, 30)
 		confirm_btn.focus_mode = Control.FOCUS_ALL
 		
 		var cancel_btn = Button.new()
+		cancel_btn.name = "CancelButton"
 		cancel_btn.text = "Cancel"
 		cancel_btn.custom_minimum_size = Vector2(90, 30)
 		cancel_btn.focus_mode = Control.FOCUS_ALL
@@ -1160,6 +1472,75 @@ func _render_popup_step(building: Node2D) -> void:
 		_close_popup(building)
 	)
 	
+	# Wire focus neighbors inside popup to contain focus and navigate smoothly
+	var slider_node = vbox.find_child("QuantitySlider", true, false)
+	var price_slider_node = vbox.find_child("PriceSlider", true, false)
+	var confirm_btn_node = vbox.find_child("ConfirmButton", true, false)
+	var cancel_btn_node = vbox.find_child("CancelButton", true, false)
+	var load_btn_node = vbox.find_child("LoadButton", true, false)
+	var unload_btn_node = vbox.find_child("UnloadButton", true, false)
+	
+	var back_btn_node = null
+	var close_btn_node = null
+	for btn in footer_hbox.get_children():
+		if btn is Button:
+			if btn.text == "< Back":
+				back_btn_node = btn
+			elif btn.text == "Cancel Stop":
+				close_btn_node = btn
+				
+	if close_btn_node:
+		close_btn_node.name = "CancelStopButton"
+	if back_btn_node:
+		back_btn_node.name = "BackButton"
+		
+	if popup_step == 0:
+		if load_btn_node and unload_btn_node and close_btn_node:
+			load_btn_node.focus_neighbor_right = unload_btn_node.get_path()
+			unload_btn_node.focus_neighbor_left = load_btn_node.get_path()
+			load_btn_node.focus_neighbor_bottom = close_btn_node.get_path()
+			unload_btn_node.focus_neighbor_bottom = close_btn_node.get_path()
+			load_btn_node.focus_neighbor_top = close_btn_node.get_path()
+			unload_btn_node.focus_neighbor_top = close_btn_node.get_path()
+			close_btn_node.focus_neighbor_top = load_btn_node.get_path()
+			close_btn_node.focus_neighbor_bottom = load_btn_node.get_path()
+	elif popup_step == 1:
+		if close_btn_node:
+			close_btn_node.focus_neighbor_bottom = close_btn_node.get_path()
+			if back_btn_node:
+				back_btn_node.focus_neighbor_bottom = back_btn_node.get_path()
+				back_btn_node.focus_neighbor_right = close_btn_node.get_path()
+				close_btn_node.focus_neighbor_left = back_btn_node.get_path()
+	elif popup_step == 2:
+		if slider_node and confirm_btn_node and cancel_btn_node and close_btn_node:
+			slider_node.focus_neighbor_top = close_btn_node.get_path()
+			if price_slider_node:
+				slider_node.focus_neighbor_bottom = price_slider_node.get_path()
+				price_slider_node.focus_neighbor_top = slider_node.get_path()
+				price_slider_node.focus_neighbor_bottom = confirm_btn_node.get_path()
+				confirm_btn_node.focus_neighbor_top = price_slider_node.get_path()
+				cancel_btn_node.focus_neighbor_top = price_slider_node.get_path()
+			else:
+				slider_node.focus_neighbor_bottom = confirm_btn_node.get_path()
+				confirm_btn_node.focus_neighbor_top = slider_node.get_path()
+				cancel_btn_node.focus_neighbor_top = slider_node.get_path()
+				
+			confirm_btn_node.focus_neighbor_right = cancel_btn_node.get_path()
+			confirm_btn_node.focus_neighbor_bottom = close_btn_node.get_path()
+			cancel_btn_node.focus_neighbor_left = confirm_btn_node.get_path()
+			cancel_btn_node.focus_neighbor_bottom = close_btn_node.get_path()
+			
+			if back_btn_node:
+				back_btn_node.focus_neighbor_top = confirm_btn_node.get_path()
+				back_btn_node.focus_neighbor_bottom = slider_node.get_path()
+				back_btn_node.focus_neighbor_right = close_btn_node.get_path()
+				close_btn_node.focus_neighbor_left = back_btn_node.get_path()
+				close_btn_node.focus_neighbor_top = confirm_btn_node.get_path()
+				close_btn_node.focus_neighbor_bottom = slider_node.get_path()
+			else:
+				close_btn_node.focus_neighbor_top = confirm_btn_node.get_path()
+				close_btn_node.focus_neighbor_bottom = slider_node.get_path()
+				
 	_position_popup_next_to_node(building)
 
 func _confirm_popup_stop(building: Node2D, qty: int, min_price: int) -> void:
@@ -1181,6 +1562,7 @@ func _close_popup(building: Node2D) -> void:
 	if popup:
 		popup.queue_free()
 		popup = null
+		_last_focused_popup_control = null
 		
 	var target = building
 	if not is_instance_valid(target):
@@ -1439,3 +1821,18 @@ func _setup_button_effects(btn: Button) -> void:
 	btn.resized.connect(func(): btn.pivot_offset = btn.size / 2.0)
 	btn.mouse_entered.connect(func(): create_tween().tween_property(btn, "scale", Vector2(1.05, 1.05), 0.08))
 	btn.mouse_exited.connect(func(): create_tween().tween_property(btn, "scale", Vector2(1.0, 1.0), 0.08))
+
+func _on_viewport_gui_focus_changed(node: Control) -> void:
+	if not visible:
+		return
+	if popup and is_instance_valid(popup) and popup.is_visible_in_tree():
+		if node and is_instance_valid(node):
+			if popup.is_ancestor_of(node) or node == popup:
+				_last_focused_popup_control = node
+			else:
+				if _last_focused_popup_control and is_instance_valid(_last_focused_popup_control) and _last_focused_popup_control.is_visible_in_tree():
+					_last_focused_popup_control.call_deferred("grab_focus")
+				else:
+					var close_btn = popup.find_child("CancelStopButton", true, false)
+					if close_btn:
+						close_btn.call_deferred("grab_focus")

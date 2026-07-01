@@ -1,0 +1,187 @@
+{
+  "mayor_city_a_greeting": [
+    "Greetings, citizen. As {npc_rank} of {city_name}, I oversee our local administration.",
+    "We coordinate regional charter policies, tax updates, and regulatory sponsor projects here.",
+    "How can I assist you today?"
+  ],
+  "clerk_city_a_greeting": [
+    "Welcome to the local administration chambers. I am {npc_name}, {npc_rank}.",
+    "I keep records of regional contracts, citizen petitions, and active quest listings.",
+    "Would you like to review the local Quest Board?"
+  ],
+  "burgomeister_town_a_1_greeting": [
+    "Greetings, citizen. As {npc_rank} of {city_name}, I oversee our local administration.",
+    "We coordinate regional charter policies, tax updates, and regulatory sponsor projects here.",
+    "How can I assist you today?"
+  ],
+  "clerk_town_a_1_greeting": [
+    "Welcome to the local administration chambers. I am {npc_name}, {npc_rank}.",
+    "I keep records of regional contracts, citizen petitions, and active quest listings.",
+    "Would you like to review the local Quest Board?"
+  ],
+  "councilor_city_a_greeting": [
+    "Ah, welcome, traveler. I am {npc_name}, {npc_rank} of the council.",
+    "Here at the Lawhouse, we vote on regional edicts and hear sponsors.",
+    "Would you like to manage council votes or complete active quests?"
+  ],
+  "scribe_city_a_greeting": [
+    "Welcome to the local administration chambers. I am {npc_name}, {npc_rank}.",
+    "I keep records of regional contracts, citizen petitions, and active quest listings.",
+    "Would you like to review the local Quest Board?"
+  ],
+  "guildmaster_patreon_greeting": [
+    "Welcome to the Patreon Guild Hall, citizen.",
+    "I manage professional rank advancements here.",
+    "Do you or your hired employees have a breakthrough rank trial to request?"
+  ],
+  "chairman_patreon_greeting": [
+    "Greetings, citizen. I am the Grand Chairman of the conclave.",
+    "Here we coordinate political campaigns, seasonal council seat elections, and regulatory audits.",
+    "How can I assist you in conclave politics today?"
+  ],
+  "overseer_patreon_greeting": [
+    "Greetings, citizen. I am the Donations Overseer for the guild.",
+    "You can donate Gold or commodity stockpiles to elevate our province's prosperity.",
+    "Would you like to make a donation?"
+  ],
+  "steward_patreon_greeting": [
+    "Greetings, merchant. I am the Materials Steward.",
+    "I authorize the purchase of wholesale material bundles when province prosperity milestones are reached.",
+    "Would you like to review available timed bundles?"
+  ],
+  "guildmaster_showman_greeting": [
+    "Welcome to the Showman Guild Hall, citizen.",
+    "I manage professional rank advancements here.",
+    "Do you or your hired employees have a breakthrough rank trial to request?"
+  ],
+  "chairman_showman_greeting": [
+    "Greetings, citizen. I am the Grand Chairman of the conclave.",
+    "Here we coordinate political campaigns, seasonal council seat elections, and regulatory audits.",
+    "How can I assist you in conclave politics today?"
+  ],
+  "overseer_showman_greeting": [
+    "Greetings, citizen. I am the Donations Overseer for the guild.",
+    "You can donate Gold or commodity stockpiles to elevate our province's prosperity.",
+    "Would you like to make a donation?"
+  ],
+  "steward_showman_greeting": [
+    "Greetings, merchant. I am the Materials Steward.",
+    "I authorize the purchase of wholesale material bundles when province prosperity milestones are reached.",
+    "Would you like to review available timed bundles?"
+  ],
+  "guildmaster_craftsman_greeting": [
+    "Welcome to the Craftsman Guild Hall, citizen.",
+    "I manage professional rank advancements here.",
+    "Do you or your hired employees have a breakthrough rank trial to request?"
+  ],
+  "chairman_craftsman_greeting": [
+    "Greetings, citizen. I am the Grand Chairman of the conclave.",
+    "Here we coordinate political campaigns, seasonal council seat elections, and regulatory audits.",
+    "How can I assist you in conclave politics today?"
+  ],
+  "overseer_craftsman_greeting": [
+    "Greetings, citizen. I am the Donations Overseer for the guild.",
+    "You can donate Gold or commodity stockpiles to elevate our province's prosperity.",
+    "Would you like to make a donation?"
+  ],
+  "steward_craftsman_greeting": [
+    "Greetings, merchant. I am the Materials Steward.",
+    "I authorize the purchase of wholesale material bundles when province prosperity milestones are reached.",
+    "Would you like to review available timed bundles?"
+  ],
+  "guildmaster_woodmaker_greeting": [
+    "Welcome to the Woodmaker Guild Hall, citizen.",
+    "I manage professional rank advancements here.",
+    "Do you or your hired employees have a breakthrough rank trial to request?"
+  ],
+  "chairman_woodmaker_greeting": [
+    "Greetings, citizen. I am the Grand Chairman of the conclave.",
+    "Here we coordinate political campaigns, seasonal council seat elections, and regulatory audits.",
+    "How can I assist you in conclave politics today?"
+  ],
+  "overseer_woodmaker_greeting": [
+    "Greetings, citizen. I am the Donations Overseer for the guild.",
+    "You can donate Gold or commodity stockpiles to elevate our province's prosperity.",
+    "Would you like to make a donation?"
+  ],
+  "steward_woodmaker_greeting": [
+    "Greetings, merchant. I am the Materials Steward.",
+    "I authorize the purchase of wholesale material bundles when province prosperity milestones are reached.",
+    "Would you like to review available timed bundles?"
+  ],
+  "guildmaster_herbalist_greeting": [
+    "Welcome to the Herbalist Guild Hall, citizen.",
+    "I manage professional rank advancements here.",
+    "Do you or your hired employees have a breakthrough rank trial to request?"
+  ],
+  "chairman_herbalist_greeting": [
+    "Greetings, citizen. I am the Grand Chairman of the conclave.",
+    "Here we coordinate political campaigns, seasonal council seat elections, and regulatory audits.",
+    "How can I assist you in conclave politics today?"
+  ],
+  "overseer_herbalist_greeting": [
+    "Greetings, citizen. I am the Donations Overseer for the guild.",
+    "You can donate Gold or commodity stockpiles to elevate our province's prosperity.",
+    "Would you like to make a donation?"
+  ],
+  "steward_herbalist_greeting": [
+    "Greetings, merchant. I am the Materials Steward.",
+    "I authorize the purchase of wholesale material bundles when province prosperity milestones are reached.",
+    "Would you like to review available timed bundles?"
+  ],
+  "guildmaster_tailor_greeting": [
+    "Welcome to the Tailor Guild Hall, citizen.",
+    "I manage professional rank advancements here.",
+    "Do you or your hired employees have a breakthrough rank trial to request?"
+  ],
+  "chairman_tailor_greeting": [
+    "Greetings, citizen. I am the Grand Chairman of the conclave.",
+    "Here we coordinate political campaigns, seasonal council seat elections, and regulatory audits.",
+    "How can I assist you in conclave politics today?"
+  ],
+  "overseer_tailor_greeting": [
+    "Greetings, citizen. I am the Donations Overseer for the guild.",
+    "You can donate Gold or commodity stockpiles to elevate our province's prosperity.",
+    "Would you like to make a donation?"
+  ],
+  "steward_tailor_greeting": [
+    "Greetings, merchant. I am the Materials Steward.",
+    "I authorize the purchase of wholesale material bundles when province prosperity milestones are reached.",
+    "Would you like to review available timed bundles?"
+  ],
+  "guildmaster_scholar_greeting": [
+    "Welcome to the Scholar Guild Hall, citizen.",
+    "I manage professional rank advancements here.",
+    "Do you or your hired employees have a breakthrough rank trial to request?"
+  ],
+  "chairman_scholar_greeting": [
+    "Greetings, citizen. I am the Grand Chairman of the conclave.",
+    "Here we coordinate political campaigns, seasonal council seat elections, and regulatory audits.",
+    "How can I assist you in conclave politics today?"
+  ],
+  "overseer_scholar_greeting": [
+    "Greetings, citizen. I am the Donations Overseer for the guild.",
+    "You can donate Gold or commodity stockpiles to elevate our province's prosperity.",
+    "Would you like to make a donation?"
+  ],
+  "steward_scholar_greeting": [
+    "Greetings, merchant. I am the Materials Steward.",
+    "I authorize the purchase of wholesale material bundles when province prosperity milestones are reached.",
+    "Would you like to review available timed bundles?"
+  ],
+  "worker_lazy_complaints": [
+    "Ugh, another shift? I need a break...",
+    "Why does the boss expect us to work so fast anyway?",
+    "If you need me, I'll be taking my third lunch break."
+  ],
+  "worker_eager_dialogue": [
+    "Ready for duty, boss! What are we crafting next?",
+    "I love the smell of workshops in the morning!",
+    "No task is too big for our team! Let's get to work!"
+  ],
+  "worker_grumble_dialogue": [
+    "Working all day and night for a handful of gold...",
+    "I hope there's an overtime bonus in the salary this week.",
+    "Sure, I'll craft it. But it's going to cost you."
+  ]
+}

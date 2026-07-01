@@ -4,8 +4,9 @@ extends PanelContainer
 @onready var market_list: VBoxContainer = %MarketList
 @onready var player_gold_label: Label = %PlayerGoldLabel
 @onready var player_list: VBoxContainer = %PlayerList
-@onready var close_button: Button = %CloseButton
+@onready var close_button: Button = get_node_or_null("%CloseButton")
 @onready var bottom_close_button: Button = %BottomCloseButton
+@onready var description_label: Label = %DescriptionLabel
 
 var _current_stall: CollisionObject2D = null
 
@@ -17,6 +18,7 @@ var _last_traded_item_id: String = ""
 var _last_traded_mode: String = ""
 var _last_focused_trigger_button: Button = null
 var _last_valid_popup_focus: Control = null
+var _is_initial_open: bool = false
 
 const CATEGORIES = ["Raw Materials", "Semi-Elaborate", "Finished Goods", "Consumables", "Equipment", "Skill Items"]
 var _active_category_idx: int = 0
@@ -45,6 +47,13 @@ func _load_items_recursively(dir_path: String) -> void:
 func _ready() -> void:
 	# Load all item resources dynamically from subfolders recursively
 	_load_items_recursively("res://common/items/instances/")
+	
+	var market_scroll = get_node_or_null("MarginContainer/VBoxContainer/Columns/MarketColumn/ScrollContainer") as ScrollContainer
+	if market_scroll:
+		UIFocusHelper.register_scroll_container(market_scroll)
+	var player_scroll = get_node_or_null("MarginContainer/VBoxContainer/Columns/PlayerColumn/ScrollContainer") as ScrollContainer
+	if player_scroll:
+		UIFocusHelper.register_scroll_container(player_scroll)
 	
 	if close_button:
 		close_button.pressed.connect(close)
@@ -97,8 +106,25 @@ func _ready() -> void:
 	_slider_overlay.hide()
 	add_child(_slider_overlay)
 
+	# Style description panel
+	var desc_panel = get_node_or_null("MarginContainer/VBoxContainer/DescriptionPanel")
+	if desc_panel:
+		var desc_style = StyleBoxFlat.new()
+		desc_style.bg_color = Color(0.08, 0.08, 0.1, 0.6)
+		desc_style.border_color = Color(0.22, 0.22, 0.32, 0.5)
+		desc_style.set_border_width_all(1)
+		desc_style.set_corner_radius_all(6)
+		desc_style.content_margin_left = 12
+		desc_style.content_margin_right = 12
+		desc_style.content_margin_top = 8
+		desc_style.content_margin_bottom = 8
+		desc_panel.add_theme_stylebox_override("panel", desc_style)
+
 func open(stall: CollisionObject2D) -> void:
+	_is_initial_open = true
 	_current_stall = stall
+	if is_instance_valid(description_label):
+		description_label.text = "Select an item to see its description."
 	if market_name_label:
 		if stall.ownership_type == "Player" or (stall.ownership_type == "Rented" and stall.owner_id == "Player"):
 			market_name_label.text = stall.market_name + " (Storefront)"
@@ -126,6 +152,7 @@ func open(stall: CollisionObject2D) -> void:
 	tween.tween_property(self, "modulate:a", 1.0, 0.15)
 	
 	_focus_first_market_button()
+	_is_initial_open = false
 
 func close() -> void:
 	# Disconnect signals
@@ -313,6 +340,11 @@ func _refresh_trade_grid(display_items: Array) -> void:
 	if not _grid_container:
 		return
 		
+	var previously_focused_id = ""
+	var focus_owner = get_viewport().gui_get_focus_owner()
+	if focus_owner and is_instance_valid(focus_owner) and focus_owner.name.begins_with("Card_"):
+		previously_focused_id = focus_owner.name.replace("Card_", "")
+		
 	# Clear
 	for child in _grid_container.get_children():
 		_grid_container.remove_child(child)
@@ -409,12 +441,27 @@ func _refresh_trade_grid(display_items: Array) -> void:
 		card.pressed.connect(func():
 			_open_transaction_prompt(item, card)
 		)
+		card.focus_entered.connect(func():
+			_update_description(item)
+		)
+		card.mouse_entered.connect(func():
+			_update_description(item)
+		)
 		
 		_setup_button_hover(card)
 		_grid_container.add_child(card)
-
+		
 	_link_market_grid_focus()
 	
+	if previously_focused_id != "":
+		var target_card = _find_card_by_item_id(previously_focused_id)
+		if target_card and target_card is Button and not target_card.disabled and target_card.visible:
+			target_card.grab_focus()
+			return
+		else:
+			_focus_first_market_button()
+			return
+			
 	if _last_traded_item_id != "":
 		var target_card = _find_card_by_item_id(_last_traded_item_id)
 		if target_card and target_card is Button and not target_card.disabled and target_card.visible:
@@ -423,7 +470,8 @@ func _refresh_trade_grid(display_items: Array) -> void:
 			return
 		_last_traded_item_id = ""
 		
-	_focus_first_market_button()
+	if _is_initial_open:
+		_focus_first_market_button()
 
 func _get_player_inventory_space(item: ItemData) -> int:
 	if not GameState.player_inventory:
@@ -555,8 +603,11 @@ func _open_transaction_prompt(item: ItemData, card_node: Control) -> void:
 		buy_btn.text = "Buy..."
 		buy_btn.custom_minimum_size = Vector2(85, 30)
 		var max_afford = _calculate_max_affordable(item)
-		buy_btn.disabled = (stall_stock <= 0 or max_afford <= 0 or player_space <= 0)
+		buy_btn.disabled = (stall_stock <= 0 or max_afford <= 0)
 		buy_btn.pressed.connect(func():
+			if player_space <= 0:
+				AlertManager.add_alert("Inventory Full", "Your inventory is full! Purchase bags to expand capacity.", "warning", null, true)
+				return
 			var limit = min(stall_stock, min(max_afford, player_space))
 			_open_quantity_slider(item, "buy", limit, card_node)
 		)
@@ -958,6 +1009,13 @@ func _focus_first_market_button() -> void:
 		var first_card = _grid_container.get_child(0)
 		if is_instance_valid(first_card) and first_card is Button and not first_card.disabled and first_card.visible:
 			first_card.grab_focus()
+
+func _update_description(item: ItemData) -> void:
+	if is_instance_valid(description_label):
+		if item:
+			description_label.text = item.description
+		else:
+			description_label.text = "Select an item to see its description."
 
 func _on_market_element_focused(element: Control, card: Control) -> void:
 	var scroll = _grid_container.get_parent()

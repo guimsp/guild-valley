@@ -67,7 +67,7 @@ func _check_politics_cycle_ticks() -> void:
 	_last_checked_politics_key = key
 	
 	if time_days % 4 == 0:
-		for province in ["Valley Province", "Oakhaven Province"]:
+		for province in GameState.get_provinces():
 			if time_hours == 6:
 				pm.set_phase(province, pm.Phase.PHASE_SPONSORSHIP)
 				GameState.spawn_ui_floating_text("%s: Lawhouse is open for Sponsorship!" % province)
@@ -95,7 +95,7 @@ func advance_day() -> void:
 	if time_days % 4 == 0:
 		if has_node("/root/PoliticsManager"):
 			var pm = get_node("/root/PoliticsManager")
-			for province in ["Valley Province", "Oakhaven Province"]:
+			for province in GameState.get_provinces():
 				if pm.province_states[province]["current_phase"] == pm.Phase.PHASE_VOTING:
 					pm.resolve_voting_session(province, {}, {})
 					
@@ -316,5 +316,5 @@ func _deduct_salaries() -> void:
 		if rivals.size() > 0:
 			rivals[0].gold -= rival_salary_cost
 
-func _get_grid_for_crop(crop_plot: Node2D) -> Node2D:
+func _get_grid_for_crop(_crop_plot: Node2D) -> Node2D:
 	return null

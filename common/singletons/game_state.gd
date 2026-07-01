@@ -24,6 +24,9 @@ const MAX_WEALTH_LEDGER_ENTRIES: int = 50
 var next_change_reason: String = ""
 var next_change_detail: String = ""
 
+var current_province: String = "Valley Province"
+var current_region_name: String = "Valley City"
+
 func _log_wealth_transaction(diff: int) -> void:
 	var reason = next_change_reason
 	var detail = next_change_detail
@@ -82,6 +85,7 @@ var player_max_stamina: float = 100.0
 var player_speed: float = 210.0
 
 var player_name: String = "Player"
+var selected_spawn_town: String = "Mineville"
 var balance_config: Dictionary = {}
 var rival_ai_active: bool = true:
 	set(val):
@@ -147,6 +151,14 @@ func _ready() -> void:
 		"res://common/items/instances/Equipment/leather_gloves.tres",
 		"res://common/items/instances/Equipment/iron_sword.tres",
 		"res://common/items/instances/Equipment/bronze_pickaxe.tres",
+		"res://common/items/instances/Equipment/bronze_sickle.tres",
+		"res://common/items/instances/Equipment/bronze_scythe.tres",
+		"res://common/items/instances/Equipment/iron_pickaxe.tres",
+		"res://common/items/instances/Equipment/iron_sickle.tres",
+		"res://common/items/instances/Equipment/iron_scythe.tres",
+		"res://common/items/instances/Equipment/steel_pickaxe.tres",
+		"res://common/items/instances/Equipment/steel_sickle.tres",
+		"res://common/items/instances/Equipment/steel_scythe.tres",
 		"res://common/items/instances/Equipment/leather_backpack.tres",
 		"res://common/items/instances/Equipment/silver_necklace.tres",
 		"res://common/items/instances/Equipment/gold_ring.tres",
@@ -161,10 +173,21 @@ func _ready() -> void:
 				
 	recalculate_career_stats()
 	get_tree().node_added.connect(_on_node_added)
+	get_viewport().gui_focus_changed.connect(_on_focus_changed)
 
 func _on_node_added(node: Node) -> void:
 	if node.name == "Floor" and node is CanvasItem:
 		node.z_index = -10
+
+func _on_focus_changed(control: Control) -> void:
+	if not is_instance_valid(control) or not control.is_inside_tree():
+		return
+	var p = control.get_parent()
+	while p:
+		if p is ScrollContainer:
+			p.ensure_control_visible(control)
+			break
+		p = p.get_parent()
 
 
 
@@ -291,6 +314,12 @@ func can_upgrade_title() -> bool:
 	if title_level >= 5:
 		return false
 	var cost = get_title_upgrade_cost(title_level + 1)
+	
+	# Check if the title promotion is locked by a bottleneck quest
+	var next_title_name = get_title_name(title_level + 1)
+	if QuestManager.is_title_promotion_locked(next_title_name):
+		return false
+		
 	return gold >= cost["gold"] and influence >= cost["influence"]
 
 func upgrade_title() -> bool:
@@ -309,7 +338,8 @@ func add_xp(career: String, amount: int) -> void:
 		return
 		
 	var lvl = career_levels[career]
-	if lvl in [3, 6, 9]:
+	# If next level is locked by a quest bottleneck, freeze advancement
+	if QuestManager.is_profession_promotion_locked(career, lvl + 1):
 		career_xp[career] = 0
 		return
 		
@@ -317,6 +347,11 @@ func add_xp(career: String, amount: int) -> void:
 	var xp_to_next: int = get_xp_for_level(lvl)
 	
 	while career_xp[career] >= xp_to_next:
+		# Check promotion lock for the transition to the next level
+		if QuestManager.is_profession_promotion_locked(career, lvl + 1):
+			career_xp[career] = 0
+			break
+			
 		career_xp[career] -= xp_to_next
 		save_dict_on_level_up(career) # save the level up
 		career_levels[career] += 1
@@ -324,14 +359,10 @@ func add_xp(career: String, amount: int) -> void:
 		_on_career_leveled_up(career, career_levels[career])
 		
 		lvl = career_levels[career]
-		if lvl in [3, 6, 9]:
-			career_xp[career] = 0
-			break
-			
 		xp_to_next = get_xp_for_level(lvl)
 
 
-func save_dict_on_level_up(career: String) -> void:
+func save_dict_on_level_up(_career: String) -> void:
 	pass # helper placeholder if needed
 
 func gain_profession_xp(career_id: String, amount: int) -> void:
@@ -505,12 +536,17 @@ func get_nearest_settlement(node: Node) -> Node2D:
 		var pos = node.global_position if "global_position" in node else Vector2.ZERO
 		var min_dist: float = INF
 		var closest: Node2D = null
-		for city in get_tree().get_nodes_in_group("Cities"):
+		
+		var tree = Engine.get_main_loop() as SceneTree
+		if not tree:
+			return null
+			
+		for city in tree.get_nodes_in_group("Cities"):
 			var dist = pos.distance_to(city.global_position)
 			if dist < min_dist:
 				min_dist = dist
 				closest = city
-		for town in get_tree().get_nodes_in_group("Towns"):
+		for town in tree.get_nodes_in_group("Towns"):
 			var dist = pos.distance_to(town.global_position)
 			if dist < min_dist:
 				min_dist = dist
@@ -519,6 +555,25 @@ func get_nearest_settlement(node: Node) -> Node2D:
 	return settlement
 
 func get_province_of_node(node: Node) -> String:
+	if not is_instance_valid(node):
+		return "Unknown Province"
+		
+	var pos = node.global_position if "global_position" in node else Vector2.ZERO
+	
+	# Check if the node is inside any drawn Province ColorRect in the editor blueprint
+	var bp = get_node_or_null("/root/World/world_map_blueprint")
+	if bp:
+		var prov_folder = bp.get_node_or_null("Provinces")
+		if prov_folder:
+			for prov_node in prov_folder.get_children():
+				if is_instance_valid(prov_node):
+					for child in prov_node.get_children():
+						if child is ColorRect:
+							var rect = child.get_global_rect()
+							if rect.has_point(pos):
+								var prov_name = prov_node.name.replace("_", " ")
+								return prov_name
+								
 	var settlement = get_nearest_settlement(node)
 	if not settlement:
 		return "Unknown Province"
@@ -534,6 +589,17 @@ func get_province_of_node(node: Node) -> String:
 		
 	return "Unknown Province"
 
+func get_provinces() -> Array[String]:
+	var list: Array[String] = []
+	var bp = get_node_or_null("/root/World/world_map_blueprint")
+	if bp:
+		var prov_folder = bp.get_node_or_null("Provinces")
+		if prov_folder:
+			for child in prov_folder.get_children():
+				list.append(child.name.replace("_", " "))
+	if list.is_empty():
+		return ["Valley Province", "Oakhaven Province", "Highland Province"]
+	return list
 
 func has_private_house_in_province(owner_type: String, province: String) -> bool:
 	var houses = get_tree().get_nodes_in_group("Houses")
@@ -613,7 +679,7 @@ func apply_macro_modifier(node: Node, modifier_key: String, base_value: float) -
 	# 2. Province Scope
 	var province_name = get_province_of_node(node)
 	if province_name != "Unknown Province" and province_name != "":
-		var pmd = get_node_or_null("/root/ProvinceMasterData")
+		var pmd = get_node_or_null("/root/ProvinceMasterData") if is_inside_tree() else null
 		if pmd:
 			var mod_val = pmd.get_modifier(province_name, modifier_key)
 			if modifier_key.ends_with("_time") or modifier_key.ends_with("_duration"):
@@ -622,7 +688,7 @@ func apply_macro_modifier(node: Node, modifier_key: String, base_value: float) -
 				bonus_mult += mod_val
 				
 	# 3. Map Scope (Global)
-	var gp = get_node_or_null("/root/GlobalProfile")
+	var gp = get_node_or_null("/root/GlobalProfile") if is_inside_tree() else null
 	if gp:
 		var mod_val = gp.get_modifier(modifier_key)
 		if modifier_key.ends_with("_time") or modifier_key.ends_with("_duration"):
@@ -638,3 +704,120 @@ func apply_macro_modifier(node: Node, modifier_key: String, base_value: float) -
 		result *= (1.0 + bonus_mult)
 		
 	return result
+
+func get_required_tool_type_for_resource(resource_id: String) -> String:
+	match resource_id:
+		"wheat", "sunflower", "barley_and_hops", "grapes", "apple":
+			return "scythe"
+		"cotton", "berries", "honey", "venison", "wild_animal_hides", "raw_wild_herbs", "overworld_root", "underground_fungi", "wild_flax", "river_reeds":
+			return "sickle"
+		"iron_ore", "coal_nugget", "copper_ore", "zinc_ore", "raw_stone", "marble_block", "clay_mud", "scraped_metal", "wild_animal_bones":
+			return "pickaxe"
+	return ""
+
+func is_tool_sufficient(tool_id: String, required_type: String, item_level: int) -> bool:
+	if required_type == "":
+		return true
+		
+	var id_lower = tool_id.to_lower()
+	
+	var tool_type = ""
+	var tool_tier = ""
+	
+	if id_lower.contains("scythe"):
+		tool_type = "scythe"
+	elif id_lower.contains("sickle"):
+		tool_type = "sickle"
+	elif id_lower.contains("pickaxe"):
+		tool_type = "pickaxe"
+		
+	if tool_type != required_type:
+		return false
+		
+	if id_lower.begins_with("steel_"):
+		tool_tier = "steel"
+	elif id_lower.begins_with("iron_"):
+		tool_tier = "iron"
+	elif id_lower.begins_with("bronze_") or id_lower.begins_with("copper_"):
+		tool_tier = "copper"
+		
+	if item_level >= 4:
+		return tool_tier == "iron" or tool_tier == "steel"
+		
+	return tool_tier == "copper" or tool_tier == "iron" or tool_tier == "steel"
+
+func find_sufficient_tool(inventory_or_storage: Node, required_type: String, item_level: int) -> String:
+	if required_type == "":
+		return ""
+		
+	var tools_to_check = []
+	if required_type == "scythe":
+		tools_to_check = ["steel_scythe", "iron_scythe", "bronze_scythe"]
+	elif required_type == "sickle":
+		tools_to_check = ["steel_sickle", "iron_sickle", "bronze_sickle"]
+	elif required_type == "pickaxe":
+		tools_to_check = ["steel_pickaxe", "iron_pickaxe", "bronze_pickaxe"]
+		
+	for tool_id in tools_to_check:
+		if is_tool_sufficient(tool_id, required_type, item_level):
+			if inventory_or_storage and inventory_or_storage.get_item_amount(tool_id) > 0:
+				return tool_id
+	return ""
+
+# Centralized Window Stack Management
+# Array of Dictionaries: { "window": Control, "close_callable": Callable, "cached_focus": Control }
+var window_stack: Array = []
+
+func register_window(window: Control, close_callable: Callable) -> void:
+	if not window:
+		return
+	# Avoid duplicate registration
+	for entry in window_stack:
+		if entry["window"] == window:
+			return
+			
+	var prev_focus = get_viewport().gui_get_focus_owner()
+	window_stack.append({
+		"window": window,
+		"close_callable": close_callable,
+		"cached_focus": prev_focus
+	})
+	print("[WindowManager] Registered window: ", window.name, ", Stack size: ", window_stack.size())
+
+func unregister_window(window: Control) -> void:
+	if not window:
+		return
+	var found_idx = -1
+	for i in range(window_stack.size()):
+		if window_stack[i]["window"] == window:
+			found_idx = i
+			break
+			
+	if found_idx != -1:
+		var entry = window_stack[found_idx]
+		window_stack.remove_at(found_idx)
+		print("[WindowManager] Unregistered window: ", window.name, ", Stack size: ", window_stack.size())
+		
+		# Restore focus
+		var cached = entry["cached_focus"]
+		if is_instance_valid(cached) and cached.is_inside_tree() and cached.visible:
+			cached.grab_focus()
+
+func pop_and_close_top_window() -> bool:
+	if window_stack.is_empty():
+		return false
+		
+	var entry = window_stack.pop_back()
+	var window = entry["window"]
+	var close_callable = entry["close_callable"]
+	var cached = entry["cached_focus"]
+	
+	print("[WindowManager] Popping and closing top window: ", window.name if is_instance_valid(window) else "Invalid")
+	if close_callable.is_valid():
+		close_callable.call()
+		
+	# Restore focus
+	if is_instance_valid(cached) and cached.is_inside_tree() and cached.visible:
+		cached.grab_focus()
+		
+	return true

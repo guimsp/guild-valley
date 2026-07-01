@@ -584,6 +584,22 @@ theme_override_font_sizes/font_size = 8
 text = "Starts with Clay Mud & Raw Stone"
 horizontal_alignment = 1
 
+[node name="TownHBox" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TownLabel" type="Label" parent="CenterContainer/WindowPanel/Screen_Creator/TownHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Starting Town:"
+
+[node name="TownOptionButton" type="OptionButton" parent="CenterContainer/WindowPanel/Screen_Creator/TownHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 36)
+layout_mode = 2
+
 [node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/WindowPanel/Screen_Creator"]
 layout_mode = 2
 theme_override_constants/separation = 16

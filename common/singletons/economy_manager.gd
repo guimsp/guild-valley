@@ -34,7 +34,7 @@ var trade_activity: Dictionary = {}
 var guild_stabilization_timer: float = 0.0
 const GUILD_STABILIZATION_INTERVAL: float = 120.0
 
-var _visiting_items: Dictionary = {}
+
 
 # Queue of pending search query requests:
 # Each entry is a Dictionary: { "npc": CharacterBody2D, "item_id": String, "callback": Callable }
@@ -158,6 +158,23 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 		return
 		
 	var item_data: ItemData = item_database[item_id]
+	var item_lvl = item_data.item_level
+	
+	# Evaluate social class item level bracket
+	var npc_class = npc.profile.social_class if (npc and npc.get("profile") != null) else NPCProfile.SocialClass.PEASANT
+	var is_valid_bracket = false
+	match npc_class:
+		NPCProfile.SocialClass.PEASANT:
+			is_valid_bracket = (item_lvl >= 0 and item_lvl <= 2)
+		NPCProfile.SocialClass.CITIZEN:
+			is_valid_bracket = (item_lvl >= 3 and item_lvl <= 5)
+		NPCProfile.SocialClass.NOBLE:
+			is_valid_bracket = (item_lvl >= 6)
+			
+	if not is_valid_bracket:
+		callback.call(null)
+		return
+		
 	var npc_settlement = GameState.get_nearest_settlement(npc)
 	if not npc_settlement:
 		callback.call(null)
@@ -171,9 +188,19 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 		if not is_instance_valid(stall) or not stall.inventory:
 			continue
 			
-		# Check settlement match
+		# Check province match (allow shopping at other settlements in the same province)
 		var stall_settlement = GameState.get_nearest_settlement(stall)
-		if stall_settlement != npc_settlement:
+		if not stall_settlement:
+			continue
+			
+		# Nobles only visit high-prosperity city hubs
+		if npc_class == NPCProfile.SocialClass.NOBLE:
+			if not stall_settlement.is_in_group("Cities"):
+				continue
+				
+		var stall_prov = GameState.get_province_of_node(stall_settlement)
+		var npc_prov = GameState.get_province_of_node(npc_settlement)
+		if stall_prov != npc_prov:
 			continue
 			
 		# Exclude Warehouses from ambient retail shopping queries
@@ -184,11 +211,9 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 		if stall.get("is_under_audit") == true or (stall.get("parent_building") != null and stall.parent_building.get("is_under_audit") == true):
 			continue
 			
-		# Check if shop stocks the exact item ID (personal/private shops and workshops must have real stock)
-		var is_public_market_stall = (stall is MarketStall) and (stall.ownership_type == "Public")
-		if not is_public_market_stall:
-			if stall.inventory.get_item_amount(item_id) <= 0:
-				continue
+		# Check if shop stocks the exact item ID
+		if stall.inventory.get_item_amount(item_id) <= 0:
+			continue
 			
 		candidates.append(stall)
 		
@@ -222,9 +247,10 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 		
 	# 3. Retrieve social class weights
 	var weights = npc.profile.get_decision_weights()
-	var w_price = weights.get("price", 0.50)
-	var w_attractiveness = weights.get("attractiveness", 0.30)
-	var w_employee_skill = weights.get("employee_skill", 0.10)
+	var w_price = weights.get("price", 0.35)
+	var w_proximity = weights.get("proximity", 0.25)
+	var w_attractiveness = weights.get("attractiveness", 0.25)
+	var w_employee_skill = weights.get("employee_skill", 0.05)
 	var w_randomness = weights.get("randomness", 0.10)
 	
 	var best_stall: CollisionObject2D = null
@@ -252,17 +278,24 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 			price_score = min_price / float(price)
 			
 		# Proximity score (closer distance yields higher score)
-		var proximity_score = 1.0
-		# Proximity decay curve: 1.0 at distance 0, decaying down to 0 at 1000 pixels
-		proximity_score = clamp(1.0 - dist / 1000.0, 0.0, 1.0)
+		var proximity_score = clamp(1.0 - dist / 1500.0, 0.0, 1.0)
+		
+		# Local settlement bonus (+0.25 proximity bonus if same settlement)
+		var stall_settlement = GameState.get_nearest_settlement(stall)
+		var home_settlement = npc.get("spawn_settlement")
+		if not home_settlement:
+			home_settlement = GameState.get_nearest_settlement(npc)
+			
+		if stall_settlement == home_settlement:
+			proximity_score = clamp(proximity_score + 0.25, 0.0, 1.25)
 		
 		# Shop attractiveness (starts at 10, max 100)
 		var attractiveness_val = stall.get_shop_attractiveness()
 		# Normalize to 0.0 - 1.0 range
 		var shop_attractiveness_score = clamp(float(attractiveness_val - 10) / 90.0, 0.0, 1.0)
 		
-		# Total Attractiveness score (80% shop-specific, 20% proximity)
-		var attractiveness_score = 0.8 * shop_attractiveness_score + 0.2 * proximity_score
+		# Total Attractiveness score (purely shop-specific)
+		var attractiveness_score = shop_attractiveness_score
 		
 		# Employee skill rating (0.0 to 1.0, defaults to 0.2 if no employees / standalone stall)
 		var employee_skill_score = 0.2
@@ -281,7 +314,7 @@ func _resolve_shop_query(npc: CharacterBody2D, item_id: String, callback: Callab
 		var random_noise = randf()
 		
 		# Weighted Utility Score
-		var utility = (w_price * price_score) + (w_attractiveness * attractiveness_score) + (w_employee_skill * employee_skill_score) + (w_randomness * random_noise)
+		var utility = (w_price * price_score) + (w_proximity * proximity_score) + (w_attractiveness * attractiveness_score) + (w_employee_skill * employee_skill_score) + (w_randomness * random_noise)
 		
 		# Log parameters for debugging
 		var shop_name = ""
@@ -358,7 +391,7 @@ func _save_empty_decision(npc: CharacterBody2D, item_id: String) -> void:
 
 var shortage_days: Dictionary = {} # key: String -> int
 
-func _on_time_changed(hours: int, minutes: int, days: int) -> void:
+func _on_time_changed(hours: int, minutes: int, _days: int) -> void:
 	if hours == 0 and minutes == 0:
 		# Consolidated nightly balancing cycle
 		# Phase A: Simulated Background Guild Consumption
@@ -373,8 +406,7 @@ func _process_background_guild_consumption() -> void:
 			continue
 		for item_id in item_database:
 			var item = item_database[item_id]
-			# Category: 0 = RAW_MATERIAL, 1 = SEMI_ELABORATE
-			if item.get_item_category() == 0 or item.get_item_category() == 1:
+			if item.get_item_category() in [0, 1, 2, 3, 4] and item.market_category != "Skill Items":
 				var current_amount = stall.inventory.get_item_amount(item_id)
 				if current_amount > 1:
 					var pct = randf_range(0.10, 0.25)
@@ -393,16 +425,29 @@ func _run_guild_stabilization() -> void:
 	var public_stalls: Array = []
 	for stall in stalls:
 		if is_instance_valid(stall) and stall.ownership_type == "Public" and stall.inventory:
+			if stall.name == "StorageChest" or stall.name.contains("Chest"):
+				continue
+			var p = stall.get_parent()
+			if is_instance_valid(p) and (p.is_in_group("Interiors") or p.name.contains("Interior")):
+				continue
 			public_stalls.append(stall)
 			
 	if public_stalls.is_empty():
 		return
 		
+	var total_added = 0
+	var total_removed = 0
+	
 	for stall in public_stalls:
 		var stall_key = String(stall.get_path())
 		for item_id in item_database:
 			var item = item_database[item_id]
 			if not item.is_tradable:
+				continue
+				
+			var cat = item.get_item_category()
+			# Only stabilize basic categories matching _populate_default_stock, and not Skill Items
+			if not (cat in [0, 1, 2, 3, 4]) or item.market_category == "Skill Items":
 				continue
 				
 			var act_key = stall_key + ":" + item_id
@@ -423,19 +468,22 @@ func _run_guild_stabilization() -> void:
 				var target_range_max = int(target_mid * 1.2)
 				var nudge_target = randi_range(target_range_min, target_range_max)
 				var needed = nudge_target - current_stock
-				var small_batch = int(clamp(needed * randf_range(0.15, 0.35), 1.0, needed))
+				var small_batch = int(clamp(needed * randf_range(0.05, 0.45), 1.0, needed))
 				if small_batch > 0:
 					stall.inventory.add_item(item, small_batch)
-					print("[EconomyManager] Guild stabilization: added %d %s to %s" % [small_batch, item_id, stall.name])
+					total_added += small_batch
 			elif current_stock > max_stock:
 				var target_range_min = int(target_mid * 0.8)
 				var target_range_max = int(target_mid * 1.2)
 				var nudge_target = randi_range(target_range_min, target_range_max)
 				var excess = current_stock - nudge_target
-				var small_batch = int(clamp(excess * randf_range(0.15, 0.35), 1.0, excess))
+				var small_batch = int(clamp(excess * randf_range(0.05, 0.45), 1.0, excess))
 				if small_batch > 0:
 					stall.inventory.remove_item(item_id, small_batch)
-					print("[EconomyManager] Guild stabilization: removed %d %s from %s" % [small_batch, item_id, stall.name])
+					total_removed += small_batch
+					
+	if total_added > 0 or total_removed > 0:
+		print("[EconomyManager] Guild stabilization completed: added %d items, removed %d items across %d public stalls." % [total_added, total_removed, public_stalls.size()])
 
 func get_algorithmic_craft_time(recipe: Recipe) -> float:
 	if not recipe:

@@ -40,7 +40,7 @@ func _find_controlling_city() -> void:
 		controlling_city = closest_city
 		# If this is a standard build town, its ownership is fixed to the controlling city's province
 		if not is_resource_node:
-			ownership_province = controlling_city.city_name + " Province"
+			ownership_province = controlling_city.ownership_province if controlling_city.ownership_province != "" else (controlling_city.city_name + " Province")
 		print("[Town] %s belongs to the dominion of City: %s (Province: %s)" % [town_name, controlling_city.city_name, ownership_province])
 	else:
 		if not is_resource_node:

@@ -22,6 +22,8 @@ func _ready() -> void:
 		content_area.add_child(route_editor_view)
 		route_editor_view.route_save_committed.connect(_on_route_save_committed)
 		
+	active_tab_button.focus_mode = Control.FOCUS_NONE
+	editor_tab_button.focus_mode = Control.FOCUS_NONE
 	close_button.visible = false
 	close_button.pressed.connect(close)
 	active_tab_button.pressed.connect(func(): _switch_tab("active"))

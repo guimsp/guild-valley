@@ -271,7 +271,8 @@ func _populate_production_queue() -> void:
 				var p_level = GameState.career_levels.get(recipe.required_career, 1)
 				if p_level >= 8 and recipe.output_item and recipe.output_item.get("is_luxury_product") == true:
 					craft_time *= 0.85
-				p_detail_lbl.text = "Req: %s\nYield: %d %s | Time: %.1fs" % [inputs_txt, recipe.output_amount, recipe.output_item.name if recipe.output_item else "Item", craft_time]
+				var yield_name = recipe.output_item.name if recipe.output_item else ("Event Resolution" if recipe.get("is_event") == true else "Item")
+				p_detail_lbl.text = "Req: %s\nYield: %d %s | Time: %.1fs" % [inputs_txt, recipe.output_amount, yield_name, craft_time]
 	else:
 		p_status_lbl.text = "Task: Idle"
 		p_detail_lbl.text = "You are currently idle."
@@ -396,7 +397,8 @@ func _populate_production_queue() -> void:
 							
 							var inputs_txt = ", ".join(recipe.inputs.keys().map(func(i): return "%dx %s" % [recipe.inputs[i], i.name]))
 							var craft_time = _building.get_employee_craft_time(emp, recipe)
-							emp_detail_lbl.text = "Req: %s\nYield: %d %s | Time: %.1fs" % [inputs_txt, recipe.output_amount, recipe.output_item.name if recipe.output_item else "Item", craft_time]
+							var yield_name = recipe.output_item.name if recipe.output_item else ("Event Resolution" if recipe.get("is_event") == true else "Item")
+							emp_detail_lbl.text = "Req: %s\nYield: %d %s | Time: %.1fs" % [inputs_txt, recipe.output_amount, yield_name, craft_time]
 				elif active_node_path != "":
 					var node = get_node_or_null(active_node_path)
 					if node:

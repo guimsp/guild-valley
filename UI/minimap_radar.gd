@@ -4,6 +4,7 @@ var view_range: float = 800.0
 var center: Vector2 = Vector2(60, 60)
 var radius: float = 55.0
 var scale_factor: float = 55.0 / 800.0
+var cached_lines: Array = []
 
 @onready var location_lbl: Label = null
 
@@ -15,6 +16,51 @@ func _ready() -> void:
 	var parent_vbox = get_parent().get_parent()
 	if parent_vbox and parent_vbox is VBoxContainer:
 		location_lbl = parent_vbox.get_node_or_null("LocationLabel")
+		
+	# Cache blueprint lines for highly accurate, rotated road/river/wall drawing on radar
+	call_deferred("_cache_blueprint_lines")
+
+func _cache_blueprint_lines() -> void:
+	cached_lines.clear()
+	var bp = get_node_or_null("/root/World/world_map_blueprint")
+	if not bp:
+		return
+		
+	var bp_queue = [bp]
+	while not bp_queue.is_empty():
+		var curr = bp_queue.pop_back()
+		if not is_instance_valid(curr):
+			continue
+			
+		if curr is Line2D:
+			var points = curr.points
+			if points.size() > 1:
+				var path_lower = str(curr.get_path()).to_lower()
+				var line_color = Color(0.25, 0.25, 0.28, 0.8) # Road gray
+				var line_width = 2.5
+				
+				if "river" in path_lower:
+					line_color = Color(0.14, 0.3, 0.75, 0.9) # River blue
+					line_width = 3.5
+				elif "wall" in path_lower:
+					line_color = Color(0.55, 0.45, 0.35, 0.8) # Wall brown
+					line_width = 2.0
+				elif "maplimit" in path_lower:
+					line_color = Color(0.1, 0.1, 0.1, 0.9)
+					line_width = 1.5
+					
+				# Store global points
+				var g_points = []
+				for pt in points:
+					g_points.append(curr.to_global(pt))
+				cached_lines.append({
+					"points": g_points,
+					"color": line_color,
+					"width": line_width
+				})
+				
+		for child in curr.get_children():
+			bp_queue.append(child)
 
 func _process(_delta: float) -> void:
 	queue_redraw()
@@ -33,7 +79,7 @@ func _update_location_label() -> void:
 	
 	# Resolve overworld position if player is inside an interior
 	if pos.y > 8000.0:
-		var closest_interior: Node2D = null
+		var closest_interior: Node = null
 		var min_interior_dist = INF
 		for interior in get_tree().get_nodes_in_group("Interiors"):
 			if is_instance_valid(interior):
@@ -44,7 +90,7 @@ func _update_location_label() -> void:
 		if closest_interior and is_instance_valid(closest_interior.get("parent_building")):
 			pos = closest_interior.parent_building.global_position
 			
-	var province = "Valley Province" if pos.x < 3500 else "Oakhaven Province"
+	var province = GameState.current_province
 	
 	var prosperity_val = 100
 	var pm = get_node_or_null("/root/ProsperityManager")
@@ -110,24 +156,24 @@ func _draw() -> void:
 		var rel = world_pos - player_pos
 		return center + rel * scale_factor
 
-	# 3. Draw Roads
-	for road in get_tree().get_nodes_in_group("Roads"):
-		if is_instance_valid(road):
-			var rel = road.global_position - player_pos
-			if rel.length() < view_range + 200.0:
-				var half_w = road.size.x / 2.0
-				var half_h = road.size.y / 2.0
-				var p_start = road.global_position - (Vector2(half_w, 0) if road.size.x > road.size.y else Vector2(0, half_h))
-				var p_end = road.global_position + (Vector2(half_w, 0) if road.size.x > road.size.y else Vector2(0, half_h))
+	# 3. Draw Roads & blueprint paths
+	for line_data in cached_lines:
+		var g_pts = line_data.points
+		var line_color = line_data.color
+		var line_width = line_data.width
+		
+		for i in range(g_pts.size() - 1):
+			var p1 = g_pts[i]
+			var p2 = g_pts[i + 1]
+			
+			if p1.distance_to(player_pos) < view_range + 200.0 or p2.distance_to(player_pos) < view_range + 200.0:
+				var c_start = to_radar.call(p1)
+				var c_end = to_radar.call(p2)
 				
-				var c_start = to_radar.call(p_start)
-				var c_end = to_radar.call(p_end)
-				
-				# Simple clip logic: draw line if it's within the radar circle bounds
 				if (c_start - center).length() <= radius or (c_end - center).length() <= radius:
 					var line_start = center + (c_start - center).limit_length(radius)
 					var line_end = center + (c_end - center).limit_length(radius)
-					draw_line(line_start, line_end, Color(0.25, 0.25, 0.28, 0.8), 2.5)
+					draw_line(line_start, line_end, line_color, line_width)
 
 	# 4. Draw Plazas
 	for plaza in get_tree().get_nodes_in_group("Plazas"):

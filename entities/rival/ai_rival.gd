@@ -48,6 +48,9 @@ var productivity: float:
 	set(val): pass
 var is_harvesting: bool = false
 var is_gathering: bool = false
+var pending_logs: Array[String] = []
+var log_flush_timer: float = 0.0
+const LOG_FLUSH_INTERVAL: float = 10.0
 var current_mega_node: Node2D = null
 var status_label: Label = null
 
@@ -85,6 +88,7 @@ var current_schedule: String = "work" # "sleep", "morning", "work", "lunch", "ev
 var _last_direction: String = "south"
 var _state_timer: float = 0.0
 var _break_next_state: State = State.IDLE
+var _opportunistic_check_timer: float = 0.0
 
 # Target nodes in the world
 var _target_field: Node2D = null
@@ -135,6 +139,18 @@ func _ready() -> void:
 		_on_rival_ai_active_changed(GameState.rival_ai_active)
 	
 	_setup_status_label()
+	
+	# Spawn one of each copper (bronze) tool in the rival's inventory
+	var rival_starter_tools = [
+		"res://common/items/instances/Equipment/bronze_pickaxe.tres",
+		"res://common/items/instances/Equipment/bronze_sickle.tres",
+		"res://common/items/instances/Equipment/bronze_scythe.tres"
+	]
+	for path in rival_starter_tools:
+		if ResourceLoader.exists(path):
+			var item = load(path)
+			if item and inventory:
+				inventory.add_item(item, 1)
 	
 	# Delay finding targets slightly to ensure scenes are fully loaded
 	await get_tree().process_frame
@@ -301,6 +317,11 @@ func _physics_process(delta: float) -> void:
 	gold = max(gold, 150)
 	_update_status_label()
 	
+	log_flush_timer += delta
+	if log_flush_timer >= LOG_FLUSH_INTERVAL:
+		log_flush_timer = 0.0
+		_flush_pending_logs()
+	
 	# Periodic check to buy vacant overworld rental houses
 	_house_buy_check_timer -= delta
 	if _house_buy_check_timer <= 0.0:
@@ -308,10 +329,11 @@ func _physics_process(delta: float) -> void:
 		try_buy_available_house()
 
 	# Periodic check to construct buildings or hire workers
-	_building_check_timer -= delta * TimeManager.TIME_SPEED
+	_building_check_timer -= delta
 	if _building_check_timer <= 0.0:
 		_building_check_timer = 10.0
 		try_construct_next_building()
+		try_purchase_storefronts()
 		try_hire_employees()
 		try_deploy_ai_worker()
 
@@ -364,7 +386,7 @@ func _physics_process(delta: float) -> void:
 func _process_work_state(delta: float) -> void:
 	match current_state:
 		State.WALKING_TO_RAW:
-			if _check_opportunistic_selling():
+			if _check_opportunistic_selling(delta):
 				return
 				
 			if not is_instance_valid(_target_field) or not (_target_field.is_in_group("Fountains") or _target_field.is_in_group("MegaNodes")):
@@ -703,11 +725,13 @@ func _update_status_label() -> void:
 		State.WALKING_TO_RAW:
 			state_desc = "Walking to Raw Node"
 			if _target_field:
-				state_desc += " (%s)" % _target_field.node_name
+				var field_name = _target_field.node_name if "node_name" in _target_field else _target_field.name
+				state_desc += " (%s)" % field_name
 		State.GATHERING:
 			state_desc = "Gathering"
 			if _target_field:
-				state_desc += " (%s)" % _target_field.node_name
+				var field_name = _target_field.node_name if "node_name" in _target_field else _target_field.name
+				state_desc += " (%s)" % field_name
 		State.WALKING_TO_REFINERY:
 			state_desc = "Walking to Refinery"
 			if _target_bench:
@@ -742,15 +766,24 @@ func log_rival_decision(msg: String) -> void:
 		timestamp = "[Day %d - %02d:%02d]" % [TimeManager.time_days, TimeManager.time_hours, TimeManager.time_minutes]
 	var log_line = "%s %s: %s" % [timestamp, family_name, msg]
 	print("[Rival AI Log] ", log_line)
-	
+	pending_logs.append(log_line)
+
+func _flush_pending_logs() -> void:
+	if pending_logs.is_empty():
+		return
 	var file = FileAccess.open("res://rival_log.txt", FileAccess.READ_WRITE)
 	if not file:
 		file = FileAccess.open("res://rival_log.txt", FileAccess.WRITE)
 	else:
 		file.seek_end()
 	if file:
-		file.store_line(log_line)
+		for line in pending_logs:
+			file.store_line(line)
 		file.flush()
+	pending_logs.clear()
+
+func _exit_tree() -> void:
+	_flush_pending_logs()
 
 func on_mega_node_full(node: Area2D) -> void:
 	log_rival_decision("Received on_mega_node_full from %s. Resetting state." % node.node_name)
@@ -866,7 +899,7 @@ func _spawn_floating_text(txt: String) -> void:
 	label.queue_free()
 
 func try_buy_available_house() -> void:
-	if gold <= 800:
+	if gold < 3500:
 		return
 		
 	var houses = get_tree().get_nodes_in_group("Houses")
@@ -991,17 +1024,51 @@ func try_construct_next_building() -> void:
 					for grp in production_groups:
 						for b_node in get_tree().get_nodes_in_group(grp):
 							if is_instance_valid(b_node) and b_node.ownership_type == "NPC" and b_node.owner_id == "Rival":
+								var match_found = false
 								if is_manufacturing:
 									if GameState.get_province_of_node(b_node) == target_province:
 										if b_node.building_data and b_node.building_data.family == b_data.family:
-											already_built = true
-											break
+											match_found = true
 								else:
 									var nearest_sett = GameState.get_nearest_settlement(b_node)
 									if nearest_sett == current_settlement:
 										if b_node.building_data and b_node.building_data.family == b_data.family:
-											already_built = true
-											break
+											match_found = true
+											
+								if match_found:
+									# Check if this building is fully upgraded and fully staffed
+									var is_maxed = true
+									var upgrade_comp = b_node.get_node_or_null("BuildingUpgradeComponent")
+									if upgrade_comp:
+										var requirements = b_node.get("UPGRADE_REQUIREMENTS") as Dictionary
+										if requirements and not requirements.is_empty():
+											var max_lvl = 1
+											for k in requirements:
+												if k > max_lvl:
+													max_lvl = k
+											if upgrade_comp.building_level < max_lvl:
+												is_maxed = false
+										
+										if is_maxed:
+											var definitions = b_node.get("IMPROVEMENT_DEFINITIONS") as Dictionary
+											if definitions:
+												for imp_id in definitions:
+													var def = definitions[imp_id]
+													var cur_lvl = upgrade_comp.improvements.get(imp_id, 0)
+													var max_imp_lvl = def.get("max_level", 0)
+													if cur_lvl < max_imp_lvl:
+														is_maxed = false
+														break
+														
+									if is_maxed:
+										var max_emp = b_node.get("max_employees")
+										var cur_emp = b_node.hired_employees.size() if "hired_employees" in b_node else 0
+										if max_emp != null and cur_emp < max_emp:
+											is_maxed = false
+											
+									if not is_maxed:
+										already_built = true
+										break
 						if already_built:
 							break
 							
@@ -1055,6 +1122,24 @@ func try_construct_next_building() -> void:
 							else:
 								var s_name = _get_settlement_name(current_settlement)
 								log_rival_decision("Wanted to construct %s in %s but lacked gold (Needed: %d, current gold: %d)" % [b_data.name, s_name, total_cost, gold])
+
+func try_purchase_storefronts() -> void:
+	for b_node in get_tree().get_nodes_in_group("production_buildings"):
+		if is_instance_valid(b_node) and b_node.ownership_type == "NPC" and b_node.owner_id == "Rival":
+			var upgrade_comp = b_node.get_node_or_null("BuildingUpgradeComponent")
+			if upgrade_comp:
+				var current_storefront_lvl = upgrade_comp.improvements.get("storefront", 0)
+				if current_storefront_lvl == 0:
+					var cost = 150
+					if gold >= cost:
+						gold -= cost
+						upgrade_comp.improvements["storefront"] = 1
+						if b_node.has_method("recalculate_building_parameters"):
+							b_node.recalculate_building_parameters()
+						if b_node.has_method("update_storefront_stall_state"):
+							b_node.update_storefront_stall_state()
+						_spawn_floating_text("Rival bought Storefront for %s!" % b_node.name)
+						log_rival_decision("Purchased storefront improvement for %s (Cost: 150, remaining gold: %d)" % [b_node.name, gold])
 
 func try_hire_employees() -> void:
 	if gold < 500:
@@ -1168,7 +1253,12 @@ func _spawn_rival_worker_npc(node: Area2D) -> void:
 	worker.global_position = spawn_pos
 	get_parent().add_child(worker)
 
-func _check_opportunistic_selling() -> bool:
+func _check_opportunistic_selling(delta: float) -> bool:
+	_opportunistic_check_timer -= delta
+	if _opportunistic_check_timer > 0.0:
+		return false
+	_opportunistic_check_timer = 30.0
+	
 	if not career_behavior:
 		return false
 		
@@ -1181,11 +1271,23 @@ func _check_opportunistic_selling() -> bool:
 	if not econ_mgr:
 		return false
 		
+	var relevant_items = ["water"]
+	if career_behavior.gather_resource_id != "":
+		relevant_items.append(career_behavior.gather_resource_id)
+	if career_behavior.final_sell_item_id != "":
+		relevant_items.append(career_behavior.final_sell_item_id)
+	if career_behavior.refining_recipe_path != "":
+		var ref_recipe = load(career_behavior.refining_recipe_path) as Recipe
+		if ref_recipe and ref_recipe.output_item:
+			relevant_items.append(ref_recipe.output_item.id)
+			
 	# Find items that are at 0 stock in public markets
 	var zero_stock_items = [] # Array of dictionaries: {"stall": stall, "item": item}
 	for stall in stalls:
 		if is_instance_valid(stall) and stall.ownership_type == "Public" and stall.inventory:
 			for item in stall.target_stock:
+				if not relevant_items.has(item.id):
+					continue
 				if stall.inventory.get_item_amount(item.id) == 0:
 					zero_stock_items.append({"stall": stall, "item": item})
 					
@@ -1230,5 +1332,3 @@ func _check_opportunistic_selling() -> bool:
 					return true
 					
 	return false
-
-

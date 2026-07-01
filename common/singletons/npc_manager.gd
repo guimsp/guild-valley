@@ -5,13 +5,19 @@ const TRAIT_POOL: Array[String] = [
 	"Diligent Master",
 	"Scythe-Wielder",
 	"Miracle Artisan",
-	"Scavenger's Eye"
+	"Scavenger's Eye",
+	"Lazy",
+	"Workaholic",
+	"Grumbler"
 ]
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 
 func get_trait_weight(trait_id: String) -> int:
+	var trait_data = WindowManager.get_trait_data(trait_id)
+	if not trait_data.is_empty() and trait_data.has("weight"):
+		return int(trait_data["weight"])
 	if "_Lvl3" in trait_id:
 		return 90
 	elif "_Lvl2" in trait_id:
@@ -58,17 +64,18 @@ func generate_character_resource(province_name: String, level: int = 1) -> Chara
 	var traits: Array[String] = []
 	while traits.size() < trait_count:
 		var trait_name = TRAIT_POOL.pick_random()
-		
-		var power_roll = randf()
-		var power_lvl = 1
-		if power_roll <= 0.70:
-			power_lvl = 1
-		elif power_roll <= 0.95:
-			power_lvl = 2
-		else:
-			power_lvl = 3
+		var trait_id = trait_name
+		if trait_name in ["Fleet-Footed", "Diligent Master", "Scythe-Wielder", "Miracle Artisan", "Scavenger's Eye"]:
+			var power_roll = randf()
+			var power_lvl = 1
+			if power_roll <= 0.70:
+				power_lvl = 1
+			elif power_roll <= 0.95:
+				power_lvl = 2
+			else:
+				power_lvl = 3
+			trait_id = "%s_Lvl%d" % [trait_name, power_lvl]
 			
-		var trait_id = "%s_Lvl%d" % [trait_name, power_lvl]
 		if not traits.has(trait_id):
 			traits.append(trait_id)
 			

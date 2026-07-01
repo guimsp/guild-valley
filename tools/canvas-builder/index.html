@@ -700,6 +700,12 @@
       stroke-width: 3.5px;
       filter: drop-shadow(0 0 3px currentColor);
     }
+
+    .connection-line.selected-connection {
+      stroke: #3b82f6 !important;
+      stroke-width: 5px !important;
+      filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.6)) !important;
+    }
     .node.selected {
       border-color: #f59e0b !important;
       box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.4), 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
@@ -811,6 +817,7 @@
       <select id="view-mode" class="select-input">
         <option value="canvas">View Mode: Custom Canvas</option>
         <option value="profession">View Mode: Profession Flows</option>
+        <option value="factory_flow">View Mode: Factory Flow Layout</option>
         <option value="item">View Mode: Item Supply Chains</option>
         <option value="mixed">View Mode: Mixed Productions</option>
         <option value="macro">View Mode: Macro Systems Map</option>

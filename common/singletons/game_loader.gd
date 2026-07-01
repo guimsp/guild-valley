@@ -52,6 +52,12 @@ func load_game(manager: Node) -> void:
 			hud.update_inventory_panel()
 			
 	GameState.recalculate_career_stats()
+	
+	# Auto reconnect lots to buildings after loading
+	var world = tree.current_scene
+	if world and world.has_method("reconnect_lots_to_buildings"):
+		world.call("reconnect_lots_to_buildings")
+		
 	print("[GameState] Game Loaded from user://savegame.json")
 	GameState.spawn_ui_floating_text("Game Loaded!")
 	manager.is_loading_game = false

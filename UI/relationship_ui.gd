@@ -294,8 +294,24 @@ func _ready() -> void:
 				tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.06)
 			)
 
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event.is_action_pressed("ui_cancel"):
+		if gift_scroll and gift_scroll.visible:
+			_on_cancel_gifting_pressed()
+		else:
+			_on_close_pressed()
+		get_viewport().set_input_as_handled()
+
 func setup(npc: Node2D) -> void:
 	target_npc = npc
+	if target_npc and "is_talking" in target_npc:
+		target_npc.is_talking = true
+		target_npc.velocity = Vector2.ZERO
+		if target_npc.has_method("update_animation"):
+			target_npc.update_animation(Vector2.ZERO)
+			
 	rel_component = npc.get_node("RelationshipComponent")
 	
 	# Turn NPC to player

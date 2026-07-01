@@ -106,3 +106,23 @@ Whenever modifying existing systems, adding new features, or improving game mech
 - **Procedural UI Generation Ban:** You are strictly forbidden from imperatively constructing complex interface screens via code loops of `.new()` initializations (e.g., loops of `Button.new()`, `StyleBoxFlat.new()`, `PanelContainer.new()`). All custom components, inventory grids, and visual item cards must be mapped as dedicated, editable `.tscn` scene files.
 - **Tab Component Isolation:** Master UI canvas layers (such as multi-tab panels) must perform strictly as top-level view switchers. They must simply toggle the visibility of self-contained sub-scene tab layouts (e.g., `main_data_view.tscn`, `ledger_view.tscn`, `upgrades_view.tscn`).
 - **Context Injection:** Stream clean context references downward to these sub-tab components using initialization methods upon a view toggle, instead of forcing child tabs to poll global game singletons directly.
+
+---
+
+## 🗺️ Visual Map Blueprint & Division of Labor
+
+With the transition to a fixed visual map (`world_map_blueprint.tscn`), there is a strict division of labor between map authoring (done by the USER in the Godot Editor) and scripting/parsing (done by the AGENT).
+
+### 🛠️ User Responsibilities (Godot Editor Visual Authoring)
+* **Node Placement & Arrangement**: Position, translate, scale, and rename nodes in the visual layout tree.
+* **Overworld Features**: Draw highways and plaza roads (using `Line2D` and `ColorRect` placeholder shapes), resource node boundaries, and terrain obstacles.
+* **Spawn Points**: Place and move spawn markers (`Player_Spawn_Anchor`, `Rival1_Spawn_Anchor`, and NPC spawn anchors) inside the settlement folders.
+* **Building Lots & Grids**: Define empty building slots (`Slot` nodes with `Signpost` children) and municipal buildings (Chapel, Town Hall, Guild Halls) as layout markers.
+* **Interior Boundaries**: Draw the physical wall boundaries of interior room layouts using a `Walls/Line2D` child.
+* **Metadata Configuration**: Set metadata fields (e.g., `blueprint_interior_name` to link a building to its corresponding room) using the editor inspector.
+
+### 🤖 Agent Responsibilities (GDScript & Automation Code)
+* **Data Parsing**: Write and update GDScript parser loops (e.g., in `world_layout_spawner.gd`, `world_node_spawner.gd`, `world_npc_spawner.gd`) to dynamically traverse and load the blueprint scene tree.
+* **Instantiation**: Automate the generation of active gameplay entities (spawning player, AI rivals, NPCs, resource nodes, public market stalls, fountains) exactly on top of the visual anchors parsed from the blueprint.
+* **Collision Generation**: Programmatically parse the visual boundaries (like `Walls/Line2D`) and construct physical collision geometry (like a `StaticBody2D` with a closed `CollisionPolygon2D` wrapper) so characters are physically blocked by walls.
+* **Logic Wiring**: Connect signals, initialize states, setup inventories, configure teleport triggers, and manage camera behaviors dynamically based on the parsed blueprint layout.

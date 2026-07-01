@@ -11,11 +11,27 @@ extends Area2D
 
 func _ready() -> void:
 	z_index = -1
+	z_as_relative = false
 	y_sort_enabled = false
 	add_to_group("Plazas")
+	add_to_group("Roads")
 	if not Engine.is_editor_hint():
+		body_entered.connect(_on_body_entered)
+		body_exited.connect(_on_body_exited)
 		call_deferred("_setup_navigation_region")
 	_update_size()
+
+func _on_body_entered(body: Node2D) -> void:
+	if "active_roads_count" in body:
+		body.active_roads_count += 1
+		body.speed_multiplier = 1.13
+
+func _on_body_exited(body: Node2D) -> void:
+	if "active_roads_count" in body:
+		body.active_roads_count -= 1
+		if body.active_roads_count <= 0:
+			body.active_roads_count = 0
+			body.speed_multiplier = 1.0
 
 func _update_size() -> void:
 	queue_redraw()
@@ -31,10 +47,11 @@ func _update_size() -> void:
 		add_child(col)
 
 func _draw() -> void:
-	# Draw slate-gray area
-	draw_rect(Rect2(-size / 2.0, size), plaza_color)
-	# Draw light border outline
-	draw_rect(Rect2(-size / 2.0, size), Color(0.48, 0.48, 0.50, 0.7), false, 2.0)
+	if Engine.is_editor_hint():
+		# Draw slate-gray area
+		draw_rect(Rect2(-size / 2.0, size), plaza_color)
+		# Draw light border outline
+		draw_rect(Rect2(-size / 2.0, size), Color(0.48, 0.48, 0.50, 0.7), false, 2.0)
 
 func _setup_navigation_region() -> void:
 	var region = NavigationRegion2D.new()

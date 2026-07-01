@@ -193,21 +193,21 @@ func refresh() -> void:
 			main_vbox_q.add_child(q_header)
 			
 			var title_lbl = Label.new()
-			title_lbl.text = quest.get("title", "Active Request")
+			title_lbl.text = quest.title if quest.title != "" else "Active Request"
 			title_lbl.add_theme_font_size_override("font_size", 11)
 			title_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
 			title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			q_header.add_child(title_lbl)
 			
 			var reward_lbl = Label.new()
-			reward_lbl.text = "%d G" % quest.get("reward_gold", 0)
+			reward_lbl.text = "%d G" % quest.reward_gold
 			reward_lbl.add_theme_font_size_override("font_size", 10)
 			reward_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 			q_header.add_child(reward_lbl)
 			
 			# Description
 			var desc_lbl = Label.new()
-			desc_lbl.text = quest.get("description", "")
+			desc_lbl.text = quest.description
 			desc_lbl.add_theme_font_size_override("font_size", 9)
 			desc_lbl.modulate = Color(0.75, 0.8, 0.85, 0.8)
 			desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -221,10 +221,10 @@ func refresh() -> void:
 			# Check progress
 			var progress_text = ""
 			var is_complete = false
-			if quest.get("item_id") != "":
-				var required = quest.get("item_amount", 1)
-				var current = GameState.player_inventory.get_item_amount(quest["item_id"])
-				progress_text = "Progress: %d/%d %s" % [current, required, quest.get("item_name", "Items")]
+			if quest.item_id != "":
+				var required = quest.item_amount
+				var current = GameState.player_inventory.get_item_amount(quest.item_id)
+				progress_text = "Progress: %d/%d %s" % [current, required, quest.item_name if quest.item_name != "" else "Items"]
 				if current >= required:
 					is_complete = true
 			else:
@@ -244,7 +244,7 @@ func refresh() -> void:
 			var time_lbl_q = Label.new()
 			time_lbl_q.add_theme_font_size_override("font_size", 9)
 			
-			var due_day = quest.get("due_day", -1)
+			var due_day = quest.due_day
 			if due_day != -1:
 				var current_day = TimeManager.time_days
 				var days_left = due_day - current_day

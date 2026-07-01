@@ -18,6 +18,7 @@ let state = {
 
   // --- Extended Selection & Movement State ---
   selectedNodeIds: [],
+  selectedConnectionId: null,
   isSelectingBox: false,
   selectionStart: { x: 0, y: 0 },
   dragStartPositions: {},
@@ -397,6 +398,7 @@ function undo() {
     const prev = state.history[state.historyIndex];
     state.nodes = JSON.parse(JSON.stringify(prev.nodes));
     state.connections = JSON.parse(JSON.stringify(prev.connections));
+    state.selectedConnectionId = null;
 
     state.nodes.forEach(n => {
       state.customPositions[n.id] = { x: n.x, y: n.y };
@@ -412,6 +414,18 @@ function setupKeyboardEvents() {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       undo();
+    }
+    
+    if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+      if (state.selectedConnectionId) {
+        e.preventDefault();
+        const connId = state.selectedConnectionId;
+        state.connections = state.connections.filter(c => c.id !== connId);
+        state.selectedConnectionId = null;
+        saveCurrentState();
+        pushHistoryState();
+        drawConnections();
+      }
     }
     
     if (e.key === ' ' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
@@ -536,11 +550,15 @@ function layoutProfessionFlow() {
             if (inpNode) {
               inpNode.x = 1060;
               inpNode.y = inputY;
-              inputY += 130;
+              const el = document.getElementById(inpNode.id);
+              const h = el && el.offsetHeight > 0 ? el.offsetHeight : 90;
+              inputY += h + 20;
             }
           });
 
-          outputY = Math.max(outputY + 140, inputY);
+          const outEl = document.getElementById(outNode.id);
+          const outH = outEl && outEl.offsetHeight > 0 ? outEl.offsetHeight : 90;
+          outputY = Math.max(outputY + outH + 20, inputY);
         }
       });
 
@@ -549,11 +567,15 @@ function layoutProfessionFlow() {
         serviceTickets.forEach((srv) => {
           srv.x = 740;
           srv.y = outputY;
-          outputY += 140;
+          const srvEl = document.getElementById(srv.id);
+          const srvH = srvEl && srvEl.offsetHeight > 0 ? srvEl.offsetHeight : 90;
+          outputY += srvH + 20;
         });
       }
 
-      buildingY = Math.max(buildingY + 180, outputY);
+      const bEl = document.getElementById(bNode.id);
+      const bH = bEl && bEl.offsetHeight > 0 ? bEl.offsetHeight : 130;
+      buildingY = Math.max(buildingY + bH + 25, outputY);
     });
 
     profNode.y = currentY + (buildingY - currentY) / 2 - 50;
@@ -571,6 +593,248 @@ function isTicketAssignedToBuilding(ticketId, buildingId) {
   if (ticketId.includes('entertainment')) return buildingId.includes('tavern');
   if (ticketId.includes('dining')) return buildingId.includes('inn');
   return false;
+}
+
+function getItemPrimaryProfession(itemNode, data) {
+  // Check if it's a ticket
+  if (itemNode.type === 'finished_good' && itemNode.id.includes('ticket')) {
+    if (itemNode.id.includes('bathhouse') || itemNode.id.includes('kitchen') || itemNode.id.includes('dining')) {
+      return 'patreon';
+    }
+    if (itemNode.id.includes('entertainment')) {
+      return 'patreon';
+    }
+  }
+  
+  // 1. Find recipe producing it
+  const prodRecipe = data.recipes.find(r => r.output.id === itemNode.refId);
+  if (prodRecipe) return prodRecipe.profession;
+
+  // 2. Find recipe consuming it
+  const consRecipe = data.recipes.find(r => r.inputs.some(inp => inp.id === itemNode.refId));
+  if (consRecipe) return consRecipe.profession;
+
+  return 'any';
+}
+
+function spaceOutNodes(nodes, minY, heights, buffer = 20) {
+  if (nodes.length === 0) return;
+  if (nodes.length === 1) {
+    if (nodes[0].y < minY) nodes[0].y = minY;
+    return;
+  }
+  nodes.sort((a, b) => a.y - b.y);
+  nodes[0].y = Math.max(nodes[0].y, minY);
+  for (let i = 1; i < nodes.length; i++) {
+    const prevNode = nodes[i-1];
+    const prevHeight = heights[prevNode.id] || 90;
+    const minSpacing = prevHeight + buffer;
+    if (nodes[i].y < prevNode.y + minSpacing) {
+      nodes[i].y = prevNode.y + minSpacing;
+    }
+  }
+}
+
+// --- Dynamic Factory Flow Layout ---
+function layoutFactoryFlow() {
+  const activeProf = state.professionFilter;
+  const data = window.INITIAL_GAME_DATA;
+
+  const targetProfs = activeProf === 'all' 
+    ? data.professions.map(p => p.id) 
+    : [activeProf];
+
+  let currentY = 100;
+  const colWidth = 350; // Horizontal spacing between ranks
+
+  targetProfs.forEach(profId => {
+    const profNode = state.nodes.find(n => n.type === 'profession' && n.refId === profId);
+    
+    // Find all buildings belonging to this profession
+    const bNodes = state.nodes.filter(n => n.type === 'building' && n.profession === profId);
+    
+    // Find all items belonging to this profession lane
+    const itemNodes = state.nodes.filter(n => {
+      if (!['raw_material', 'semi_elaborate', 'finished_good', 'equipment', 'skill_item'].includes(n.type)) return false;
+      if (activeProf === 'all') {
+        return getItemPrimaryProfession(n, data) === profId;
+      } else {
+        return isItemInCareerChain(n, profId);
+      }
+    });
+
+    if (bNodes.length === 0 && itemNodes.length === 0 && !profNode) return;
+
+    // 1. Gather all nodes to layout in this lane
+    const laneNodes = [];
+    if (profNode) laneNodes.push(profNode);
+    bNodes.forEach(n => laneNodes.push(n));
+    itemNodes.forEach(n => laneNodes.push(n));
+
+    const laneNodeIds = new Set(laneNodes.map(n => n.id));
+
+    // Get actual heights of nodes in the DOM
+    const heights = {};
+    laneNodes.forEach(n => {
+      const el = document.getElementById(n.id);
+      heights[n.id] = (el && el.offsetHeight > 0) ? el.offsetHeight : (n.type === 'building' ? 130 : 90);
+    });
+
+    // 2. Calculate ranks (X coordinates)
+    const ranks = {};
+    laneNodes.forEach(n => {
+      ranks[n.id] = -1;
+    });
+
+    if (profNode) {
+      ranks[profNode.id] = 0;
+    }
+
+    // Identify starting nodes (raw materials with no inputs from buildings in this lane)
+    itemNodes.forEach(n => {
+      const isProducedInLane = state.connections.some(c => c.to === n.id && bNodes.some(b => b.id === c.from));
+      if (!isProducedInLane) {
+        ranks[n.id] = 1; // Start at rank 1
+      }
+    });
+
+    // Run relaxation to propagate ranks
+    for (let iter = 0; iter < 10; iter++) {
+      let changed = false;
+      state.connections.forEach(c => {
+        if (laneNodeIds.has(c.from) && laneNodeIds.has(c.to)) {
+          const fromRank = ranks[c.from];
+          const toRank = ranks[c.to];
+
+          if (fromRank >= 0) {
+            // Cycle prevention: do not propagate from item -> building if the building produces this item
+            const isInputCycle = c.type === 'input' && state.connections.some(oc => oc.from === c.to && oc.to === c.from && oc.type === 'output');
+            if (!isInputCycle) {
+              const nextRank = fromRank + 1;
+              if (nextRank > toRank) {
+                ranks[c.to] = nextRank;
+                changed = true;
+              }
+            }
+          }
+        }
+      });
+      if (!changed) break;
+    }
+
+    // Default ranks for remaining unranked nodes
+    laneNodes.forEach(n => {
+      if (ranks[n.id] === -1) {
+        if (n.type === 'profession') ranks[n.id] = 0;
+        else if (n.type === 'building') ranks[n.id] = 2;
+        else if (n.type === 'raw_material') ranks[n.id] = 1;
+        else ranks[n.id] = 3;
+      }
+    });
+
+    // Set X positions based on ranks
+    laneNodes.forEach(n => {
+      n.x = 100 + ranks[n.id] * colWidth;
+    });
+
+    // 3. Group nodes by rank
+    const nodesByRank = {};
+    laneNodes.forEach(n => {
+      const r = ranks[n.id];
+      if (!nodesByRank[r]) nodesByRank[r] = [];
+      nodesByRank[r].push(n);
+    });
+
+    const maxRank = Math.max(...Object.keys(nodesByRank).map(Number), 0);
+
+    // Initialize Y coordinates sequentially within each column using heights
+    for (let r = 0; r <= maxRank; r++) {
+      if (nodesByRank[r]) {
+        let yAcc = currentY;
+        nodesByRank[r].forEach((n) => {
+          n.y = yAcc;
+          const h = heights[n.id] || 90;
+          yAcc += h + 20; // Height + 20px gap buffer
+        });
+      }
+    }
+
+    // Run 3 sweeps of Barycenter alignment to place connected nodes horizontally
+    for (let sweep = 0; sweep < 3; sweep++) {
+      // Forward Sweep (Align each node with its inputs)
+      for (let r = 1; r <= maxRank; r++) {
+        if (!nodesByRank[r]) continue;
+        nodesByRank[r].forEach(n => {
+          // Find inputs coming from our lane
+          let sumY = 0;
+          let count = 0;
+          state.connections.forEach(c => {
+            if (c.to === n.id && laneNodeIds.has(c.from)) {
+              const sourceNode = laneNodes.find(ln => ln.id === c.from);
+              if (sourceNode) {
+                sumY += sourceNode.y;
+                count++;
+              }
+            }
+          });
+          if (count > 0) {
+            n.y = sumY / count;
+          }
+        });
+        // Ensure no overlapping at rank r using heights
+        spaceOutNodes(nodesByRank[r], currentY, heights, 20);
+      }
+
+      // Backward Sweep (Align each node with its outputs)
+      for (let r = maxRank - 1; r >= 0; r--) {
+        if (!nodesByRank[r]) continue;
+        nodesByRank[r].forEach(n => {
+          // Find outputs going to our lane
+          let sumY = 0;
+          let count = 0;
+          state.connections.forEach(c => {
+            if (c.from === n.id && laneNodeIds.has(c.to)) {
+              const targetNode = laneNodes.find(ln => ln.id === c.to);
+              if (targetNode) {
+                sumY += targetNode.y;
+                count++;
+              }
+            }
+          });
+          if (count > 0) {
+            n.y = sumY / count;
+          }
+        });
+        // Ensure no overlapping at rank r using heights
+        spaceOutNodes(nodesByRank[r], currentY, heights, 20);
+      }
+    }
+
+    // Align profession node at the vertical center of the lane
+    if (profNode) {
+      const otherNodes = laneNodes.filter(n => n.id !== profNode.id);
+      if (otherNodes.length > 0) {
+        const avgY = otherNodes.reduce((sum, n) => sum + n.y, 0) / otherNodes.length;
+        profNode.y = avgY;
+      }
+    }
+
+    // Advance currentY for the next lane based on this lane's bounds
+    let minY = Infinity;
+    let maxY = -Infinity;
+    laneNodes.forEach(n => {
+      if (n.y < minY) minY = n.y;
+      if (n.y > maxY) maxY = n.y;
+    });
+
+    const laneHeight = (maxY - minY) > 0 ? (maxY - minY) : 100;
+    currentY = Math.max(currentY + laneHeight + 150, maxY + 150);
+  });
+
+  state.zoom = activeProf === 'all' ? 0.45 : 0.65;
+  state.panX = 80;
+  state.panY = 40;
+  updateCanvasTransform();
 }
 
 // --- Dynamic Item Supply Chains Layout ---
@@ -614,12 +878,68 @@ function layoutItemSupplyChain() {
     equipment_and_skills: 1150
   };
 
+  // 1. Initial stable sort of raw_materials alphabetically by name
+  columns.raw_material.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+
+  // Helper to get index of node in column array
+  const getColIdx = (colNodes, nodeId) => {
+    const idx = colNodes.findIndex(n => n.id === nodeId);
+    return idx === -1 ? 0 : idx;
+  };
+
+  // Run 3 sweeps of Barycenter alignment to position connected items cleanly
+  for (let sweep = 0; sweep < 3; sweep++) {
+    // Sort semi_elaborates based on raw_material inputs
+    columns.semi_elaborate.sort((a, b) => {
+      const inputsA = state.connections.filter(c => c.to === a.id && c.from.startsWith('item_')).map(c => c.from);
+      const inputsB = state.connections.filter(c => c.to === b.id && c.from.startsWith('item_')).map(c => c.from);
+      
+      const avgA = inputsA.length > 0 ? inputsA.reduce((sum, inp) => sum + getColIdx(columns.raw_material, inp), 0) / inputsA.length : 0;
+      const avgB = inputsB.length > 0 ? inputsB.reduce((sum, inp) => sum + getColIdx(columns.raw_material, inp), 0) / inputsB.length : 0;
+      return avgA - avgB;
+    });
+
+    // Sort finished_goods based on semi_elaborate inputs
+    columns.finished_good.sort((a, b) => {
+      const inputsA = state.connections.filter(c => c.to === a.id && c.from.startsWith('item_')).map(c => c.from);
+      const inputsB = state.connections.filter(c => c.to === b.id && c.from.startsWith('item_')).map(c => c.from);
+      
+      const avgA = inputsA.length > 0 ? inputsA.reduce((sum, inp) => sum + getColIdx(columns.semi_elaborate, inp), 0) / inputsA.length : 0;
+      const avgB = inputsB.length > 0 ? inputsB.reduce((sum, inp) => sum + getColIdx(columns.semi_elaborate, inp), 0) / inputsB.length : 0;
+      return avgA - avgB;
+    });
+
+    // Sort equipment_and_skills based on finished_good or semi_elaborate inputs
+    columns.equipment_and_skills.sort((a, b) => {
+      const inputsA = state.connections.filter(c => c.to === a.id && c.from.startsWith('item_')).map(c => c.from);
+      const inputsB = state.connections.filter(c => c.to === b.id && c.from.startsWith('item_')).map(c => c.from);
+      
+      const avgA = inputsA.length > 0 ? inputsA.reduce((sum, inp) => {
+        let idx = columns.finished_good.findIndex(n => n.id === inp);
+        if (idx === -1) idx = columns.semi_elaborate.findIndex(n => n.id === inp);
+        return sum + (idx === -1 ? 0 : idx);
+      }, 0) / inputsA.length : 0;
+
+      const avgB = inputsB.length > 0 ? inputsB.reduce((sum, inp) => {
+        let idx = columns.finished_good.findIndex(n => n.id === inp);
+        if (idx === -1) idx = columns.semi_elaborate.findIndex(n => n.id === inp);
+        return sum + (idx === -1 ? 0 : idx);
+      }, 0) / inputsB.length : 0;
+
+      return avgA - avgB;
+    });
+  }
+
   Object.keys(columns).forEach(col => {
     const colNodes = columns[col];
     const x = xCoords[col] || 100;
-    colNodes.forEach((node, idx) => {
+    let yAcc = 80;
+    colNodes.forEach((node) => {
       node.x = x;
-      node.y = 80 + (idx * 130);
+      node.y = yAcc;
+      const el = document.getElementById(node.id);
+      const h = el && el.offsetHeight > 0 ? el.offsetHeight : 90;
+      yAcc += h + 20;
     });
   });
 
@@ -688,27 +1008,87 @@ function layoutMixedProductions() {
   const midCol = Array.from(mixedItemIds);
   const rightCol = Array.from(consumers).filter(id => !leftCol.includes(id));
 
-  leftCol.forEach((id, idx) => {
+  // 1. Initial stable sort of leftCol alphabetically by name
+  leftCol.sort((a, b) => {
+    const nodeA = state.nodes.find(n => n.id === a);
+    const nodeB = state.nodes.find(n => n.id === b);
+    const nameA = nodeA ? (nodeA.name || nodeA.id) : '';
+    const nameB = nodeB ? (nodeB.name || nodeB.id) : '';
+    return nameA.localeCompare(nameB);
+  });
+
+  // Helper to get index of id in an array
+  const getIdx = (arr, id) => {
+    const i = arr.indexOf(id);
+    return i === -1 ? 0 : i;
+  };
+
+  // Run 3 sweeps of Barycenter alignment to minimize crossings
+  for (let sweep = 0; sweep < 3; sweep++) {
+    // Sort midCol based on leftCol producers
+    midCol.sort((a, b) => {
+      const prodsA = state.connections.filter(c => c.to === a && leftCol.includes(c.from)).map(c => c.from);
+      const prodsB = state.connections.filter(c => c.to === b && leftCol.includes(c.from)).map(c => c.from);
+      
+      const avgA = prodsA.length > 0 ? prodsA.reduce((sum, p) => sum + getIdx(leftCol, p), 0) / prodsA.length : 0;
+      const avgB = prodsB.length > 0 ? prodsB.reduce((sum, p) => sum + getIdx(leftCol, p), 0) / prodsB.length : 0;
+      return avgA - avgB;
+    });
+
+    // Sort rightCol based on midCol inputs
+    rightCol.sort((a, b) => {
+      const inputsA = state.connections.filter(c => c.to === a && midCol.includes(c.from)).map(c => c.from);
+      const inputsB = state.connections.filter(c => c.to === b && midCol.includes(c.from)).map(c => c.from);
+      
+      const avgA = inputsA.length > 0 ? inputsA.reduce((sum, inp) => sum + getIdx(midCol, inp), 0) / inputsA.length : 0;
+      const avgB = inputsB.length > 0 ? inputsB.reduce((sum, inp) => sum + getIdx(midCol, inp), 0) / inputsB.length : 0;
+      return avgA - avgB;
+    });
+
+    // Sort leftCol based on midCol outputs
+    leftCol.sort((a, b) => {
+      const outputsA = state.connections.filter(c => c.from === a && midCol.includes(c.to)).map(c => c.to);
+      const outputsB = state.connections.filter(c => c.from === b && midCol.includes(c.to)).map(c => c.to);
+      
+      const avgA = outputsA.length > 0 ? outputsA.reduce((sum, out) => sum + getIdx(midCol, out), 0) / outputsA.length : 0;
+      const avgB = outputsB.length > 0 ? outputsB.reduce((sum, out) => sum + getIdx(midCol, out), 0) / outputsB.length : 0;
+      return avgA - avgB;
+    });
+  }
+
+  let leftY = 100;
+  leftCol.forEach((id) => {
     const node = state.nodes.find(n => n.id === id);
     if (node) {
       node.x = 100;
-      node.y = 100 + (idx * 160);
+      node.y = leftY;
+      const el = document.getElementById(node.id);
+      const h = el && el.offsetHeight > 0 ? el.offsetHeight : 130;
+      leftY += h + 20;
     }
   });
 
-  midCol.forEach((id, idx) => {
+  let midY = 100;
+  midCol.forEach((id) => {
     const node = state.nodes.find(n => n.id === id);
     if (node) {
       node.x = 450;
-      node.y = 100 + (idx * 160);
+      node.y = midY;
+      const el = document.getElementById(node.id);
+      const h = el && el.offsetHeight > 0 ? el.offsetHeight : 90;
+      midY += h + 20;
     }
   });
 
-  rightCol.forEach((id, idx) => {
+  let rightY = 100;
+  rightCol.forEach((id) => {
     const node = state.nodes.find(n => n.id === id);
     if (node) {
       node.x = 800;
-      node.y = 100 + (idx * 160);
+      node.y = rightY;
+      const el = document.getElementById(node.id);
+      const h = el && el.offsetHeight > 0 ? el.offsetHeight : 130;
+      rightY += h + 20;
     }
   });
 
@@ -789,7 +1169,7 @@ function showNotification(message, type = 'info') {
   toast.innerHTML = message;
   
   container.appendChild(toast);
-  setTimeout(() => {
+      setTimeout(() => {
     toast.remove();
   }, 3000);
 }
@@ -843,67 +1223,11 @@ function applyViewFilters() {
       }
     });
   }
-  
-  if (viewMode === 'profession') {
-    layoutProfessionFlow();
-  } else if (viewMode === 'item') {
-    layoutItemSupplyChain();
-  } else if (viewMode === 'mixed') {
-    layoutMixedProductions();
-  } else {
-    state.nodes.forEach(n => {
-      if (state.customPositions[n.id]) {
-        n.x = state.customPositions[n.id].x;
-        n.y = state.customPositions[n.id].y;
-      }
-    });
-  }
 
-  // 1. Render all nodes first so they exist in the DOM with updated coordinates
+  // 1. Render all nodes first so they exist in the DOM with their current collapse state
   renderNodes();
 
-  // 2. Precompute highlighted related IDs if context filter is active
-  const relatedIds = new Set();
-  if (state.highlightFilter) {
-    const activeNode = state.nodes.find(n => n.id === state.activeNodeId);
-    if (activeNode) {
-      relatedIds.add(activeNode.id);
-      
-      if (state.highlightFilter === 'profession_chain') {
-        // Add all buildings connected to the profession on the canvas
-        state.connections.forEach(c => {
-          if (c.from === activeNode.id) relatedIds.add(c.to);
-          if (c.to === activeNode.id) relatedIds.add(c.from);
-        });
-        // Add all items connected to those buildings on the canvas
-        const firstLevel = Array.from(relatedIds);
-        state.connections.forEach(c => {
-          if (firstLevel.includes(c.from)) relatedIds.add(c.to);
-          if (firstLevel.includes(c.to)) relatedIds.add(c.from);
-        });
-      } else if (state.highlightFilter === 'item_io') {
-        // Add all buildings connected to this item on the canvas
-        state.connections.forEach(c => {
-          if (c.from === activeNode.id) relatedIds.add(c.to);
-          if (c.to === activeNode.id) relatedIds.add(c.from);
-        });
-        // Add other items connected to those buildings
-        const buildings = Array.from(relatedIds);
-        state.connections.forEach(c => {
-          if (buildings.includes(c.from) && c.to.startsWith('item_')) relatedIds.add(c.to);
-          if (buildings.includes(c.to) && c.from.startsWith('item_')) relatedIds.add(c.from);
-        });
-      } else if (state.highlightFilter === 'item_buildings') {
-        // Add only the buildings connected to this item on the canvas
-        state.connections.forEach(c => {
-          if (c.from === activeNode.id && c.to.startsWith('build_')) relatedIds.add(c.to);
-          if (c.to === activeNode.id && c.from.startsWith('build_')) relatedIds.add(c.from);
-        });
-      }
-    }
-  }
-
-  // 3. Adjust display visibility and grey-out states on the rendered DOM elements
+  // 2. Adjust display visibility on the rendered DOM elements
   document.querySelectorAll('.node').forEach(nodeEl => {
     const isMacro = state.currentViewMode === 'macro';
     const node = isMacro 
@@ -911,10 +1235,9 @@ function applyViewFilters() {
       : state.nodes.find(n => n.id === nodeEl.id);
     if (!node) return;
 
-    // 1. Determine standard visibility
     let visible = true;
     
-    if (viewMode === 'profession') {
+    if (viewMode === 'profession' || viewMode === 'factory_flow') {
       const data = window.INITIAL_GAME_DATA;
       const activeProf = state.professionFilter;
       const targetProfs = activeProf === 'all' ? data.professions.map(p => p.id) : [activeProf];
@@ -950,31 +1273,153 @@ function applyViewFilters() {
     }
 
     nodeEl.style.display = visible ? 'block' : 'none';
+  });
 
-    // 2. Handle context menu highlighting/fading for visible elements
-    if (visible) {
-      if (state.highlightFilter) {
-        const isHighlighted = relatedIds.has(node.id);
-        if (isHighlighted) {
-          nodeEl.classList.remove('faded');
-        } else {
-          nodeEl.classList.add('faded');
-        }
-      } else {
-        nodeEl.classList.remove('faded');
+  // 3. Now run the layouts. Since elements exist and visibility is set, we can query actual heights!
+  if (viewMode === 'profession') {
+    layoutProfessionFlow();
+  } else if (viewMode === 'factory_flow') {
+    layoutFactoryFlow();
+  } else if (viewMode === 'item') {
+    layoutItemSupplyChain();
+  } else if (viewMode === 'mixed') {
+    layoutMixedProductions();
+  } else {
+    state.nodes.forEach(n => {
+      if (state.customPositions[n.id]) {
+        n.x = state.customPositions[n.id].x;
+        n.y = state.customPositions[n.id].y;
       }
+    });
+  }
+
+  // 4. Update the coordinates of DOM nodes with their newly calculated layout values
+  state.nodes.forEach(n => {
+    const el = document.getElementById(n.id);
+    if (el) {
+      el.style.left = `${n.x}px`;
+      el.style.top = `${n.y}px`;
     }
   });
 
+  // 5. Precompute highlighted related IDs if context filter is active
+  const relatedIds = new Set();
+  if (state.highlightFilter) {
+    const activeNode = state.nodes.find(n => n.id === state.activeNodeId);
+    if (activeNode) {
+      relatedIds.add(activeNode.id);
+      
+      if (state.highlightFilter === 'profession_chain') {
+        state.connections.forEach(c => {
+          if (c.from === activeNode.id) relatedIds.add(c.to);
+          if (c.to === activeNode.id) relatedIds.add(c.from);
+        });
+        const firstLevel = Array.from(relatedIds);
+        state.connections.forEach(c => {
+          if (firstLevel.includes(c.from)) relatedIds.add(c.to);
+          if (firstLevel.includes(c.to)) relatedIds.add(c.from);
+        });
+      } else if (state.highlightFilter === 'item_io') {
+        state.connections.forEach(c => {
+          if (c.from === activeNode.id) relatedIds.add(c.to);
+          if (c.to === activeNode.id) relatedIds.add(c.from);
+        });
+        const buildings = Array.from(relatedIds);
+        state.connections.forEach(c => {
+          if (buildings.includes(c.from) && c.to.startsWith('item_')) relatedIds.add(c.to);
+          if (buildings.includes(c.to) && c.from.startsWith('item_')) relatedIds.add(c.from);
+        });
+      } else if (state.highlightFilter === 'item_buildings') {
+        state.connections.forEach(c => {
+          if (c.from === activeNode.id && c.to.startsWith('build_')) relatedIds.add(c.to);
+          if (c.to === activeNode.id && c.from.startsWith('build_')) relatedIds.add(c.from);
+        });
+      }
+    }
+  }
+
+  // 6. Apply grey-out/faded states to the visible elements in the DOM
+  document.querySelectorAll('.node').forEach(nodeEl => {
+    const node = state.nodes.find(n => n.id === nodeEl.id);
+    if (!node || nodeEl.style.display === 'none') return;
+    
+    if (state.highlightFilter) {
+      const isHighlighted = relatedIds.has(node.id);
+      if (isHighlighted) {
+        nodeEl.classList.remove('faded');
+      } else {
+        nodeEl.classList.add('faded');
+      }
+    } else {
+      nodeEl.classList.remove('faded');
+    }
+  });
+
+  // 7. Render connections
+  drawConnections();
+}
+
+function applyHighlightFilter() {
+  // 1. Precompute highlighted related IDs if context filter is active
+  const relatedIds = new Set();
+  if (state.highlightFilter) {
+    const activeNode = state.nodes.find(n => n.id === state.activeNodeId);
+    if (activeNode) {
+      relatedIds.add(activeNode.id);
+      
+      if (state.highlightFilter === 'profession_chain') {
+        state.connections.forEach(c => {
+          if (c.from === activeNode.id) relatedIds.add(c.to);
+          if (c.to === activeNode.id) relatedIds.add(c.from);
+        });
+        const firstLevel = Array.from(relatedIds);
+        state.connections.forEach(c => {
+          if (firstLevel.includes(c.from)) relatedIds.add(c.to);
+          if (firstLevel.includes(c.to)) relatedIds.add(c.from);
+        });
+      } else if (state.highlightFilter === 'item_io') {
+        state.connections.forEach(c => {
+          if (c.from === activeNode.id) relatedIds.add(c.to);
+          if (c.to === activeNode.id) relatedIds.add(c.from);
+        });
+        const buildings = Array.from(relatedIds);
+        state.connections.forEach(c => {
+          if (buildings.includes(c.from) && c.to.startsWith('item_')) relatedIds.add(c.to);
+          if (buildings.includes(c.to) && c.from.startsWith('item_')) relatedIds.add(c.from);
+        });
+      } else if (state.highlightFilter === 'item_buildings') {
+        state.connections.forEach(c => {
+          if (c.from === activeNode.id && c.to.startsWith('build_')) relatedIds.add(c.to);
+          if (c.to === activeNode.id && c.from.startsWith('build_')) relatedIds.add(c.from);
+        });
+      }
+    }
+  }
+
+  // 2. Apply grey-out/faded states to the visible elements in the DOM
+  document.querySelectorAll('.node').forEach(nodeEl => {
+    const node = state.nodes.find(n => n.id === nodeEl.id);
+    if (!node || nodeEl.style.display === 'none') return;
+    
+    if (state.highlightFilter) {
+      const isHighlighted = relatedIds.has(node.id);
+      if (isHighlighted) {
+        nodeEl.classList.remove('faded');
+      } else {
+        nodeEl.classList.add('faded');
+      }
+    } else {
+      nodeEl.classList.remove('faded');
+    }
+  });
+
+  // 3. Render connections
   drawConnections();
 }
 
 // --- Viewport Events (Box Selection, Panning, Sockets) ---
 function setupViewportEvents() {
   viewportEl.addEventListener('pointerdown', (e) => {
-    const isBackground = (e.target === viewportEl || e.target === canvasEl || e.target === svgConnectionsEl || e.target === nodeContainerEl);
-    if (!isBackground) return;
-
     const isPanAction = state.isSpacePressed || e.button === 1;
 
     if (isPanAction) {
@@ -984,34 +1429,38 @@ function setupViewportEvents() {
       viewportEl.style.cursor = 'grabbing';
       viewportEl.setPointerCapture(e.pointerId);
       e.stopPropagation();
-    } else if (e.button === 0) {
-      state.isSelectingBox = true;
-      
-      const rect = viewportEl.getBoundingClientRect();
-      const startX = (e.clientX - rect.left - state.panX) / state.zoom;
-      const startY = (e.clientY - rect.top - state.panY) / state.zoom;
-      
-      state.selectionStart = { x: startX, y: startY };
-      
-      selectionBoxEl.style.left = `${startX}px`;
-      selectionBoxEl.style.top = `${startY}px`;
-      selectionBoxEl.style.width = '0px';
-      selectionBoxEl.style.height = '0px';
-      selectionBoxEl.style.display = 'block';
-
-      if (!e.shiftKey) {
-        state.selectedNodeIds = [];
-        document.querySelectorAll('.node').forEach(el => el.classList.remove('selected'));
-      }
-      
-      if (state.highlightFilter) {
-        state.highlightFilter = null;
-        applyViewFilters();
-      }
-
-      viewportEl.setPointerCapture(e.pointerId);
-      e.stopPropagation();
+      return;
     }
+
+    const isBackground = (e.target === viewportEl || e.target === canvasEl || e.target === svgConnectionsEl || e.target === nodeContainerEl);
+    if (!isBackground) return;
+
+    state.isSelectingBox = true;
+    
+    const rect = viewportEl.getBoundingClientRect();
+    const startX = (e.clientX - rect.left - state.panX) / state.zoom;
+    const startY = (e.clientY - rect.top - state.panY) / state.zoom;
+    
+    state.selectionStart = { x: startX, y: startY };
+    
+    selectionBoxEl.style.left = `${startX}px`;
+    selectionBoxEl.style.top = `${startY}px`;
+    selectionBoxEl.style.width = '0px';
+    selectionBoxEl.style.height = '0px';
+    selectionBoxEl.style.display = 'block';
+
+    if (!e.shiftKey) {
+      state.selectedNodeIds = [];
+      document.querySelectorAll('.node').forEach(el => el.classList.remove('selected'));
+    }
+    
+    if (state.highlightFilter) {
+      state.highlightFilter = null;
+      applyHighlightFilter();
+    }
+
+    viewportEl.setPointerCapture(e.pointerId);
+    e.stopPropagation();
   });
 
   viewportEl.addEventListener('pointermove', (e) => {
@@ -1355,11 +1804,19 @@ function renderNodes() {
 
     // --- Node Dragging ---
     nodeEl.addEventListener('pointerdown', (e) => {
+      if (e.button === 1) return; // Middle click only pans canvas
+
       // Exclude interactive buttons/elements inside the card from starting a drag
       if (e.target.closest('.port') || e.target.closest('.node-toggle-btn') || e.target.closest('.lvl-btn')) return;
 
       state.activeNodeId = node.id;
       
+      // Clear connection selection when a node is clicked
+      if (state.selectedConnectionId) {
+        state.selectedConnectionId = null;
+        drawConnections();
+      }
+
       if (!state.selectedNodeIds.includes(node.id)) {
         state.selectedNodeIds = [node.id];
         document.querySelectorAll('.node').forEach(el => el.classList.remove('selected'));
@@ -1386,7 +1843,6 @@ function renderNodes() {
       e.stopPropagation();
       
       populatePropertiesPanel(node);
-      pushHistoryState();
     });
 
     nodeEl.addEventListener('pointermove', (e) => {
@@ -1428,10 +1884,14 @@ function renderNodes() {
 
     nodeEl.addEventListener('pointerup', (e) => {
       if (state.draggedNodeId === node.id) {
+        const wasDragging = state.isDraggingNode;
         state.draggedNodeId = null;
         state.isDraggingNode = false;
         nodeEl.releasePointerCapture(e.pointerId);
         saveCurrentState();
+        if (wasDragging) {
+          pushHistoryState();
+        }
       }
     });
 
@@ -1465,6 +1925,7 @@ function renderNodes() {
     if (!isMacro) {
       nodeEl.querySelectorAll('.port').forEach(port => {
         port.addEventListener('pointerdown', (e) => {
+          if (e.button === 1) return; // Middle click only pans canvas
           e.stopPropagation();
           
           const rect = port.getBoundingClientRect();
@@ -1479,7 +1940,6 @@ function renderNodes() {
           };
           
           port.setPointerCapture(e.pointerId);
-          pushHistoryState();
         });
 
         port.addEventListener('pointerup', (e) => {
@@ -1500,6 +1960,7 @@ function renderNodes() {
                   type: 'custom'
                 });
                 saveCurrentState();
+                pushHistoryState();
                 drawConnections();
               }
             }
@@ -1520,6 +1981,7 @@ function renderNodes() {
     if (node.type === 'building' && node.levels) {
       nodeEl.querySelectorAll('.lvl-btn').forEach(btn => {
         btn.addEventListener('pointerdown', (e) => {
+          if (e.button === 1) return; // Middle click only pans canvas
           e.stopPropagation();
         });
         btn.addEventListener('click', (e) => {
@@ -1651,12 +2113,19 @@ function drawBezierPath(fromNode, toNode, type, label, connId, isFaded = false) 
   const dx = Math.abs(x2 - x1) * 0.45;
   const pathD = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
 
+  const isSelected = connId && state.selectedConnectionId === connId;
+
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', pathD);
-  path.setAttribute('class', isFaded ? 'connection-line faded' : 'connection-line');
+  
+  let lineClass = 'connection-line';
+  if (isFaded) lineClass += ' faded';
+  if (isSelected) lineClass += ' selected-connection';
+  path.setAttribute('class', lineClass);
   
   let strokeColor = 'rgba(156, 163, 175, 0.4)';
-  if (type === 'unlock') strokeColor = 'rgba(245, 158, 11, 0.65)';
+  if (isSelected) strokeColor = '#3b82f6';
+  else if (type === 'unlock') strokeColor = 'rgba(245, 158, 11, 0.65)';
   else if (type === 'input') strokeColor = 'rgba(14, 165, 233, 0.65)';
   else if (type === 'output') strokeColor = 'rgba(168, 85, 247, 0.65)';
 
@@ -1665,8 +2134,15 @@ function drawBezierPath(fromNode, toNode, type, label, connId, isFaded = false) 
   if (type === 'input' || type === 'output') {
     const animPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     animPath.setAttribute('d', pathD);
-    animPath.setAttribute('class', isFaded ? 'connection-line connection-flow faded' : 'connection-line connection-flow');
-    animPath.setAttribute('stroke', strokeColor.replace('0.65', '0.25'));
+    
+    let animClass = 'connection-line connection-flow';
+    if (isFaded) animClass += ' faded';
+    if (isSelected) animClass += ' selected-connection';
+    animPath.setAttribute('class', animClass);
+    
+    let animStroke = strokeColor.replace('0.65', '0.25');
+    if (isSelected) animStroke = 'rgba(59, 130, 246, 0.4)';
+    animPath.setAttribute('stroke', animStroke);
     svgConnectionsEl.appendChild(animPath);
   }
 
@@ -1685,13 +2161,32 @@ function drawBezierPath(fromNode, toNode, type, label, connId, isFaded = false) 
   path.addEventListener('click', (e) => {
     e.stopPropagation();
     if (connId) {
+      // Clear active nodes selection
+      state.activeNodeId = null;
+      state.selectedNodeIds = [];
+      document.querySelectorAll('.node').forEach(el => el.classList.remove('selected'));
+      
+      // Select the connection
+      state.selectedConnectionId = connId;
+      
+      // Redraw to show selected highlight
+      drawConnections();
+    }
+  });
+
+  path.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    if (connId) {
       showCustomConfirm(
         "Remove Connection",
         `Remove connection between ${fromNode.name} and ${toNode.name}?`,
         () => {
-          pushHistoryState();
           state.connections = state.connections.filter(c => c.id !== connId);
+          if (state.selectedConnectionId === connId) {
+            state.selectedConnectionId = null;
+          }
           saveCurrentState();
+          pushHistoryState();
           drawConnections();
         }
       );
@@ -1732,14 +2227,21 @@ function triggerContextFilter(filterType, e) {
   if (e) e.stopPropagation();
   state.highlightFilter = filterType;
   contextMenuEl.style.display = 'none';
-  applyViewFilters();
+  applyHighlightFilter();
 }
 
 viewportEl.addEventListener('click', (e) => {
-  if (e.target === viewportEl || e.target === canvasEl) {
+  if (e.target === viewportEl || e.target === canvasEl || e.target === svgConnectionsEl) {
+    let changed = false;
     if (state.highlightFilter) {
       state.highlightFilter = null;
-      applyViewFilters();
+      applyHighlightFilter();
+      changed = true;
+    }
+    if (state.selectedConnectionId) {
+      state.selectedConnectionId = null;
+      drawConnections();
+      changed = true;
     }
   }
 });
@@ -1902,6 +2404,12 @@ function setupFormEvents() {
     drawConnections();
   });
 
+  form.addEventListener('change', (e) => {
+    const node = state.nodes.find(n => n.id === state.activeNodeId);
+    if (!node || node.type === 'macro') return;
+    pushHistoryState();
+  });
+
   document.getElementById('btn-delete-node').addEventListener('click', deleteSelectedNode);
 }
 
@@ -1986,8 +2494,6 @@ function spawnSelectedNode() {
   const viewportRect = viewportEl.getBoundingClientRect();
   const x = (-state.panX + viewportRect.width/2 - 100) / state.zoom;
   const y = (-state.panY + viewportRect.height/2 - 50) / state.zoom;
-
-  pushHistoryState();
 
   if (selectionId === 'custom') {
     const name = customNameInput.value.trim() || `New ${category.replace('_', ' ')}`;
@@ -2078,7 +2584,7 @@ function spawnSelectedNode() {
 
     // Auto connect Law or Mechanic parent nodes if present on canvas
     if (category === 'law') {
-      const parent = state.nodes.find(n => n.id === 'hub_council');
+      const parent = state.nodes.find(n => n.n === 'hub_council' || n.id === 'hub_council');
       if (parent) {
         state.connections.push({
           id: `conn_law_hub_${preset.id}`,
@@ -2101,6 +2607,7 @@ function spawnSelectedNode() {
   }
 
   saveCurrentState();
+  pushHistoryState();
   applyViewFilters();
   switchTab('properties');
 }
@@ -2114,8 +2621,6 @@ function spawnCareerNetwork() {
   const professionId = document.getElementById('spawn-career-select').value;
   const data = window.INITIAL_GAME_DATA;
   if (!data) return;
-
-  pushHistoryState();
 
   const relatedNodeIds = new Set();
   relatedNodeIds.add(`prof_${professionId}`);
@@ -2338,6 +2843,7 @@ function spawnCareerNetwork() {
   });
 
   saveCurrentState();
+  pushHistoryState();
   applyViewFilters();
   showNotification(`Added ${addedCount} missing nodes and their connections for the "${professionId.toUpperCase()}" career network!`, "success");
 }
@@ -2394,7 +2900,7 @@ function setupGlobalControls() {
     state.currentViewMode = e.target.value;
     
     drillLevelSelect.style.display = state.currentViewMode === 'canvas' ? 'block' : 'none';
-    profViewSelect.style.display = state.currentViewMode === 'profession' ? 'block' : 'none';
+    profViewSelect.style.display = (state.currentViewMode === 'profession' || state.currentViewMode === 'factory_flow') ? 'block' : 'none';
     itemFiltersBar.style.display = state.currentViewMode === 'item' ? 'flex' : 'none';
 
     applyViewFilters();

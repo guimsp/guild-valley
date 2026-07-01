@@ -14,7 +14,8 @@ var improvements: Dictionary = {
 	"iron_reinforcements": 0,# Max level 3
 	"ornate_facade": 0,      # Max level 3
 	"strongbox_vault": 0,    # Max level 3
-	"auto_gathering": 0      # Max level 1
+	"auto_gathering": 0,     # Max level 1
+	"storefront": 0          # Max level 1
 }
 
 signal upgrade_started(next_level: int, time: float)

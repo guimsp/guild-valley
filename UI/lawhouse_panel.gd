@@ -2,6 +2,10 @@ extends PanelContainer
 
 var current_province: String = "Valley Province"
 var active_tab: String = "ActiveLaws"
+var active_npc: Node2D = null
+
+func set_active_npc(npc: Node2D) -> void:
+	active_npc = npc
 
 # References to UI elements
 var title_lbl: Label

@@ -145,19 +145,21 @@ func interact(player: CharacterBody2D) -> void:
 
 
 func _populate_default_stock() -> void:
+	if name.contains("StorageChest"):
+		return
 	if ownership_type == "Player" or ownership_type == "Rented" or owner_id == "Rival" or owner_id == "Player":
 		return
 		
 	if ownership_type == "Public":
 		if inventory:
-			inventory.max_slots = 120
+			inventory.max_slots = 500
 		var econ = get_node_or_null("/root/EconomyManager")
 		if econ:
 			for item in econ.item_database.values():
 				if not item.is_tradable:
 					continue
 				var cat = item.get_item_category()
-				if cat == 0 or cat == 1: # RAW_MATERIAL or SEMI_ELABORATE
+				if cat in [0, 1, 2, 3, 4] and item.market_category != "Skill Items":
 					target_stock[item] = item.get_target_stock()
 					
 		# Also add skill books to public markets so players can buy them
@@ -198,6 +200,13 @@ func _populate_default_stock() -> void:
 	if not is_inside_tree() or is_queued_for_deletion():
 		return
 		
+	if ownership_type == "Public" and inventory:
+		inventory.max_slots = 9999
+		inventory.max_weight = 999999.0
+
+	if ownership_type == "Player" or ownership_type == "Rented" or owner_id == "Rival" or owner_id == "Player":
+		return
+		
 	if ownership_type == "Public":
 		var econ = get_node_or_null("/root/EconomyManager")
 		if econ:
@@ -205,10 +214,14 @@ func _populate_default_stock() -> void:
 				if not item.is_tradable:
 					continue
 				var cat = item.get_item_category()
-				if cat == 0 or cat == 1: # RAW_MATERIAL or SEMI_ELABORATE
-					var average_amt = int(item.get_target_stock() * 0.5)
+				if cat in [0, 1, 2, 3, 4] and item.market_category != "Skill Items":
+					var mid_stock = get_target_mid_stock_for(item)
+					var average_amt = int(mid_stock * 0.5)
+					# Introduce 35% random variance so starting stock is organic
+					var variance = int(average_amt * randf_range(-0.35, 0.35))
+					var start_amt = max(1, average_amt + variance)
 					if inventory:
-						inventory.add_item(item, average_amt)
+						inventory.add_item(item, start_amt)
 						
 		# Also add skill books to public markets so players can buy them
 		var book_f: ItemData = load("res://common/items/instances/Skill Items/book_fleet_footed.tres")
@@ -229,14 +242,14 @@ func _populate_default_stock() -> void:
 		var ale: ItemData = load("res://common/items/instances/Finished Goods/ale.tres")
 		
 		if inventory:
-			if wheat: inventory.add_item(wheat, 20)
-			if flour: inventory.add_item(flour, 10)
-			if bread: inventory.add_item(bread, 20)
-			if cotton: inventory.add_item(cotton, 15)
-			if cloth: inventory.add_item(cloth, 7)
-			if ore: inventory.add_item(ore, 12)
-			if ingot: inventory.add_item(ingot, 5)
-			if ale: inventory.add_item(ale, 15)
+			if wheat: inventory.add_item(wheat, max(1, 20 + randi_range(-6, 6)))
+			if flour: inventory.add_item(flour, max(1, 10 + randi_range(-3, 3)))
+			if bread: inventory.add_item(bread, max(1, 20 + randi_range(-6, 6)))
+			if cotton: inventory.add_item(cotton, max(1, 15 + randi_range(-4, 4)))
+			if cloth: inventory.add_item(cloth, max(1, 7 + randi_range(-2, 2)))
+			if ore: inventory.add_item(ore, max(1, 12 + randi_range(-3, 3)))
+			if ingot: inventory.add_item(ingot, max(1, 5 + randi_range(-1, 1)))
+			if ale: inventory.add_item(ale, max(1, 15 + randi_range(-4, 4)))
 
 func get_target_mid_stock_for(item: ItemData) -> int:
 	if not item:
@@ -253,11 +266,14 @@ func get_target_mid_stock_for(item: ItemData) -> int:
 	var profile = econ.PROFESSION_PROFILES[prof]
 	
 	var province_scale = 100.0
-	var prov = GameState.get_province_of_node(self) if GameState else ""
-	if ProsperityManager and prov != "":
-		province_scale = ProsperityManager.province_prosperity.get(prov, 100.0)
+	# Only cities' markets scale with prosperity levels
+	var nearest_sett = GameState.get_nearest_settlement(self) if GameState else null
+	if nearest_sett and nearest_sett.is_in_group("Cities"):
+		var prov = GameState.get_province_of_node(self) if GameState else ""
+		if ProsperityManager and prov != "":
+			province_scale = ProsperityManager.province_prosperity.get(prov, 100.0)
 		
-	var L = item.item_level
+	var L = max(1, item.item_level)
 	var target_mid = int(ceil(profile.base_stock / pow(L, 1.2))) * (province_scale / 100.0)
 	return int(max(1, target_mid))
 

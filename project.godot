@@ -32,16 +32,12 @@ SaveLoadManager="*res://common/singletons/save_load_manager.gd"
 NPCManager="*res://common/singletons/npc_manager.gd"
 ProvinceMasterData="*res://common/singletons/province_master_data.gd"
 GlobalProfile="*res://common/singletons/global_profile.gd"
+WindowManager="*res://common/singletons/window_manager.gd"
 
 [display]
 
-window/size/viewport_width=1152
-window/size/viewport_height=648
 window/size/window_width_override=1920
 window/size/window_height_override=1080
-window/size/mode=2
-window/size/resizable=true
-window/dpi/allow_hidpi=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 

@@ -79,7 +79,7 @@ func chat() -> Dictionary:
 		return {"status": "decline", "message": _get_decline_message()}
 		
 	daily_interaction_slots -= 1
-	var chance = get_success_chance(0.70)
+	var chance = get_success_chance(0.90)
 	var roll = randf()
 	
 	if roll <= chance:
@@ -107,18 +107,22 @@ func chat() -> Dictionary:
 		}
 	else:
 		# Failure
-		# If roll is very high (bad luck) and above success, it's a critical failure
-		if roll > 0.90:
-			relationship_value -= randi_range(8, 12)
-			irritated_timer = 45.0
+		if roll > 0.98:
+			# Critical failure (only 2% chance overall)
+			var penalty = randi_range(2, 4)
+			relationship_value -= penalty
+			irritated_timer = 20.0
 			return {
 				"status": "crit_fail",
+				"points": -penalty,
 				"message": get_custom_message("chat", "crit_fail")
 			}
 		else:
-			relationship_value -= 1
+			# Mild awkwardness: still goes up slightly (+1 point) because they spent time together
+			relationship_value += 1
 			return {
 				"status": "fail",
+				"points": 1,
 				"message": get_custom_message("chat", "fail")
 			}
 

@@ -39,7 +39,7 @@
 [ext_resource type="Texture2D" uid="uid://b3pcxwb02tkti" path="res://entities/player/sprites/animations/Make_a_walking_animation_where_the_character_moves/west/frame_007.png" id="tex_walk_west_7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
-size = Vector2(31, 16)
+size = Vector2(16, 8)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_1"]
 animations = [{
@@ -197,11 +197,11 @@ y_sort_enabled = true
 script = ExtResource("1_script")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1121400411]
-position = Vector2(-0.5, -8)
+position = Vector2(0, -4)
 shape = SubResource("RectangleShape2D_1")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1572280867]
-position = Vector2(0, -80)
+position = Vector2(0, -24)
 sprite_frames = SubResource("SpriteFrames_1")
 animation = &"idle_south"
 

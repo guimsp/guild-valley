@@ -1,0 +1,146 @@
+{
+  "Lazy": {
+    "id": "Lazy",
+    "name": "Lazy",
+    "dialogue_key": "worker_lazy_complaints",
+    "speed_multiplier": 0.8,
+    "description": "Slow worker who complains about workload.",
+    "weight": 0
+  },
+  "Workaholic": {
+    "id": "Workaholic",
+    "name": "Workaholic",
+    "dialogue_key": "worker_eager_dialogue",
+    "speed_multiplier": 1.25,
+    "description": "Extremely fast worker who loves overtime.",
+    "weight": 20
+  },
+  "Grumbler": {
+    "id": "Grumbler",
+    "name": "Grumbler",
+    "dialogue_key": "worker_grumble_dialogue",
+    "speed_multiplier": 0.95,
+    "description": "Works at normal speed but grumbles about salary.",
+    "weight": 5
+  },
+  "Fleet-Footed_Lvl1": {
+    "id": "Fleet-Footed_Lvl1",
+    "name": "Fleet-Footed I",
+    "dialogue_key": "",
+    "speed_multiplier": 1.05,
+    "description": "Increases walking speed by 5%.",
+    "weight": 15
+  },
+  "Fleet-Footed_Lvl2": {
+    "id": "Fleet-Footed_Lvl2",
+    "name": "Fleet-Footed II",
+    "dialogue_key": "",
+    "speed_multiplier": 1.1,
+    "description": "Increases walking speed by 10%.",
+    "weight": 40
+  },
+  "Fleet-Footed_Lvl3": {
+    "id": "Fleet-Footed_Lvl3",
+    "name": "Fleet-Footed III",
+    "dialogue_key": "",
+    "speed_multiplier": 1.15,
+    "description": "Increases walking speed by 15%.",
+    "weight": 90
+  },
+  "Diligent Master_Lvl1": {
+    "id": "Diligent Master_Lvl1",
+    "name": "Diligent Master I",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Increases productivity by 3%.",
+    "weight": 15
+  },
+  "Diligent Master_Lvl2": {
+    "id": "Diligent Master_Lvl2",
+    "name": "Diligent Master II",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Increases productivity by 6%.",
+    "weight": 40
+  },
+  "Diligent Master_Lvl3": {
+    "id": "Diligent Master_Lvl3",
+    "name": "Diligent Master III",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Increases productivity by 10%.",
+    "weight": 90
+  },
+  "Scythe-Wielder_Lvl1": {
+    "id": "Scythe-Wielder_Lvl1",
+    "name": "Scythe-Wielder I",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Harvesting speed bonus I.",
+    "weight": 15
+  },
+  "Scythe-Wielder_Lvl2": {
+    "id": "Scythe-Wielder_Lvl2",
+    "name": "Scythe-Wielder II",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Harvesting speed bonus II.",
+    "weight": 40
+  },
+  "Scythe-Wielder_Lvl3": {
+    "id": "Scythe-Wielder_Lvl3",
+    "name": "Scythe-Wielder III",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Harvesting speed bonus III.",
+    "weight": 90
+  },
+  "Miracle Artisan_Lvl1": {
+    "id": "Miracle Artisan_Lvl1",
+    "name": "Miracle Artisan I",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Chance of double craft yield I.",
+    "weight": 15
+  },
+  "Miracle Artisan_Lvl2": {
+    "id": "Miracle Artisan_Lvl2",
+    "name": "Miracle Artisan II",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Chance of double craft yield II.",
+    "weight": 40
+  },
+  "Miracle Artisan_Lvl3": {
+    "id": "Miracle Artisan_Lvl3",
+    "name": "Miracle Artisan III",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Chance of double craft yield III.",
+    "weight": 90
+  },
+  "Scavenger's Eye_Lvl1": {
+    "id": "Scavenger's Eye_Lvl1",
+    "name": "Scavenger's Eye I",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Chance of extra resources found I.",
+    "weight": 15
+  },
+  "Scavenger's Eye_Lvl2": {
+    "id": "Scavenger's Eye_Lvl2",
+    "name": "Scavenger's Eye II",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Chance of extra resources found II.",
+    "weight": 40
+  },
+  "Scavenger's Eye_Lvl3": {
+    "id": "Scavenger's Eye_Lvl3",
+    "name": "Scavenger's Eye III",
+    "dialogue_key": "",
+    "speed_multiplier": 1.0,
+    "description": "Chance of extra resources found III.",
+    "weight": 90
+  }
+}

@@ -3,14 +3,17 @@ extends Node
 signal prosperity_updated(province: String, value: float)
 
 # Shared Province Prosperity starting values
-var province_prosperity: Dictionary = {
-	"Valley Province": 100.0,
-	"Oakhaven Province": 100.0
-}
+var province_prosperity: Dictionary = {}
+
+func initialize_prosperity_states(provinces: Array[String]) -> void:
+	province_prosperity.clear()
+	for prov in provinces:
+		province_prosperity[prov] = 100.0
 
 var prosperity_thresholds: Array = [250.0, 500.0, 750.0, 1000.0]
 
 func _ready() -> void:
+	initialize_prosperity_states(["Valley Province", "Oakhaven Province", "Highland Province"])
 	# Load thresholds from JSON if available
 	var file = FileAccess.open("res://common/singletons/prosperity_config.json", FileAccess.READ)
 	if file:
@@ -56,13 +59,40 @@ func sync_settlements() -> void:
 		for city in get_tree().get_nodes_in_group("Cities"):
 			if city.get("ownership_province") == province:
 				city.prosperity = int(val)
-				city.set("prosperity_level", level)
+				var old_level = city.get("prosperity_level")
+				# If already initialized and upgrading, trigger expansion
+				if old_level != null and old_level > 0 and level > old_level:
+					city.set("prosperity_level", level)
+					_trigger_prosperity_expansion(city, level - old_level)
+				else:
+					city.set("prosperity_level", level)
 				city.set("security_rating", sec_rating)
+				
 		for town in get_tree().get_nodes_in_group("Towns"):
 			if town.get("ownership_province") == province:
 				town.prosperity = int(val)
-				town.set("prosperity_level", level)
+				var old_level = town.get("prosperity_level")
+				if old_level != null and old_level > 0 and level > old_level:
+					town.set("prosperity_level", level)
+					_trigger_prosperity_expansion(town, level - old_level)
+				else:
+					town.set("prosperity_level", level)
 				town.set("security_rating", sec_rating)
+
+func _trigger_prosperity_expansion(settlement: Node2D, delta_levels: int) -> void:
+	var world_node = get_tree().current_scene
+	if not world_node:
+		return
+		
+	# Find the World NPC Spawner component inside the active World scene
+	var npc_spawner_inst = null
+	for child in world_node.get_children():
+		if child.get_script() and child.get_script().resource_path.contains("world_npc_spawner"):
+			npc_spawner_inst = child
+			break
+			
+	if npc_spawner_inst and npc_spawner_inst.has_method("spawn_prosperity_npcs"):
+		npc_spawner_inst.call("spawn_prosperity_npcs", settlement, delta_levels)
 
 func pave_province_roads(province: String) -> void:
 	for road in get_tree().get_nodes_in_group("Roads"):

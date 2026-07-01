@@ -59,6 +59,11 @@ This file tracks all planned, proposed, and future features for **Guild Valley**
 - **Artifact Slots**: Each personal house has 1 slot (expanding to 2 slots at maximum house level) for displaying unique artifacts.
 - **Buff Stacking Incentives**: Players can establish houses across different provinces to stack passive artifact bonuses (e.g., stats or production boosts) simultaneously.
 
+### 👥 12. Employee Sentiment & Labor Relations
+- **Employee Sentiment Rating**: Introduce a sentiment value for each hired employee representing their satisfaction/loyalty to the player.
+- **Labor Buffs & Debuffs**: High sentiment grants productivity, crafting speed, or reduced wage demands. Low sentiment triggers threat of strikes, slower craft speeds, or sudden resignations.
+- **Employer Actions Impact**: Player actions (e.g. prompt wage payments, bonuses, working hour updates, or demanding overtime) dynamically adjust employee sentiment.
+
 ---
 
 ## ✅ Completed Features

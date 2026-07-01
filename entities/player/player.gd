@@ -133,12 +133,27 @@ func get_facing_interactables() -> Array:
 	if not is_inside_tree():
 		return []
 		
-	# Clean up any invalid instances in interactables_in_range
+	# Clean up any invalid or too far instances in interactables_in_range
 	var i = interactables_in_range.size() - 1
+	var changed = false
 	while i >= 0:
-		if not is_instance_valid(interactables_in_range[i]):
+		var node = interactables_in_range[i]
+		if not is_instance_valid(node):
 			interactables_in_range.remove_at(i)
+			changed = true
+		elif not ("global_position" in node):
+			interactables_in_range.remove_at(i)
+			changed = true
+		else:
+			var dist = global_position.distance_to(node.global_position)
+			var max_dist = 150.0 if node.is_in_group("MegaNodes") else 80.0
+			if dist > max_dist:
+				interactables_in_range.remove_at(i)
+				changed = true
 		i -= 1
+		
+	if changed:
+		interactables_changed.emit()
 
 	var facing = []
 	var facing_dir = Vector2.ZERO
@@ -219,7 +234,7 @@ func get_facing_interactables() -> Array:
 	)
 	return facing
 
-func _get_grid_for_crop(crop_plot: Node2D) -> Node2D:
+func _get_grid_for_crop(_crop_plot: Node2D) -> Node2D:
 	return null
 
 func interact_with_object() -> void:
@@ -232,7 +247,7 @@ func interact_with_object() -> void:
 			check_node = grid
 		
 		if "ownership_type" in check_node and check_node.ownership_type == "NPC":
-			var is_stall_or_building = check_node.is_in_group("MarketStall") or check_node.is_in_group("Houses") or check_node.is_in_group("Bakeries") or check_node.is_in_group("Smelters") or check_node.is_in_group("Inns") or check_node.is_in_group("Looms") or check_node.is_in_group("Mills") or check_node.is_in_group("PaperMakers") or check_node.is_in_group("PrintingPresses") or check_node.is_in_group("Banks")
+			var is_stall_or_building = check_node.is_in_group("MarketStall") or check_node.is_in_group("Houses") or check_node.is_in_group("production_buildings")
 			if not is_stall_or_building:
 				spawn_floating_text("Locked: NPC Owned!")
 				return
@@ -258,7 +273,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var facing = get_facing_interactables()
 		if facing.size() > 0:
 			var target = facing[0]
-			var is_workshop = target.is_in_group("Bakeries") or target.is_in_group("Smelters") or target.is_in_group("Inns") or target.is_in_group("Looms") or target.is_in_group("Mills") or target.is_in_group("PaperMakers") or target.is_in_group("PrintingPresses") or target.is_in_group("Banks")
+			var is_workshop = target.is_in_group("production_buildings")
 			if is_workshop:
 				return
 		try_buy_workstation()
@@ -334,7 +349,7 @@ func try_buy_workstation() -> void:
 		return
 		
 	# Restrict buying workshops to the left side
-	var is_workshop = target.is_in_group("Bakeries") or target.is_in_group("Smelters") or target.is_in_group("Inns") or target.is_in_group("Looms") or target.is_in_group("Mills") or target.is_in_group("PaperMakers") or target.is_in_group("PrintingPresses") or target.is_in_group("Banks")
+	var is_workshop = target.is_in_group("production_buildings")
 	if is_workshop:
 		var local_pos = target.to_local(global_position)
 		if local_pos.x >= -16.0:

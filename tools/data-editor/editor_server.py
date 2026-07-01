@@ -14,9 +14,12 @@ WORKSPACE_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 ITEMS_DIR = os.path.join(WORKSPACE_ROOT, 'common', 'items', 'instances')
 LAWS_DIR = os.path.join(WORKSPACE_ROOT, 'common', 'politics', 'laws')
 
-QUESTS_FILE = os.path.join(WORKSPACE_ROOT, 'common', 'singletons', 'quest_templates.json')
+QUESTS_FILE = os.path.join(WORKSPACE_ROOT, 'common', 'quests', 'quests.json')
 PROSPERITY_FILE = os.path.join(WORKSPACE_ROOT, 'common', 'singletons', 'prosperity_config.json')
 BALANCE_FILE = os.path.join(WORKSPACE_ROOT, 'common', 'singletons', 'game_balance_config.json')
+NPCS_FILE = os.path.join(WORKSPACE_ROOT, 'common', 'npc', 'npcs.json')
+DIALOGUES_FILE = os.path.join(WORKSPACE_ROOT, 'common', 'narrative', 'dialogues.json')
+TRAITS_FILE = os.path.join(WORKSPACE_ROOT, 'common', 'narrative', 'traits.json')
 
 # Default properties from item_data.gd
 DEFAULT_PROPERTIES = {
@@ -297,6 +300,12 @@ class DataEditorRequestHandler(BaseHTTPRequestHandler):
             self.handle_get_json_file(PROSPERITY_FILE)
         elif path == '/api/balance':
             self.handle_get_json_file(BALANCE_FILE)
+        elif path == '/api/npcs':
+            self.handle_get_json_file(NPCS_FILE)
+        elif path == '/api/dialogues':
+            self.handle_get_json_file(DIALOGUES_FILE)
+        elif path == '/api/traits':
+            self.handle_get_json_file(TRAITS_FILE)
         elif path == '/' or path == '/index.html':
             self.serve_static_file('index.html', 'text/html')
         else:
@@ -330,6 +339,12 @@ class DataEditorRequestHandler(BaseHTTPRequestHandler):
             self.handle_save_json_file(PROSPERITY_FILE)
         elif path == '/api/balance/save':
             self.handle_save_json_file(BALANCE_FILE)
+        elif path == '/api/npcs/save':
+            self.handle_save_json_file(NPCS_FILE)
+        elif path == '/api/dialogues/save':
+            self.handle_save_json_file(DIALOGUES_FILE)
+        elif path == '/api/traits/save':
+            self.handle_save_json_file(TRAITS_FILE)
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -349,8 +364,13 @@ class DataEditorRequestHandler(BaseHTTPRequestHandler):
     def handle_get_json_file(self, filepath):
         try:
             if not os.path.exists(filepath):
-                self.send_error(404, f"File not found: {filepath}")
-                return
+                if filepath.endswith('dialogues.json') or filepath.endswith('traits.json'):
+                    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        f.write('{}')
+                else:
+                    self.send_error(404, f"File not found: {filepath}")
+                    return
             with open(filepath, 'rb') as f:
                 content = f.read()
             self.send_response(200)

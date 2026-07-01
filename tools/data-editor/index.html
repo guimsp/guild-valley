@@ -924,6 +924,9 @@
         <button class="tab-btn" data-tab="laws" onclick="switchTab('laws')">Politics & Laws</button>
         <button class="tab-btn" data-tab="prosperity" onclick="switchTab('prosperity')">Prosperity Tiers</button>
         <button class="tab-btn" data-tab="balance" onclick="switchTab('balance')">Balance Constants</button>
+        <button class="tab-btn" data-tab="npcs" onclick="switchTab('npcs')">NPC Management</button>
+        <button class="tab-btn" data-tab="dialogues" onclick="switchTab('dialogues')">Dialogue Registry</button>
+        <button class="tab-btn" data-tab="traits" onclick="switchTab('traits')">Employee Traits</button>
     </div>
 
     <main>
@@ -992,6 +995,10 @@
             </div>
 
             <button id="btn-clear-filters" class="btn-secondary">Clear</button>
+            <button id="btn-add-quest" class="btn-primary" style="display:none; margin-left:10px;" onclick="addQuestRow()">Add Quest</button>
+            <button id="btn-add-npc" class="btn-primary" style="display:none; margin-left:10px;" onclick="addNpcRow()">Add NPC</button>
+            <button id="btn-add-dialogue" class="btn-primary" style="display:none; margin-left:10px;" onclick="addDialogueRow()">Add Dialogue</button>
+            <button id="btn-add-trait" class="btn-primary" style="display:none; margin-left:10px;" onclick="addTraitRow()">Add Trait</button>
         </div>
 
         <!-- Table Grid Container -->
@@ -1128,7 +1135,9 @@
             quests: [],
             laws: [],
             prosperity: { thresholds: [250, 500, 750, 1000] },
-            balance: {}
+            balance: {},
+            npcs: [],
+            dialogues: {}
         };
 
         // Unsaved changes state tracker
@@ -1138,7 +1147,9 @@
             quests: {},
             laws: {},
             prosperity: {}, // Special key "config" -> { thresholds: [...] }
-            balance: {} // Special key "config" -> { key: val }
+            balance: {}, // Special key "config" -> { key: val }
+            npcs: {},
+            dialogues: {}
         };
 
         let currentSort = { column: 'name', asc: true };
@@ -1272,6 +1283,7 @@
                 document.getElementById('filters-container').style.display = 'flex';
                 document.getElementById('grid-container').style.display = 'block';
                 document.getElementById('prosperity-container').style.display = 'none';
+                document.getElementById('btn-add-quest').style.display = 'none';
                 currentSort = { column: 'name', asc: true };
             } else if (tabName === 'quests') {
                 searchLbl.textContent = 'Search Quests';
@@ -1280,7 +1292,8 @@
                 document.getElementById('filters-container').style.display = 'flex';
                 document.getElementById('grid-container').style.display = 'block';
                 document.getElementById('prosperity-container').style.display = 'none';
-                currentSort = { column: 'item_name', asc: true };
+                document.getElementById('btn-add-quest').style.display = 'inline-block';
+                currentSort = { column: 'id', asc: true };
             } else if (tabName === 'laws') {
                 searchLbl.textContent = 'Search Laws';
                 metaLbl.innerHTML = 'Laws loaded: <span id="items-count-badge" class="badge-count">0</span>';
@@ -1288,20 +1301,60 @@
                 document.getElementById('filters-container').style.display = 'flex';
                 document.getElementById('grid-container').style.display = 'block';
                 document.getElementById('prosperity-container').style.display = 'none';
+                document.getElementById('btn-add-quest').style.display = 'none';
                 currentSort = { column: 'name', asc: true };
             } else if (tabName === 'prosperity') {
                 metaLbl.innerHTML = 'Prosperity Tiers Configured';
                 document.getElementById('filters-container').style.display = 'none';
                 document.getElementById('grid-container').style.display = 'none';
                 document.getElementById('prosperity-container').style.display = 'block';
+                document.getElementById('btn-add-quest').style.display = 'none';
             } else if (tabName === 'balance') {
                 searchLbl.textContent = 'Search Constants';
                 metaLbl.innerHTML = 'Constants loaded: <span id="items-count-badge" class="badge-count">0</span>';
                 document.getElementById('filters-container').style.display = 'flex';
                 document.getElementById('grid-container').style.display = 'block';
                 document.getElementById('prosperity-container').style.display = 'none';
+                document.getElementById('btn-add-quest').style.display = 'none';
+                document.getElementById('btn-add-npc').style.display = 'none';
+                currentSort = { column: 'key', asc: true };
+            } else if (tabName === 'npcs') {
+                searchLbl.textContent = 'Search NPCs';
+                metaLbl.innerHTML = 'NPCs in database: <span id="items-count-badge" class="badge-count">0</span>';
+                document.getElementById('filters-container').style.display = 'flex';
+                document.getElementById('grid-container').style.display = 'block';
+                document.getElementById('prosperity-container').style.display = 'none';
+                document.getElementById('btn-add-quest').style.display = 'none';
+                document.getElementById('btn-add-npc').style.display = 'inline-block';
+                currentSort = { column: 'id', asc: true };
+            } else if (tabName === 'dialogues') {
+                searchLbl.textContent = 'Search Dialogues';
+                metaLbl.innerHTML = 'Dialogues loaded: <span id="items-count-badge" class="badge-count">0</span>';
+                document.getElementById('filters-container').style.display = 'flex';
+                document.getElementById('grid-container').style.display = 'block';
+                document.getElementById('prosperity-container').style.display = 'none';
+                document.getElementById('btn-add-quest').style.display = 'none';
+                document.getElementById('btn-add-npc').style.display = 'none';
+                document.getElementById('btn-add-dialogue').style.display = 'inline-block';
+                currentSort = { column: 'key', asc: true };
+            } else if (tabName === 'traits') {
+                searchLbl.textContent = 'Search Traits';
+                metaLbl.innerHTML = 'Traits loaded: <span id="items-count-badge" class="badge-count">0</span>';
+                document.getElementById('filters-container').style.display = 'flex';
+                document.getElementById('grid-container').style.display = 'block';
+                document.getElementById('prosperity-container').style.display = 'none';
+                document.getElementById('btn-add-quest').style.display = 'none';
+                document.getElementById('btn-add-npc').style.display = 'none';
+                document.getElementById('btn-add-dialogue').style.display = 'none';
+                document.getElementById('btn-add-trait').style.display = 'inline-block';
                 currentSort = { column: 'key', asc: true };
             }
+
+            // Hide add buttons for non-matching active tabs
+            if (tabName !== 'quests') document.getElementById('btn-add-quest').style.display = 'none';
+            if (tabName !== 'npcs') document.getElementById('btn-add-npc').style.display = 'none';
+            if (tabName !== 'dialogues') document.getElementById('btn-add-dialogue').style.display = 'none';
+            if (tabName !== 'traits') document.getElementById('btn-add-trait').style.display = 'none';
 
             fetchDataForActiveTab();
         }
@@ -1315,6 +1368,9 @@
                 else if (activeTab === 'laws') url = '/api/laws';
                 else if (activeTab === 'prosperity') url = '/api/prosperity';
                 else if (activeTab === 'balance') url = '/api/balance';
+                else if (activeTab === 'npcs') url = '/api/npcs';
+                else if (activeTab === 'dialogues') url = '/api/dialogues';
+                else if (activeTab === 'traits') url = '/api/traits';
 
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP Error fetching ${activeTab}`);
@@ -1423,7 +1479,7 @@
 
         function getOriginalRecord(identifier) {
             if (activeTab === 'items') return dbState.items.find(x => x._filepath === identifier);
-            if (activeTab === 'quests') return dbState.quests.find(x => x.item_id === identifier);
+            if (activeTab === 'quests') return dbState.quests.find(x => x.id === identifier);
             if (activeTab === 'laws') return dbState.laws.find(x => x._filepath === identifier);
             if (activeTab === 'balance') return { key: identifier, value: dbState.balance[identifier] };
             return null;
@@ -1480,6 +1536,12 @@
                 renderLawsTable(search);
             } else if (activeTab === 'balance') {
                 renderBalanceTable(search);
+            } else if (activeTab === 'npcs') {
+                renderNpcsTable(search);
+            } else if (activeTab === 'dialogues') {
+                renderDialoguesTable(search);
+            } else if (activeTab === 'traits') {
+                renderTraitsTable(search);
             }
 
             // Re-bind resizing and sorting indicators
@@ -1636,77 +1698,742 @@
             });
         }
 
+        // Helper functions for dynamic Quest Appending/Deletion
+        function addQuestRow() {
+            const newId = `quest_new_${Date.now()}`;
+            const newQuest = {
+                id: newId,
+                title: "New Quest",
+                description: "New Quest Description",
+                category: "AMBIENT_LEAD",
+                quest_level: 1,
+                giver_npc_id: "None",
+                region: "Valley Province",
+                target_item_id: "None",
+                target_amount: 0,
+                next_quest_id: "None",
+                is_hidden_lead: false,
+                gates_profession_promotion: "None",
+                gates_title_promotion: "None",
+                is_one_time: false,
+                gold_reward: 0,
+                xp_reward: 0,
+                influence_reward: 0
+            };
+            dbState.quests.push(newQuest);
+            modifiedState.quests[newId] = { ...newQuest };
+            updateChangesBar();
+            renderQuestsTable(searchInput.value.toLowerCase());
+        }
+
+        function deleteQuestRow(qid) {
+            if (confirm(`Are you sure you want to delete quest "${qid}"?`)) {
+                dbState.quests = dbState.quests.filter(q => q.id !== qid);
+                delete modifiedState.quests[qid];
+                modifiedState.quests["__deleted__" + qid] = { deleted: true };
+                updateChangesBar();
+                renderQuestsTable(searchInput.value.toLowerCase());
+            }
+        }
+
+        function onQuestIdChange(oldId, newId) {
+            newId = newId.trim();
+            if (newId === "") return;
+            if (dbState.quests.some(q => q.id === newId && q.id !== oldId)) {
+                alert("Quest ID already exists!");
+                renderQuestsTable(searchInput.value.toLowerCase());
+                return;
+            }
+            
+            const quest = dbState.quests.find(q => q.id === oldId);
+            if (quest) {
+                quest.id = newId;
+            }
+            
+            if (modifiedState.quests[oldId]) {
+                modifiedState.quests[newId] = modifiedState.quests[oldId];
+                delete modifiedState.quests[oldId];
+            } else {
+                modifiedState.quests[newId] = {};
+            }
+            modifiedState.quests[newId].id = newId;
+            
+            updateChangesBar();
+            renderQuestsTable(searchInput.value.toLowerCase());
+        }
+
         // Tab 2: Render Quests
         function renderQuestsTable(search) {
             dataThead.innerHTML = `
                 <tr>
-                    <th class="sortable" data-sort="item_id" style="width:120px;">Item ID</th>
-                    <th class="sortable" data-sort="item_name" style="width:160px;">Display Name</th>
-                    <th class="sortable" data-sort="base_amount" style="width:110px;">Base Amount</th>
-                    <th class="sortable" data-sort="base_reward" style="width:110px;">Gold Reward</th>
-                    <th class="sortable" data-sort="due_days" style="width:100px;">Due Days</th>
-                    <th class="sortable" data-sort="req_level" style="width:110px;">Req Level</th>
-                    <th class="sortable" data-sort="difficulty" style="width:120px;">Difficulty</th>
+                    <th style="width:100px;">ID</th>
+                    <th style="width:130px;">Title</th>
+                    <th style="width:160px;">Description</th>
+                    <th style="width:120px;">Category</th>
+                    <th style="width:70px;">Level</th>
+                    <th style="width:110px;">Giver NPC</th>
+                    <th style="width:110px;">Region</th>
+                    <th style="width:120px;">Target Item</th>
+                    <th style="width:70px;">Amount</th>
+                    <th style="width:100px;">Next Quest</th>
+                    <th style="width:70px;">Hidden?</th>
+                    <th style="width:110px;">Gates Profession</th>
+                    <th style="width:110px;">Gates Title</th>
+                    <th style="width:70px;">One-Time?</th>
+                    <th style="width:65px;">Gold</th>
+                    <th style="width:65px;">XP</th>
+                    <th style="width:65px;">Inf</th>
+                    <th style="width:80px;">Actions</th>
                 </tr>
             `;
 
-            const activeTh = dataThead.querySelector(`[data-sort="${currentSort.column}"]`);
-            if (activeTh) activeTh.className = `sortable ${currentSort.asc ? 'sort-asc' : 'sort-desc'}`;
-
             bindSortHeaders();
 
-            const diffFilter = filterQuestDiff.value;
+            let filtered = dbState.quests.filter(quest => !quest.deleted);
+            if (search) {
+                filtered = filtered.filter(quest => {
+                    return (quest.id && quest.id.toLowerCase().includes(search)) ||
+                        (quest.title && quest.title.toLowerCase().includes(search)) ||
+                        (quest.description && quest.description.toLowerCase().includes(search));
+                });
+            }
 
-            let filtered = dbState.quests.filter(quest => {
-                const matchesSearch = !search || 
-                    (quest.item_name && quest.item_name.toLowerCase().includes(search)) ||
-                    (quest.item_id && quest.item_id.toLowerCase().includes(search)) ||
-                    (quest.difficulty && quest.difficulty.toLowerCase().includes(search));
-                
-                const matchesDiff = !diffFilter || quest.difficulty === diffFilter;
-
-                return matchesSearch && matchesDiff;
-            });
-
-            sortDataArray(filtered);
             document.getElementById('items-count-badge').textContent = filtered.length;
 
+            let itemOptions = `<option value="None">None</option>`;
+            if (dbState.items) {
+                dbState.items.forEach(item => {
+                    itemOptions += `<option value="${item.id}">${item.name || item.id}</option>`;
+                });
+            }
+
+            let questOptions = `<option value="None">None</option>`;
+            dbState.quests.forEach(q => {
+                if (q.id && !q.deleted) {
+                    questOptions += `<option value="${q.id}">${q.id} (${q.title || ''})</option>`;
+                }
+            });
+
             filtered.forEach(quest => {
-                const qid = quest.item_id;
+                const qid = quest.id;
                 const mods = modifiedState.quests[qid] || {};
-                
                 const getValue = (f) => mods.hasOwnProperty(f) ? mods[f] : quest[f];
 
                 const tr = document.createElement('tr');
                 if (Object.keys(mods).length > 0) tr.className = 'modified-row';
 
                 tr.innerHTML = `
-                    <td class="col-id">${quest.item_id}</td>
-                    <td class="${mods.hasOwnProperty('item_name') ? 'modified-cell' : ''}">
-                        <input type="text" class="table-input" value="${escapeHtml(getValue('item_name'))}" data-id="${qid}" data-field="item_name" onchange="onFieldChange('${qid}', 'item_name', this.value)">
+                    <td class="${mods.hasOwnProperty('id') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('id') || '')}" onchange="onQuestIdChange('${qid}', this.value)">
                     </td>
-                    <td class="${mods.hasOwnProperty('base_amount') ? 'modified-cell' : ''}">
-                        <input type="number" class="table-input" value="${getValue('base_amount')}" data-id="${qid}" data-field="base_amount" onchange="onFieldChange('${qid}', 'base_amount', this.value)" min="1" step="1">
+                    <td class="${mods.hasOwnProperty('title') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('title') || '')}" onchange="onFieldChange('${qid}', 'title', this.value)">
                     </td>
-                    <td class="${mods.hasOwnProperty('base_reward') ? 'modified-cell' : ''}">
-                        <input type="number" class="table-input" value="${getValue('base_reward')}" data-id="${qid}" data-field="base_reward" onchange="onFieldChange('${qid}', 'base_reward', this.value)" min="0" step="5">
+                    <td class="${mods.hasOwnProperty('description') ? 'modified-cell' : ''}">
+                        <button class="desc-edit-btn" onclick="openDescModal('${qid}')" data-id="${qid}" data-field="description">
+                            ${getValue('description') ? escapeHtml(getValue('description')) : '<span style="color: var(--text-muted)">No description</span>'}
+                        </button>
                     </td>
-                    <td class="${mods.hasOwnProperty('due_days') ? 'modified-cell' : ''}">
-                        <input type="number" class="table-input" value="${getValue('due_days')}" data-id="${qid}" data-field="due_days" onchange="onFieldChange('${qid}', 'due_days', this.value)" min="1" step="1">
-                    </td>
-                    <td class="${mods.hasOwnProperty('req_level') ? 'modified-cell' : ''}">
-                        <input type="number" class="table-input" value="${getValue('req_level')}" data-id="${qid}" data-field="req_level" onchange="onFieldChange('${qid}', 'req_level', this.value)" min="1" step="1">
-                    </td>
-                    <td class="${mods.hasOwnProperty('difficulty') ? 'modified-cell' : ''}">
-                        <select class="table-select" data-id="${qid}" data-field="difficulty" onchange="onFieldChange('${qid}', 'difficulty', this.value)">
-                            <option value="Beginner" ${getValue('difficulty') === 'Beginner' ? 'selected' : ''}>Beginner</option>
-                            <option value="Advanced" ${getValue('difficulty') === 'Advanced' ? 'selected' : ''}>Advanced</option>
-                            <option value="Expert" ${getValue('difficulty') === 'Expert' ? 'selected' : ''}>Expert</option>
+                    <td class="${mods.hasOwnProperty('category') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'category', this.value)">
+                            <option value="STORY_EVENT" ${getValue('category') === 'STORY_EVENT' ? 'selected' : ''}>STORY_EVENT</option>
+                            <option value="MUNICIPAL" ${getValue('category') === 'MUNICIPAL' ? 'selected' : ''}>MUNICIPAL</option>
+                            <option value="GUILD" ${getValue('category') === 'GUILD' ? 'selected' : ''}>GUILD</option>
+                            <option value="AMBIENT_LEAD" ${getValue('category') === 'AMBIENT_LEAD' ? 'selected' : ''}>AMBIENT_LEAD</option>
                         </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('quest_level') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('quest_level') || 1}" onchange="onFieldChange('${qid}', 'quest_level', this.value)" min="1" step="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('giver_npc_id') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'giver_npc_id', this.value)">
+                            <option value="None" ${getValue('giver_npc_id') === 'None' || !getValue('giver_npc_id') ? 'selected' : ''}>None</option>
+                            <option value="councilor_marcus" ${getValue('giver_npc_id') === 'councilor_marcus' ? 'selected' : ''}>councilor_marcus</option>
+                            <option value="councilor_elena" ${getValue('giver_npc_id') === 'councilor_elena' ? 'selected' : ''}>councilor_elena</option>
+                            <option value="elena" ${getValue('giver_npc_id') === 'elena' ? 'selected' : ''}>elena</option>
+                            <option value="aldous" ${getValue('giver_npc_id') === 'aldous' ? 'selected' : ''}>aldous</option>
+                            <option value="valeria" ${getValue('giver_npc_id') === 'valeria' ? 'selected' : ''}>valeria</option>
+                            <option value="gideon" ${getValue('giver_npc_id') === 'gideon' ? 'selected' : ''}>gideon</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('region') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'region', this.value)">
+                            <option value="Valley Province" ${getValue('region') === 'Valley Province' ? 'selected' : ''}>Valley Province</option>
+                            <option value="Oakhaven Province" ${getValue('region') === 'Oakhaven Province' ? 'selected' : ''}>Oakhaven Province</option>
+                            <option value="Highland Province" ${getValue('region') === 'Highland Province' ? 'selected' : ''}>Highland Province</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('target_item_id') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'target_item_id', this.value)">
+                            ${itemOptions.replace(`value="${getValue('target_item_id') || 'None'}"`, `value="${getValue('target_item_id') || 'None'}" selected`)}
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('target_amount') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('target_amount') || 0}" onchange="onFieldChange('${qid}', 'target_amount', this.value)" min="0" step="1">
+                    </td>
+                    <td class="${mods.hasOwnProperty('next_quest_id') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'next_quest_id', this.value)">
+                            ${questOptions.replace(`value="${getValue('next_quest_id') || 'None'}"`, `value="${getValue('next_quest_id') || 'None'}" selected`)}
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_hidden_lead') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'is_hidden_lead', this.value === 'true')">
+                            <option value="false" ${!getValue('is_hidden_lead') ? 'selected' : ''}>No</option>
+                            <option value="true" ${getValue('is_hidden_lead') ? 'selected' : ''}>Yes</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('gates_profession_promotion') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'gates_profession_promotion', this.value)">
+                            <option value="None" ${getValue('gates_profession_promotion') === 'None' || !getValue('gates_profession_promotion') ? 'selected' : ''}>None</option>
+                            <option value="Craftsman" ${getValue('gates_profession_promotion') === 'Craftsman' ? 'selected' : ''}>Craftsman</option>
+                            <option value="Tailor" ${getValue('gates_profession_promotion') === 'Tailor' ? 'selected' : ''}>Tailor</option>
+                            <option value="Scholar" ${getValue('gates_profession_promotion') === 'Scholar' ? 'selected' : ''}>Scholar</option>
+                            <option value="Woodworker" ${getValue('gates_profession_promotion') === 'Woodworker' ? 'selected' : ''}>Woodworker</option>
+                            <option value="Herbalist" ${getValue('gates_profession_promotion') === 'Herbalist' ? 'selected' : ''}>Herbalist</option>
+                            <option value="Rogue" ${getValue('gates_profession_promotion') === 'Rogue' ? 'selected' : ''}>Rogue</option>
+                            <option value="Showman" ${getValue('gates_profession_promotion') === 'Showman' ? 'selected' : ''}>Showman</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('gates_title_promotion') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'gates_title_promotion', this.value)">
+                            <option value="None" ${getValue('gates_title_promotion') === 'None' || !getValue('gates_title_promotion') ? 'selected' : ''}>None</option>
+                            <option value="Peasant" ${getValue('gates_title_promotion') === 'Peasant' ? 'selected' : ''}>Peasant</option>
+                            <option value="Citizen" ${getValue('gates_title_promotion') === 'Citizen' ? 'selected' : ''}>Citizen</option>
+                            <option value="Merchant" ${getValue('gates_title_promotion') === 'Merchant' ? 'selected' : ''}>Merchant</option>
+                            <option value="Noble" ${getValue('gates_title_promotion') === 'Noble' ? 'selected' : ''}>Noble</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_one_time') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onFieldChange('${qid}', 'is_one_time', this.value === 'true')">
+                            <option value="false" ${!getValue('is_one_time') ? 'selected' : ''}>No</option>
+                            <option value="true" ${getValue('is_one_time') ? 'selected' : ''}>Yes</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('gold_reward') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('gold_reward') || 0}" onchange="onFieldChange('${qid}', 'gold_reward', this.value)" min="0" step="10">
+                    </td>
+                    <td class="${mods.hasOwnProperty('xp_reward') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('xp_reward') || 0}" onchange="onFieldChange('${qid}', 'xp_reward', this.value)" min="0" step="10">
+                    </td>
+                    <td class="${mods.hasOwnProperty('influence_reward') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" value="${getValue('influence_reward') || 0}" onchange="onFieldChange('${qid}', 'influence_reward', this.value)" min="0" step="5">
+                    </td>
+                    <td>
+                        <button class="desc-edit-btn" style="background-color: var(--accent-red); color: white; padding: 4px 8px;" onclick="deleteQuestRow('${qid}')">Delete</button>
                     </td>
                 `;
                 dataTbody.appendChild(tr);
             });
+        }
+
+        // Helper functions for dynamic NPC Appending/Deletion/Edits
+        function onNpcFieldChange(nid, field, value) {
+            if (!modifiedState.npcs[nid]) {
+                modifiedState.npcs[nid] = {};
+            }
+            modifiedState.npcs[nid][field] = value;
+            
+            const npc = dbState.npcs.find(n => n.id === nid);
+            if (npc && npc[field] === value) {
+                delete modifiedState.npcs[nid][field];
+                if (Object.keys(modifiedState.npcs[nid]).length === 0) {
+                    delete modifiedState.npcs[nid];
+                }
+            }
+            updateChangesBar();
+            renderGrid();
+        }
+
+        function onNpcMultiChange(nid, field, selectElement) {
+            const selectedValues = Array.from(selectElement.selectedOptions).map(option => option.value);
+            onNpcFieldChange(nid, field, selectedValues);
+        }
+
+        function onNpcIdChange(oldId, newId) {
+            newId = newId.trim();
+            if (newId === "") return;
+            if (dbState.npcs.some(n => n.id === newId && n.id !== oldId)) {
+                alert("NPC ID already exists!");
+                renderNpcsTable(searchInput.value.toLowerCase());
+                return;
+            }
+            
+            const npc = dbState.npcs.find(n => n.id === oldId);
+            if (npc) {
+                npc.id = newId;
+            }
+            
+            if (modifiedState.npcs[oldId]) {
+                modifiedState.npcs[newId] = modifiedState.npcs[oldId];
+                delete modifiedState.npcs[oldId];
+            } else {
+                modifiedState.npcs[newId] = {};
+            }
+            modifiedState.npcs[newId].id = newId;
+            
+            updateChangesBar();
+            renderNpcsTable(searchInput.value.toLowerCase());
+        }
+
+        function addNpcRow() {
+            const newId = "npc_" + Date.now();
+            const newNpc = {
+                id: newId,
+                name: "New NPC",
+                is_unique: false,
+                npc_type: "CONSUMER",
+                social_class: "Peasant",
+                is_romanceable: false,
+                likes: [],
+                dislikes: [],
+                interior_name: "",
+                home_building_id: "",
+                quests: [],
+                spawn_settlement: ""
+            };
+            dbState.npcs.push(newNpc);
+            modifiedState.npcs[newId] = { ...newNpc };
+            updateChangesBar();
+            renderNpcsTable(searchInput.value.toLowerCase());
+        }
+
+        function deleteNpcRow(nid) {
+            if (confirm(`Are you sure you want to delete NPC "${nid}"?`)) {
+                dbState.npcs = dbState.npcs.filter(n => n.id !== nid);
+                delete modifiedState.npcs[nid];
+                modifiedState.npcs["__deleted__" + nid] = { deleted: true };
+                updateChangesBar();
+                renderNpcsTable(searchInput.value.toLowerCase());
+            }
+        }
+
+        // Tab 2.5: Render NPCs
+        function renderNpcsTable(search) {
+            dataThead.innerHTML = `
+                <tr>
+                    <th style="width:120px;">ID</th>
+                    <th style="width:140px;">Name</th>
+                    <th style="width:75px; text-align:center;">Unique?</th>
+                    <th style="width:140px;">Role/Type</th>
+                    <th style="width:100px;">Class</th>
+                    <th style="width:75px; text-align:center;">Romance?</th>
+                    <th style="width:160px;">Gift Likes</th>
+                    <th style="width:160px;">Linked Quests</th>
+                    <th style="width:140px;">Spawn Sett.</th>
+                    <th style="width:180px;">Interior Anchor</th>
+                    <th style="width:130px;">Home House ID</th>
+                    <th style="width:150px;">Dialogue Key</th>
+                    <th style="width:75px; text-align:center;">Actions</th>
+                </tr>
+            `;
+
+            bindSortHeaders();
+
+            let filtered = dbState.npcs.filter(n => !n.deleted);
+            if (search) {
+                filtered = filtered.filter(n => {
+                    return (n.id && n.id.toLowerCase().includes(search)) ||
+                        (n.name && n.name.toLowerCase().includes(search));
+                });
+            }
+
+            document.getElementById('items-count-badge').textContent = filtered.length;
+
+            filtered.forEach(npc => {
+                const nid = npc.id;
+                const mods = modifiedState.npcs[nid] || {};
+                const getValue = (f) => mods.hasOwnProperty(f) ? mods[f] : npc[f];
+
+                const tr = document.createElement('tr');
+                if (Object.keys(mods).length > 0) tr.className = 'modified-row';
+
+                // Gift likes multiselect
+                let npcLikes = getValue('likes') || [];
+                if (typeof npcLikes === 'string') {
+                    npcLikes = npcLikes.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                let likesSelect = `<select class="table-select" multiple style="height: 55px;" onchange="onNpcMultiChange('${nid}', 'likes', this)">`;
+                if (dbState.items) {
+                    dbState.items.forEach(item => {
+                        const isSel = npcLikes.includes(item.id) ? 'selected' : '';
+                        likesSelect += `<option value="${item.id}" ${isSel}>${item.name || item.id}</option>`;
+                    });
+                }
+                likesSelect += `</select>`;
+
+                // Quests multiselect
+                let npcQuests = getValue('quests') || [];
+                if (typeof npcQuests === 'string') {
+                    npcQuests = npcQuests.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                let questsSelect = `<select class="table-select" multiple style="height: 55px;" onchange="onNpcMultiChange('${nid}', 'quests', this)">`;
+                if (dbState.quests) {
+                    dbState.quests.forEach(q => {
+                        if (q.id && !q.deleted) {
+                            const isSel = npcQuests.includes(q.id) ? 'selected' : '';
+                            questsSelect += `<option value="${q.id}" ${isSel}>${q.title || q.id}</option>`;
+                        }
+                    });
+                }
+                questsSelect += `</select>`;
+
+                tr.innerHTML = `
+                    <td class="${mods.hasOwnProperty('id') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('id') || '')}" onchange="onNpcIdChange('${nid}', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('name') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('name') || '')}" onchange="onNpcFieldChange('${nid}', 'name', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_unique') ? 'modified-cell' : ''}" style="text-align:center;">
+                        <input type="checkbox" ${getValue('is_unique') ? 'checked' : ''} onchange="onNpcFieldChange('${nid}', 'is_unique', this.checked)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('npc_type') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onNpcFieldChange('${nid}', 'npc_type', this.value)">
+                            <option value="CONSUMER" ${getValue('npc_type') === 'CONSUMER' ? 'selected' : ''}>CONSUMER</option>
+                            <option value="EMPLOYEE" ${getValue('npc_type') === 'EMPLOYEE' ? 'selected' : ''}>EMPLOYEE</option>
+                            <option value="RELATION_TARGET" ${getValue('npc_type') === 'RELATION_TARGET' ? 'selected' : ''}>RELATION_TARGET</option>
+                            <option value="STATIC" ${getValue('npc_type') === 'STATIC' ? 'selected' : ''}>STATIC</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('social_class') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onNpcFieldChange('${nid}', 'social_class', this.value)">
+                            <option value="Peasant" ${getValue('social_class') === 'Peasant' ? 'selected' : ''}>Peasant</option>
+                            <option value="Citizen" ${getValue('social_class') === 'Citizen' ? 'selected' : ''}>Citizen</option>
+                            <option value="Noble" ${getValue('social_class') === 'Noble' ? 'selected' : ''}>Noble</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('is_romanceable') ? 'modified-cell' : ''}" style="text-align:center;">
+                        <input type="checkbox" ${getValue('is_romanceable') ? 'checked' : ''} onchange="onNpcFieldChange('${nid}', 'is_romanceable', this.checked)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('likes') ? 'modified-cell' : ''}">
+                        ${likesSelect}
+                    </td>
+                    <td class="${mods.hasOwnProperty('quests') ? 'modified-cell' : ''}">
+                        ${questsSelect}
+                    </td>
+                    <td class="${mods.hasOwnProperty('spawn_settlement') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onNpcFieldChange('${nid}', 'spawn_settlement', this.value)">
+                            <option value="" ${getValue('spawn_settlement') === '' ? 'selected' : ''}>None</option>
+                            <option value="ValleyCity" ${getValue('spawn_settlement') === 'ValleyCity' ? 'selected' : ''}>ValleyCity</option>
+                            <option value="Oakville" ${getValue('spawn_settlement') === 'Oakville' ? 'selected' : ''}>Oakville</option>
+                            <option value="Mineville" ${getValue('spawn_settlement') === 'Mineville' ? 'selected' : ''}>Mineville</option>
+                            <option value="OakhavenCity" ${getValue('spawn_settlement') === 'OakhavenCity' ? 'selected' : ''}>OakhavenCity</option>
+                            <option value="Riverton" ${getValue('spawn_settlement') === 'Riverton' ? 'selected' : ''}>Riverton</option>
+                            <option value="Pinewood" ${getValue('spawn_settlement') === 'Pinewood' ? 'selected' : ''}>Pinewood</option>
+                            <option value="HighlandCity" ${getValue('spawn_settlement') === 'HighlandCity' ? 'selected' : ''}>HighlandCity</option>
+                            <option value="Stonebridge" ${getValue('spawn_settlement') === 'Stonebridge' ? 'selected' : ''}>Stonebridge</option>
+                            <option value="Clayton" ${getValue('spawn_settlement') === 'Clayton' ? 'selected' : ''}>Clayton</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('interior_name') ? 'modified-cell' : ''}">
+                        <select class="table-select" onchange="onNpcFieldChange('${nid}', 'interior_name', this.value)">
+                            <option value="" ${getValue('interior_name') === '' ? 'selected' : ''}>None</option>
+                            <option value="Int_City_A_Guild_Tailor" ${getValue('interior_name') === 'Int_City_A_Guild_Tailor' ? 'selected' : ''}>Int_City_A_Guild_Tailor</option>
+                            <option value="Int_City_A_Guild_Scholar" ${getValue('interior_name') === 'Int_City_A_Guild_Scholar' ? 'selected' : ''}>Int_City_A_Guild_Scholar</option>
+                            <option value="Int_City_A_Guild_Patreon" ${getValue('interior_name') === 'Int_City_A_Guild_Patreon' ? 'selected' : ''}>Int_City_A_Guild_Patreon</option>
+                            <option value="Int_City_A_Guild_Noble" ${getValue('interior_name') === 'Int_City_A_Guild_Noble' ? 'selected' : ''}>Int_City_A_Guild_Noble</option>
+                            <option value="Int_City_A_Guild_Craftsman" ${getValue('interior_name') === 'Int_City_A_Guild_Craftsman' ? 'selected' : ''}>Int_City_A_Guild_Craftsman</option>
+                        </select>
+                    </td>
+                    <td class="${mods.hasOwnProperty('home_building_id') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('home_building_id') || '')}" onchange="onNpcFieldChange('${nid}', 'home_building_id', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('dialogue_key') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('dialogue_key') || '')}" onchange="onNpcFieldChange('${nid}', 'dialogue_key', this.value)" placeholder="e.g. mayor_greeting">
+                    </td>
+                    <td style="text-align:center;">
+                        <button class="desc-edit-btn" style="background-color: var(--accent-red); color: white; padding: 4px 8px;" onclick="deleteNpcRow('${nid}')">Delete</button>
+                    </td>
+                `;
+                dataTbody.appendChild(tr);
+            });
+        }
+
+        // Tab 7: Render Dialogues
+        function renderDialoguesTable(search) {
+            dataThead.innerHTML = `
+                <tr>
+                    <th style="width:250px;">Dialogue Key</th>
+                    <th style="width:500px;">Pages / Text (One line per page)</th>
+                    <th style="width:100px; text-align:center;">Actions</th>
+                </tr>
+            `;
+            
+            bindSortHeaders();
+
+            // Transform dialogue object {key: [pages]} to flat array for rendering
+            let dialoguesList = [];
+            for (const key in dbState.dialogues) {
+                if (key.startsWith("__deleted__")) continue;
+                dialoguesList.push({
+                    key: key,
+                    pages: dbState.dialogues[key]
+                });
+            }
+
+            if (search) {
+                dialoguesList = dialoguesList.filter(d => {
+                    return d.key.toLowerCase().includes(search) || 
+                        d.pages.some(p => p.toLowerCase().includes(search));
+                });
+            }
+
+            // Sort by key
+            dialoguesList.sort((a, b) => a.key.localeCompare(b.key));
+
+            document.getElementById('items-count-badge').textContent = dialoguesList.length;
+
+            dialoguesList.forEach(dialogue => {
+                const key = dialogue.key;
+                const mods = modifiedState.dialogues[key] || {};
+                
+                const getPagesValue = () => {
+                    if (mods.hasOwnProperty('pages')) {
+                        return mods.pages;
+                    }
+                    return dialogue.pages;
+                };
+
+                const pagesText = getPagesValue().join('\n');
+
+                const tr = document.createElement('tr');
+                if (Object.keys(mods).length > 0) tr.className = 'modified-row';
+
+                tr.innerHTML = `
+                    <td class="${mods.hasOwnProperty('key') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(key)}" onchange="onDialogueKeyChange('${key}', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('pages') ? 'modified-cell' : ''}">
+                        <textarea class="table-input" style="height:60px; font-family:inherit; resize:vertical; padding:6px;" onchange="onDialoguePagesChange('${key}', this.value)">${escapeHtml(pagesText)}</textarea>
+                    </td>
+                    <td style="text-align:center;">
+                        <button class="desc-edit-btn" style="background-color: var(--accent-red); color: white; padding: 4px 8px;" onclick="deleteDialogueRow('${key}')">Delete</button>
+                    </td>
+                `;
+                dataTbody.appendChild(tr);
+            });
+        }
+
+        function addDialogueRow() {
+            const newKey = `dialogue_new_${Date.now()}`;
+            dbState.dialogues[newKey] = ["Welcome traveler.", "Page 2 text here."];
+            modifiedState.dialogues[newKey] = { key: newKey, pages: ["Welcome traveler.", "Page 2 text here."] };
+            updateChangesBar();
+            renderDialoguesTable(searchInput.value.toLowerCase());
+        }
+
+        function deleteDialogueRow(key) {
+            if (confirm(`Are you sure you want to delete dialogue key "${key}"?`)) {
+                delete dbState.dialogues[key];
+                delete modifiedState.dialogues[key];
+                modifiedState.dialogues["__deleted__" + key] = { deleted: true };
+                updateChangesBar();
+                renderDialoguesTable(searchInput.value.toLowerCase());
+            }
+        }
+
+        function onDialogueKeyChange(oldKey, newKey) {
+            newKey = newKey.trim();
+            if (newKey === "") return;
+            if (dbState.dialogues.hasOwnProperty(newKey) && newKey !== oldKey) {
+                alert("Dialogue key already exists!");
+                renderDialoguesTable(searchInput.value.toLowerCase());
+                return;
+            }
+
+            const val = dbState.dialogues[oldKey];
+            delete dbState.dialogues[oldKey];
+            dbState.dialogues[newKey] = val;
+
+            if (modifiedState.dialogues[oldKey]) {
+                modifiedState.dialogues[newKey] = modifiedState.dialogues[oldKey];
+                delete modifiedState.dialogues[oldKey];
+            } else {
+                modifiedState.dialogues[newKey] = { pages: val };
+            }
+            modifiedState.dialogues[newKey].key = newKey;
+
+            updateChangesBar();
+            renderDialoguesTable(searchInput.value.toLowerCase());
+        }
+
+        function onDialoguePagesChange(key, textValue) {
+            const pages = textValue.split('\n').map(s => s.trim()).filter(Boolean);
+            const originalVal = dbState.dialogues[key] || [];
+
+            // Check if changed pages matches original
+            let isModified = false;
+            if (pages.length !== originalVal.length) {
+                isModified = true;
+            } else {
+                for (let i = 0; i < pages.length; i++) {
+                    if (pages[i] !== originalVal[i]) {
+                        isModified = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isModified) {
+                if (!modifiedState.dialogues[key]) {
+                    modifiedState.dialogues[key] = {};
+                }
+                modifiedState.dialogues[key].pages = pages;
+            } else {
+                if (modifiedState.dialogues[key]) {
+                    delete modifiedState.dialogues[key].pages;
+                    if (Object.keys(modifiedState.dialogues[key]).length === 0) {
+                        delete modifiedState.dialogues[key];
+                    }
+                }
+            }
+
+            updateChangesBar();
+            renderDialoguesTable(searchInput.value.toLowerCase());
+        }
+
+        // Tab 8: Render Traits
+        function renderTraitsTable(search) {
+            dataThead.innerHTML = `
+                <tr>
+                    <th style="width:150px;">Trait ID</th>
+                    <th style="width:150px;">Display Name</th>
+                    <th style="width:200px;">Dialog Key</th>
+                    <th style="width:130px;">Speed Multiplier</th>
+                    <th style="width:300px;">Description</th>
+                    <th style="width:100px; text-align:center;">Actions</th>
+                </tr>
+            `;
+            
+            bindSortHeaders();
+
+            let traitsList = [];
+            for (const key in dbState.traits) {
+                if (key.startsWith("__deleted__")) continue;
+                traitsList.push({
+                    key: key,
+                    name: dbState.traits[key].name || '',
+                    dialogue_key: dbState.traits[key].dialogue_key || '',
+                    speed_multiplier: dbState.traits[key].speed_multiplier !== undefined ? dbState.traits[key].speed_multiplier : 1.0,
+                    description: dbState.traits[key].description || ''
+                });
+            }
+
+            if (search) {
+                traitsList = traitsList.filter(t => {
+                    return t.key.toLowerCase().includes(search) || 
+                        t.name.toLowerCase().includes(search) || 
+                        t.description.toLowerCase().includes(search);
+                });
+            }
+
+            traitsList.sort((a, b) => a.key.localeCompare(b.key));
+
+            document.getElementById('items-count-badge').textContent = traitsList.length;
+
+            traitsList.forEach(trait => {
+                const key = trait.key;
+                const mods = modifiedState.traits[key] || {};
+                
+                const getValue = (field, def) => {
+                    if (mods.hasOwnProperty(field)) return mods[field];
+                    return dbState.traits[key].hasOwnProperty(field) ? dbState.traits[key][field] : def;
+                };
+
+                const tr = document.createElement('tr');
+                if (Object.keys(mods).length > 0) tr.className = 'modified-row';
+
+                tr.innerHTML = `
+                    <td class="${mods.hasOwnProperty('id') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(key)}" onchange="onTraitKeyChange('${key}', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('name') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('name', ''))}" onchange="onTraitFieldChange('${key}', 'name', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('dialogue_key') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('dialogue_key', ''))}" onchange="onTraitFieldChange('${key}', 'dialogue_key', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('speed_multiplier') ? 'modified-cell' : ''}">
+                        <input type="number" class="table-input" step="0.05" value="${getValue('speed_multiplier', 1.0)}" onchange="onTraitFieldChange('${key}', 'speed_multiplier', this.value)">
+                    </td>
+                    <td class="${mods.hasOwnProperty('description') ? 'modified-cell' : ''}">
+                        <input type="text" class="table-input" value="${escapeHtml(getValue('description', ''))}" onchange="onTraitFieldChange('${key}', 'description', this.value)">
+                    </td>
+                    <td style="text-align:center;">
+                        <button class="desc-edit-btn" style="background-color: var(--accent-red); color: white; padding: 4px 8px;" onclick="deleteTraitRow('${key}')">Delete</button>
+                    </td>
+                `;
+                dataTbody.appendChild(tr);
+            });
+        }
+
+        function addTraitRow() {
+            const newKey = `Trait_new_${Date.now()}`;
+            const newTrait = { id: newKey, name: "New Trait", dialogue_key: "", speed_multiplier: 1.0, description: "" };
+            dbState.traits[newKey] = newTrait;
+            modifiedState.traits[newKey] = { ...newTrait };
+            updateChangesBar();
+            renderTraitsTable(searchInput.value.toLowerCase());
+        }
+
+        function deleteTraitRow(key) {
+            if (confirm(`Are you sure you want to delete trait "${key}"?`)) {
+                delete dbState.traits[key];
+                delete modifiedState.traits[key];
+                modifiedState.traits["__deleted__" + key] = { deleted: true };
+                updateChangesBar();
+                renderTraitsTable(searchInput.value.toLowerCase());
+            }
+        }
+
+        function onTraitKeyChange(oldKey, newKey) {
+            newKey = newKey.trim();
+            if (newKey === "") return;
+            if (dbState.traits.hasOwnProperty(newKey) && newKey !== oldKey) {
+                alert("Trait ID already exists!");
+                renderTraitsTable(searchInput.value.toLowerCase());
+                return;
+            }
+
+            const val = dbState.traits[oldKey];
+            val.id = newKey;
+            delete dbState.traits[oldKey];
+            dbState.traits[newKey] = val;
+
+            if (modifiedState.traits[oldKey]) {
+                modifiedState.traits[newKey] = modifiedState.traits[oldKey];
+                delete modifiedState.traits[oldKey];
+            } else {
+                modifiedState.traits[newKey] = { ...val };
+            }
+            modifiedState.traits[newKey].id = newKey;
+
+            updateChangesBar();
+            renderTraitsTable(searchInput.value.toLowerCase());
+        }
+
+        function onTraitFieldChange(key, field, value) {
+            const originalVal = dbState.traits[key] ? dbState.traits[key][field] : undefined;
+            if (field === 'speed_multiplier') {
+                value = Number(value);
+            }
+
+            if (originalVal !== value) {
+                if (!modifiedState.traits[key]) {
+                    modifiedState.traits[key] = {};
+                }
+                modifiedState.traits[key][field] = value;
+            } else {
+                if (modifiedState.traits[key]) {
+                    delete modifiedState.traits[key][field];
+                    if (Object.keys(modifiedState.traits[key]).length === 0) {
+                        delete modifiedState.traits[key];
+                    }
+                }
+            }
+
+            updateChangesBar();
+            renderTraitsTable(searchInput.value.toLowerCase());
         }
 
         // Tab 3: Render Laws
@@ -2011,7 +2738,8 @@
                     quests: {},
                     laws: {},
                     prosperity: {},
-                    balance: {}
+                    balance: {},
+                    npcs: {}
                 };
                 updateChangesBar();
                 if (activeTab === 'prosperity') {
@@ -2047,10 +2775,15 @@
 
             // 3. Group Quests changes
             for (const [qid, updates] of Object.entries(modifiedState.quests)) {
-                const orig = dbState.quests.find(x => x.item_id === qid);
+                if (qid.startsWith("__deleted__")) {
+                    hasChanges = true;
+                    appendDiffUI(`Quest Deleted: ${qid.replace("__deleted__", "")}`, "quests.json", { deleted: true }, { deleted: false });
+                    continue;
+                }
+                const orig = dbState.quests.find(x => x.id === qid);
                 if (!orig) continue;
                 hasChanges = true;
-                appendDiffUI(`Quest: Deliver ${orig.item_name}`, "quest_templates.json", updates, orig);
+                appendDiffUI(`Quest: ${orig.title}`, "quests.json", updates, orig);
             }
 
             // 4. Group Prosperity thresholds changes
@@ -2067,6 +2800,45 @@
                 const updates = modifiedState.balance["config"];
                 const orig = dbState.balance;
                 appendDiffUI("Balance Constants", "game_balance_config.json", updates, orig);
+            }
+
+            // 6. Group NPCs changes
+            for (const [nid, updates] of Object.entries(modifiedState.npcs)) {
+                if (nid.startsWith("__deleted__")) {
+                    hasChanges = true;
+                    appendDiffUI(`NPC Deleted: ${nid.replace("__deleted__", "")}`, "npcs.json", { deleted: true }, { deleted: false });
+                    continue;
+                }
+                const orig = dbState.npcs.find(x => x.id === nid);
+                if (!orig) continue;
+                hasChanges = true;
+                appendDiffUI(`NPC: ${orig.name || orig.id}`, "npcs.json", updates, orig);
+            }
+
+            // 7. Group Dialogues changes
+            for (const [key, updates] of Object.entries(modifiedState.dialogues)) {
+                if (key.startsWith("__deleted__")) {
+                    hasChanges = true;
+                    appendDiffUI(`Dialogue Deleted: ${key.replace("__deleted__", "")}`, "dialogues.json", { deleted: true }, { deleted: false });
+                    continue;
+                }
+                const orig = dbState.dialogues[key];
+                hasChanges = true;
+                const origLabel = orig ? orig.join(' | ') : '(not set)';
+                const newLabel = updates.pages ? updates.pages.join(' | ') : origLabel;
+                appendDiffUI(`Dialogue: ${key}`, "dialogues.json", { pages: newLabel }, { pages: origLabel });
+            }
+
+            // 8. Group Traits changes
+            for (const [key, updates] of Object.entries(modifiedState.traits)) {
+                if (key.startsWith("__deleted__")) {
+                    hasChanges = true;
+                    appendDiffUI(`Trait Deleted: ${key.replace("__deleted__", "")}`, "traits.json", { deleted: true }, { deleted: false });
+                    continue;
+                }
+                const orig = dbState.traits[key];
+                hasChanges = true;
+                appendDiffUI(`Trait: ${key}`, "traits.json", updates, orig || {});
             }
 
             if (!hasChanges) {
@@ -2142,13 +2914,18 @@
 
                 // 3. Save Quests JSON
                 if (Object.keys(modifiedState.quests).length > 0) {
-                    // Gather full quest templates lists, merging local updates
-                    const fullList = dbState.quests.map(quest => {
-                        const qid = quest.item_id;
+                    // Gather full quest lists, merging local updates, excluding deleted ones
+                    const fullList = dbState.quests.filter(q => !q.deleted).map(quest => {
+                        const qid = quest.id;
                         const updates = modifiedState.quests[qid] || {};
                         return { ...quest, ...updates };
                     });
-                    await postData('/api/quests/save', fullList);
+                    // Strip the deleted key helper if any
+                    const sanitizedList = fullList.map(q => {
+                        const { deleted, ...rest } = q;
+                        return rest;
+                    });
+                    await postData('/api/quests/save', sanitizedList);
                 }
 
                 // 4. Save Prosperity thresholds JSON
@@ -2163,6 +2940,43 @@
                     await postData('/api/balance/save', payload);
                 }
 
+                // 6. Save NPCs JSON
+                if (Object.keys(modifiedState.npcs).length > 0) {
+                    const fullList = dbState.npcs.filter(n => !n.deleted).map(npc => {
+                        const nid = npc.id;
+                        const updates = modifiedState.npcs[nid] || {};
+                        return { ...npc, ...updates };
+                    });
+                    const sanitizedList = fullList.map(n => {
+                        const { deleted, ...rest } = n;
+                        return rest;
+                    });
+                    await postData('/api/npcs/save', sanitizedList);
+                }
+
+                // 7. Save Dialogues JSON
+                if (Object.keys(modifiedState.dialogues).length > 0) {
+                    const fullDict = {};
+                    for (const key in dbState.dialogues) {
+                        if (key.startsWith("__deleted__")) continue;
+                        const updates = modifiedState.dialogues[key] || {};
+                        const val = updates.pages || dbState.dialogues[key];
+                        fullDict[key] = val;
+                    }
+                    await postData('/api/dialogues/save', fullDict);
+                }
+
+                // 8. Save Traits JSON
+                if (Object.keys(modifiedState.traits).length > 0) {
+                    const fullDict = {};
+                    for (const key in dbState.traits) {
+                        if (key.startsWith("__deleted__")) continue;
+                        const updates = modifiedState.traits[key] || {};
+                        fullDict[key] = { ...dbState.traits[key], ...updates };
+                    }
+                    await postData('/api/traits/save', fullDict);
+                }
+
                 showToast('Successfully wrote all changes to Godot resource files & configs.', 'success');
                 closeApprovalModal();
                 
@@ -2172,7 +2986,10 @@
                     quests: {},
                     laws: {},
                     prosperity: {},
-                    balance: {}
+                    balance: {},
+                    npcs: {},
+                    dialogues: {},
+                    traits: {}
                 };
 
                 // Re-fetch to sync

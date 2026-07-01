@@ -148,6 +148,21 @@ func _ready() -> void:
 	_setup_button_hover(ring_slot)
 	_setup_button_hover(trans_slot)
 	
+	# Register ScrollContainers for automatic scrolling focus
+	var scroll_outlets = [
+		%InventoryGrid.get_parent(),
+		%BusinessScrollList.get_parent(),
+		%OpponentsScrollList.get_parent()
+	]
+	if has_node("Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Personal Home/ScrollContainer"):
+		scroll_outlets.append(get_node("Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Personal Home/ScrollContainer"))
+	if has_node("Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Business/ScrollContainer"):
+		scroll_outlets.append(get_node("Control/Control_Windows/BuildMenu_Window/VBox/BuildTabContainer/Business/ScrollContainer"))
+		
+	for scroll in scroll_outlets:
+		if scroll is ScrollContainer:
+			UIFocusHelper.register_scroll_container(scroll)
+			
 	# Hide all sub-menus and overlays initially
 	interact_prompt.hide()
 	windows_container.hide()
@@ -204,9 +219,14 @@ func _ready() -> void:
 		if btn is Button:
 			btn.focus_mode = Control.FOCUS_NONE
 			btn.pressed.connect(func():
+				if inventory_manager and inventory_manager.context_popup:
+					inventory_manager.context_popup.hide()
 				windows_container.hide()
 				for child in windows_container.get_children():
-					(child as Control).hide()
+					var c = child as Control
+					if c.visible:
+						GameState.unregister_window(c)
+					c.hide()
 				if _active_player:
 					_active_player.unfreeze()
 				var focused = get_viewport().gui_get_focus_owner()
@@ -400,6 +420,10 @@ func toggle_window(window: PanelContainer) -> void:
 
 	if window.visible:
 		# Close window
+		GameState.unregister_window(window)
+		if window == inventory_window:
+			if inventory_manager and inventory_manager.context_popup:
+				inventory_manager.context_popup.hide()
 		if window.has_method("_close_levels_overlay"):
 			window.call("_close_levels_overlay")
 		window.hide()
@@ -416,9 +440,13 @@ func toggle_window(window: PanelContainer) -> void:
 		# Hide others
 		windows_container.show()
 		for child in windows_container.get_children():
-			(child as Control).hide()
+			var c = child as Control
+			if c.visible:
+				GameState.unregister_window(c)
+			c.hide()
 			
 		window.show()
+		GameState.register_window(window, func(): toggle_window(window))
 		
 		# Pause state management
 		if window == pause_window:
@@ -478,6 +506,12 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		var pm = get_tree().get_first_node_in_group("PlacementManager") as Node2D
 		var pm_active: bool = pm and pm.has_method("is_placement_active") and pm.call("is_placement_active")
+		if pm_active:
+			return
+			
+		if GameState.pop_and_close_top_window():
+			get_viewport().set_input_as_handled()
+			return
 		if pm_active:
 			return
 			
@@ -663,38 +697,74 @@ func open_quest_board_ui(region_name: String) -> void:
 	if windows_container:
 		windows_container.show()
 		for child in windows_container.get_children():
-			(child as Control).hide()
+			var c = child as Control
+			if c.visible:
+				GameState.unregister_window(c)
+			c.hide()
 			
 	if not quest_board_ui_instance:
 		quest_board_ui_instance = quest_board_ui_scene.instantiate() as PanelContainer
 		windows_container.add_child(quest_board_ui_instance)
+		quest_board_ui_instance.visibility_changed.connect(func():
+			if not quest_board_ui_instance.visible:
+				GameState.unregister_window(quest_board_ui_instance)
+		)
 		
 	quest_board_ui_instance.call("open", region_name)
+	GameState.register_window(quest_board_ui_instance, func():
+		quest_board_ui_instance.hide()
+		if _active_player:
+			_active_player.unfreeze()
+	)
 
 func open_lawhouse_ui(province_name: String) -> void:
 	if windows_container:
 		windows_container.show()
 		for child in windows_container.get_children():
-			(child as Control).hide()
+			var c = child as Control
+			if c.visible:
+				GameState.unregister_window(c)
+			c.hide()
 			
 	if not lawhouse_ui_instance:
 		lawhouse_ui_instance = lawhouse_ui_scene.instantiate() as PanelContainer
 		windows_container.add_child(lawhouse_ui_instance)
+		lawhouse_ui_instance.visibility_changed.connect(func():
+			if not lawhouse_ui_instance.visible:
+				GameState.unregister_window(lawhouse_ui_instance)
+		)
 		
 	lawhouse_ui_instance.call("open", province_name)
+	GameState.register_window(lawhouse_ui_instance, func():
+		lawhouse_ui_instance.hide()
+		if _active_player:
+			_active_player.unfreeze()
+	)
 
 func open_guild_ui(province_name: String, tab_name: String = "") -> void:
 	if windows_container:
 		windows_container.show()
 		for child in windows_container.get_children():
-			(child as Control).hide()
+			var c = child as Control
+			if c.visible:
+				GameState.unregister_window(c)
+			c.hide()
 			
 	if not is_instance_valid(guild_ui_instance):
 		guild_ui_instance = PanelContainer.new()
 		guild_ui_instance.set_script(preload("res://UI/guild_panel.gd"))
 		windows_container.add_child(guild_ui_instance)
+		guild_ui_instance.visibility_changed.connect(func():
+			if not guild_ui_instance.visible:
+				GameState.unregister_window(guild_ui_instance)
+		)
 		
 	guild_ui_instance.call("open", province_name, tab_name)
+	GameState.register_window(guild_ui_instance, func():
+		guild_ui_instance.hide()
+		if _active_player:
+			_active_player.unfreeze()
+	)
 
 func update_hud_values() -> void:
 	if gold_label:
@@ -815,10 +885,12 @@ func open_market(stall: CollisionObject2D) -> void:
 		if _active_player:
 			_active_player.freeze()
 		interact_prompt.hide()
+		GameState.register_window(market_ui, func(): close_market())
 
 func close_market() -> void:
 	if market_ui:
 		market_ui.hide()
+		GameState.unregister_window(market_ui)
 		if _active_player:
 			_active_player.unfreeze()
 		update_interaction_prompt()
@@ -830,10 +902,12 @@ func open_crafting(bench: CraftingBench) -> void:
 		if _active_player:
 			_active_player.freeze()
 		interact_prompt.hide()
+		GameState.register_window(crafting_ui, func(): close_crafting())
 
 func close_crafting() -> void:
 	if crafting_ui:
 		crafting_ui.hide()
+		GameState.unregister_window(crafting_ui)
 		if _active_player:
 			_active_player.unfreeze()
 		update_interaction_prompt()
@@ -851,12 +925,14 @@ func open_building_ui(building: Node2D) -> void:
 		if _active_player:
 			_active_player.freeze()
 		interact_prompt.hide()
+		GameState.register_window(_building_ui_instance, func(): close_building_ui())
 
 func close_building_ui() -> void:
 	if _building_ui_instance:
 		var focused = get_viewport().gui_get_focus_owner()
 		if focused:
 			focused.release_focus()
+		GameState.unregister_window(_building_ui_instance)
 		_building_ui_instance.queue_free()
 		_building_ui_instance = null
 		if _active_player:
@@ -928,7 +1004,7 @@ func update_interaction_prompt() -> void:
 					text = "Locked (NPC Owned) | [R] Buy (%d G)" % npc_buy_cost
 				else:
 					text = "Locked. Opponent property."
-				var is_workshop: bool = interactable.is_in_group("Bakeries") or interactable.is_in_group("Smelters") or interactable.is_in_group("Inns") or interactable.is_in_group("Looms") or interactable.is_in_group("Mills") or interactable.is_in_group("PaperMakers") or interactable.is_in_group("PrintingPresses") or interactable.is_in_group("Banks") or interactable.is_in_group("MarketStall")
+				var is_workshop: bool = interactable.is_in_group("production_buildings") or interactable.is_in_group("MarketStall")
 				if is_workshop and interactable.has_method("get_interaction_text"):
 					var prompt_text: String = interactable.call("get_interaction_text")
 					if prompt_text == "":
@@ -1026,6 +1102,7 @@ func open_commercial_routes_ui() -> void:
 	if route_ui_scene:
 		_commercial_route_ui_instance = route_ui_scene.instantiate() as Control
 		add_child(_commercial_route_ui_instance)
+		GameState.register_window(_commercial_route_ui_instance, func(): close_commercial_routes_ui())
 			
 		if _active_player:
 			_active_player.freeze()
@@ -1034,6 +1111,7 @@ func open_commercial_routes_ui() -> void:
 
 func close_commercial_routes_ui() -> void:
 	if _commercial_route_ui_instance:
+		GameState.unregister_window(_commercial_route_ui_instance)
 		_commercial_route_ui_instance.queue_free()
 		_commercial_route_ui_instance = null
 		if _active_player:

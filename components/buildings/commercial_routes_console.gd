@@ -17,7 +17,7 @@ func _on_body_exited(body: Node2D) -> void:
 func get_interaction_text() -> String:
 	return "Open Commercial Routes Console"
 
-func interact(player: CharacterBody2D) -> void:
+func interact(_player: CharacterBody2D) -> void:
 	print("[RoutesConsole] Player interacted! Opening UI...")
 	var hud = get_tree().get_first_node_in_group("PlayerHUD")
 	if not hud:

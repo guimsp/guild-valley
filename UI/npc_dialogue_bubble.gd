@@ -78,7 +78,17 @@ func start_dialogue(npc: Node2D, npc_name: String, msg_list: Array, on_complete:
 
 func _show_page(page: int) -> void:
 	current_page = page
-	content_label.text = messages[page]
+	
+	var raw_text = messages[page]
+	if is_instance_valid(target_npc):
+		var token_map = {
+			"npc_name": target_npc.npc_name if "npc_name" in target_npc else target_npc.name,
+			"npc_rank": target_npc.npc_rank if "npc_rank" in target_npc else "",
+			"city_name": target_npc.hometown if "hometown" in target_npc else ""
+		}
+		raw_text = raw_text.format(token_map)
+		
+	content_label.text = raw_text
 	
 	var total_pages = messages.size()
 	if total_pages > 1:

@@ -7,7 +7,7 @@ extends PanelContainer
 @onready var craft_button: Button = %CraftButton
 @onready var progress_bar: ProgressBar = %ProgressBar
 @onready var xp_popup_label: Label = %XPPopupLabel
-@onready var close_button: Button = %CloseButton
+@onready var close_button: Button = get_node_or_null("%CloseButton")
 @onready var bottom_close_button: Button = %BottomCloseButton
 
 var _current_bench: CraftingBench = null
@@ -16,6 +16,10 @@ var _is_crafting: bool = false
 var _continuous_crafting: bool = false
 
 func _ready() -> void:
+	var recipe_scroll = get_node_or_null("MarginContainer/VBoxContainer/Columns/RecipeSidebar/ScrollContainer") as ScrollContainer
+	if recipe_scroll:
+		UIFocusHelper.register_scroll_container(recipe_scroll)
+		
 	if close_button:
 		close_button.pressed.connect(close)
 		_setup_button_hover(close_button)

@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/parchment_sheet.tres" id="2_parchment"]
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/velvet_padding.tres" id="3_velvet"]
-[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/trade_passport.tres" id="4_passport"]
 
 [resource]
 script = ExtResource("1_script")
@@ -14,6 +13,6 @@ inputs = {
 ExtResource("2_parchment"): 2,
 ExtResource("3_velvet"): 1
 }
-output_item = ExtResource("4_passport")
 output_amount = 1
 xp_reward = 65
+is_event = true

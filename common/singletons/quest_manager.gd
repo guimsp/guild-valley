@@ -2,238 +2,230 @@ extends Node
 
 signal quests_updated
 
-# Dictionary of region_name -> Array of quest Dictionaries
-var active_quests: Dictionary = {
-	"Valley Province": [],
-	"Oakhaven Province": []
-}
 
-# Array of quest Dictionaries accepted by player
-var accepted_quests: Array = []
+# State arrays
+var locked_quests: Array[Resource] = []
+var active_quests_list: Array[Resource] = []
+var completed_quest_ids: Array[String] = []
 
-# Completed quest count
+# Master list of loaded quests
+var all_quests: Array[Resource] = []
+var quest_map: Dictionary = {}
+
+# Dictionary of available board quests (keeps 100% compatibility with Quest Board UI)
+var active_quests: Dictionary = {}
+
+func initialize_quest_states(provinces: Array[String]) -> void:
+	active_quests.clear()
+	for prov in provinces:
+		active_quests[prov] = []
+
+# Accepted quests array (keeps 100% compatibility with other UI grids/indicators)
+var accepted_quests: Array[Resource]:
+	get:
+		return active_quests_list
+	set(val):
+		active_quests_list = val
+
 var completed_quests_count: int = 0
-
-# Database of templates for random quest generation
-var quest_templates = [
-	{
-		"item_id": "iron_ore",
-		"item_name": "Iron Ore",
-		"base_amount": 10,
-		"base_reward": 180,
-		"due_days": 2,
-		"req_level": 1,
-		"difficulty": "Beginner"
-	},
-	{
-		"item_id": "wheat",
-		"item_name": "Wheat",
-		"base_amount": 15,
-		"base_reward": 120,
-		"due_days": 2,
-		"req_level": 1,
-		"difficulty": "Beginner"
-	},
-	{
-		"item_id": "cotton",
-		"item_name": "Cotton",
-		"base_amount": 12,
-		"base_reward": 150,
-		"due_days": 2,
-		"req_level": 1,
-		"difficulty": "Beginner"
-	},
-	{
-		"item_id": "flour",
-		"item_name": "Flour",
-		"base_amount": 8,
-		"base_reward": 200,
-		"due_days": 2,
-		"req_level": 2,
-		"difficulty": "Beginner"
-	},
-	{
-		"item_id": "cloth",
-		"item_name": "Cloth",
-		"base_amount": 8,
-		"base_reward": 250,
-		"due_days": 2,
-		"req_level": 2,
-		"difficulty": "Beginner"
-	},
-	{
-		"item_id": "iron_ingot",
-		"item_name": "Iron Ingot",
-		"base_amount": 5,
-		"base_reward": 300,
-		"due_days": 3,
-		"req_level": 3,
-		"difficulty": "Advanced"
-	},
-	{
-		"item_id": "oil",
-		"item_name": "Oil",
-		"base_amount": 6,
-		"base_reward": 240,
-		"due_days": 2,
-		"req_level": 3,
-		"difficulty": "Advanced"
-	},
-	{
-		"item_id": "paper",
-		"item_name": "Paper",
-		"base_amount": 12,
-		"base_reward": 220,
-		"due_days": 2,
-		"req_level": 3,
-		"difficulty": "Advanced"
-	},
-	{
-		"item_id": "bread",
-		"item_name": "Bread",
-		"base_amount": 8,
-		"base_reward": 350,
-		"due_days": 3,
-		"req_level": 4,
-		"difficulty": "Advanced"
-	},
-	{
-		"item_id": "book",
-		"item_name": "Book",
-		"base_amount": 4,
-		"base_reward": 400,
-		"due_days": 3,
-		"req_level": 4,
-		"difficulty": "Advanced"
-	},
-	{
-		"item_id": "ale",
-		"item_name": "Ale",
-		"base_amount": 6,
-		"base_reward": 320,
-		"due_days": 2,
-		"req_level": 4,
-		"difficulty": "Advanced"
-	},
-	{
-		"item_id": "meadhaven",
-		"item_name": "Meadhaven",
-		"base_amount": 5,
-		"base_reward": 380,
-		"due_days": 3,
-		"req_level": 5,
-		"difficulty": "Expert"
-	},
-	{
-		"item_id": "cured_pork",
-		"item_name": "Cured Pork",
-		"base_amount": 5,
-		"base_reward": 360,
-		"due_days": 2,
-		"req_level": 5,
-		"difficulty": "Expert"
-	},
-	{
-		"item_id": "sweet_berry_cake",
-		"item_name": "Sweet Berry Cake",
-		"base_amount": 3,
-		"base_reward": 450,
-		"due_days": 3,
-		"req_level": 5,
-		"difficulty": "Expert"
-	}
-]
-
 var last_checked_day: int = 1
 
 func _ready() -> void:
-	# Load templates from JSON if available
-	var file = FileAccess.open("res://common/singletons/quest_templates.json", FileAccess.READ)
-	if file:
-		var json_text = file.get_as_text()
-		var json = JSON.new()
-		var error = json.parse(json_text)
-		if error == OK:
-			if json.data is Array:
-				quest_templates = json.data
-			else:
-				print("[QuestManager] JSON data is not an Array, using defaults.")
-		else:
-			print("[QuestManager] Failed to parse quest_templates.json: ", json.get_error_message())
-	else:
-		print("[QuestManager] quest_templates.json not found, using default templates.")
-
+	initialize_quest_states(["Valley Province", "Oakhaven Province", "Highland Province"])
+	# Avoid race conditions: wait for autoload initialization
+	call_deferred("_initialize_quest_database")
 	TimeManager.time_changed.connect(_on_time_changed)
-	# Initial generation for Day 1
-	call_deferred("generate_quests_for_day", 1)
 
-func _on_time_changed(hours: int, minutes: int, days: int) -> void:
+func _initialize_quest_database() -> void:
+	# Yield if EconomyManager hasn't loaded items database yet
+	if not EconomyManager or EconomyManager.item_database.is_empty():
+		await get_tree().physics_frame
+		
+	load_quests_from_json()
+	generate_quests_for_day(TimeManager.time_days)
+
+func _sanitize_str(val) -> String:
+	if val == null:
+		return ""
+	var s = str(val).strip_edges()
+	if s == "" or s.to_lower() == "none":
+		return ""
+	return s
+
+func get_mapped_title(editor_title: String) -> String:
+	match editor_title.to_lower():
+		"peasant": return "Apprentice"
+		"citizen": return "Journeyman"
+		"merchant": return "Guildmaster"
+		"noble": return "Patrician"
+		_: return editor_title
+
+func load_quests_from_json() -> void:
+	all_quests.clear()
+	quest_map.clear()
+	
+	var filepath = "res://common/quests/quests.json"
+	var file = FileAccess.open(filepath, FileAccess.READ)
+	if not file:
+		print("[QuestManager] quests.json not found! Empty quest registry initialized.")
+		return
+		
+	var json_text = file.get_as_text()
+	var json = JSON.new()
+	var error = json.parse(json_text)
+	if error != OK:
+		print("[QuestManager] Failed to parse quests.json: ", json.get_error_message())
+		return
+		
+	if not (json.data is Array):
+		print("[QuestManager] quests.json root is not an Array.")
+		return
+		
+	for q_dict in json.data:
+		var q = QuestData.new()
+		q.id = _sanitize_str(q_dict.get("id", ""))
+		if q.id == "":
+			continue
+			
+		q.title = q_dict.get("title", "")
+		q.description = q_dict.get("description", "")
+		
+		var cat_str = _sanitize_str(q_dict.get("category", "AMBIENT_LEAD"))
+		match cat_str:
+			"STORY_EVENT": q.category = 0 # STORY_EVENT
+			"MUNICIPAL": q.category = 1 # MUNICIPAL
+			"GUILD": q.category = 2 # GUILD
+			_: q.category = 3 # AMBIENT_LEAD
+			
+		q.quest_level = int(q_dict.get("quest_level", 1))
+		q.giver_npc_id = _sanitize_str(q_dict.get("giver_npc_id", ""))
+		q.region = _sanitize_str(q_dict.get("region", "Valley Province"))
+		q.target_amount = int(q_dict.get("target_amount", 0))
+		q.next_quest_id = _sanitize_str(q_dict.get("next_quest_id", ""))
+		q.is_hidden_lead = bool(q_dict.get("is_hidden_lead", false))
+		q.gates_profession_promotion = _sanitize_str(q_dict.get("gates_profession_promotion", "None"))
+		q.gates_title_promotion = _sanitize_str(q_dict.get("gates_title_promotion", "None"))
+		q.is_one_time = bool(q_dict.get("is_one_time", false))
+		
+		q.gold_reward = int(q_dict.get("gold_reward", 0))
+		q.xp_reward = int(q_dict.get("xp_reward", 0))
+		q.influence_reward = int(q_dict.get("influence_reward", 0))
+		
+		var item_id = _sanitize_str(q_dict.get("target_item_id", ""))
+		if item_id != "" and EconomyManager.item_database.has(item_id):
+			q.target_item = EconomyManager.item_database[item_id]
+			
+		all_quests.append(q)
+		quest_map[q.id] = q
+		
+	# Stitch relational pointers
+	for q in all_quests:
+		if q.next_quest_id != "" and quest_map.has(q.next_quest_id):
+			q.next_quest = quest_map[q.next_quest_id]
+
+func _on_time_changed(_hours: int, _minutes: int, days: int) -> void:
 	if days != last_checked_day:
 		last_checked_day = days
 		on_day_advanced(days)
 
+func on_day_advanced(new_day: int) -> void:
+	# Regenerate board quests for the day
+	generate_quests_for_day(new_day)
 
-func generate_quests_for_day(day: int) -> void:
-	# 1. Clear expired active quests (unaccepted quests expire from boards after 1 day)
+func generate_quests_for_day(_day: int) -> void:
+	# Clear unaccepted board quests
 	for region in active_quests:
 		active_quests[region] = []
-	
-	# 2. Generate new quests matching player's title level
-	var title_lvl = GameState.title_level
-	var available_templates = []
-	for t in quest_templates:
-		if t.req_level <= title_lvl:
-			available_templates.append(t)
-			
-	if available_templates.is_empty():
-		available_templates = [quest_templates[0]] # fallback
 		
-	for region in active_quests:
-		# Guarantee the Iron Ore starter quest on Day 1 in Valley Province
-		if day == 1 and region == "Valley Province":
-			var starter_quest = _create_quest_from_template(quest_templates[0], region, day)
-			active_quests[region].append(starter_quest)
-			# Add another random early quest
-			var t2 = quest_templates[1] # Wheat
-			active_quests[region].append(_create_quest_from_template(t2, region, day))
-		else:
-			# Random generation of 2-3 quests per region
-			var count = randi_range(2, 3)
-			var picked_templates = []
-			var temp_list = available_templates.duplicate()
-			temp_list.shuffle()
-			for i in range(min(count, temp_list.size())):
-				picked_templates.append(temp_list[i])
-				
-			for t in picked_templates:
-				var quest = _create_quest_from_template(t, region, day)
-				active_quests[region].append(quest)
-				
+	_update_quest_states()
+	
+	# Distribute unlocked municipal/ambient/story quests to the boards
+	for q in all_quests:
+		if completed_quest_ids.has(q.id) or active_quests_list.has(q) or locked_quests.has(q):
+			continue
+			
+		var reg = q.region
+		if reg == "":
+			reg = "Valley Province"
+			
+		if active_quests.has(reg):
+			active_quests[reg].append(q)
+			
 	quests_updated.emit()
 
-func _create_quest_from_template(t: Dictionary, region: String, day: int) -> Dictionary:
-	var target_npc_id = "councilor_marcus" if region == "Valley Province" else "councilor_elena"
-	var target_npc_name = "Councilor Marcus" if region == "Valley Province" else "Councilor Elena"
+func _update_quest_states() -> void:
+	locked_quests.clear()
 	
-	return {
-		"id": "q_" + t.item_id + "_" + str(randi() % 10000) + "_" + str(day),
-		"title": "Deliver " + t.item_name,
-		"description": target_npc_name + " in " + region + " is asking for " + str(t.base_amount) + " " + t.item_name + ".",
-		"type": "delivery",
-		"difficulty": t.difficulty,
-		"req_title_level": t.req_level,
-		"region": region,
-		"item_id": t.item_id,
-		"item_name": t.item_name,
-		"item_amount": t.base_amount,
-		"target_npc_id": target_npc_id,
-		"target_npc_name": target_npc_name,
-		"reward_gold": t.base_reward,
-		"due_days": t.due_days,
-		"generated_day": day,
-		"accepted_day": -1,
-		"due_day": -1
-	}
+	for q in all_quests:
+		if completed_quest_ids.has(q.id):
+			continue
+			
+		if active_quests_list.has(q):
+			continue
+			
+		# Check if predecessor chain completed
+		var has_incomplete_predecessor = false
+		for other in all_quests:
+			if other.next_quest_id == q.id:
+				if not completed_quest_ids.has(other.id):
+					has_incomplete_predecessor = true
+					break
+		if has_incomplete_predecessor:
+			locked_quests.append(q)
+			continue
+			
+		# Global Social Status Check (for MUNICIPAL/AMBIENT_LEAD)
+		if q.category == 1 or q.category == 3: # 1: MUNICIPAL, 3: AMBIENT_LEAD
+			if q.quest_level > GameState.title_level:
+				locked_quests.append(q)
+				continue
+				
+		# Combined Household Competency Check (for GUILD)
+		if q.category == 2: # 2: GUILD
+			var req_career = "patreon"
+			if q.gates_profession_promotion != "":
+				req_career = q.gates_profession_promotion.to_lower()
+			elif q.target_item:
+				req_career = EconomyManager.get_item_career(q.target_item.id)
+				
+			# Gated if highest level in house is less than the target promotion tier
+			if get_household_competency(req_career) < q.quest_level - 1:
+				locked_quests.append(q)
+				continue
+
+func get_spouse_profession_level(career: String) -> int:
+	if not GameState.is_married or GameState.spouse_npc_id == "":
+		return 0
+		
+	var npcs = get_tree().get_nodes_in_group("NPCs")
+	for npc in npcs:
+		if npc.get("quest_npc_id") == GameState.spouse_npc_id:
+			var rel = npc.get_node_or_null("RelationshipComponent")
+			if rel and rel.profession_type == career:
+				return rel.profession_level
+	return 0
+
+func get_household_competency(career: String) -> int:
+	var player_lvl = GameState.career_levels.get(career, 0)
+	var spouse_lvl = get_spouse_profession_level(career)
+	return max(player_lvl, spouse_lvl)
+
+func is_profession_promotion_locked(career: String, target_level: int) -> bool:
+	for q in all_quests:
+		if q.gates_profession_promotion != "" and q.gates_profession_promotion.to_lower() == career.to_lower():
+			if q.quest_level == target_level:
+				if not completed_quest_ids.has(q.id):
+					return true
+	return false
+
+func is_title_promotion_locked(target_title: String) -> bool:
+	for q in all_quests:
+		if q.gates_title_promotion != "":
+			var mapped = get_mapped_title(q.gates_title_promotion)
+			if mapped.to_lower() == target_title.to_lower():
+				if not completed_quest_ids.has(q.id):
+					return true
+	return false
 
 func accept_quest(quest_id: String, region: String) -> bool:
 	var quest_idx = -1
@@ -249,39 +241,16 @@ func accept_quest(quest_id: String, region: String) -> bool:
 	var quest = list[quest_idx]
 	list.remove_at(quest_idx)
 	
-	quest["accepted_day"] = TimeManager.time_days
-	quest["due_day"] = TimeManager.time_days + quest.due_days
-	
-	accepted_quests.append(quest)
+	active_quests_list.append(quest)
 	quests_updated.emit()
 	
-	# Spawn alert
 	GameState.spawn_ui_floating_text("Quest Accepted: " + quest.title)
 	return true
 
-func on_day_advanced(new_day: int) -> void:
-	# 1. Check failed quests (due date logic)
-	var failed_quests = []
-	var remaining_accepted = []
-	for q in accepted_quests:
-		if new_day > q.due_day:
-			failed_quests.append(q)
-		else:
-			remaining_accepted.append(q)
-			
-	accepted_quests = remaining_accepted
-	
-	for q in failed_quests:
-		GameState.spawn_ui_floating_text("Quest Failed (Expired): " + q.title)
-		
-	# 2. Generate quests for the new day
-	generate_quests_for_day(new_day)
-	quests_updated.emit()
-
 func try_complete_quest(npc_id: String, player: CharacterBody2D) -> void:
 	var matching_quests = []
-	for q in accepted_quests:
-		if q.target_npc_id == npc_id:
+	for q in active_quests_list:
+		if q.giver_npc_id == npc_id:
 			matching_quests.append(q)
 			
 	var npc_node = null
@@ -331,7 +300,7 @@ func try_complete_quest(npc_id: String, player: CharacterBody2D) -> void:
 						prov = GameState.get_province_of_node(npc_node)
 					elif npc_id == "councilor_elena":
 						prov = "Oakhaven Province"
-					hud.call_deferred("open_lawhouse_ui", prov)
+					hud.open_lawhouse_ui(prov)
 					bubble._on_close_pressed()
 				elif choice == 1:
 					bubble._on_close_pressed()
@@ -340,81 +309,60 @@ func try_complete_quest(npc_id: String, player: CharacterBody2D) -> void:
 					else:
 						var completed_any = false
 						for q in matching_quests:
-							var item_id = q.item_id
-							var req_amount = q.item_amount
-							var current_amount = GameState.player_inventory.get_item_amount(item_id)
+							var item_id = q.target_item.id if q.target_item else ""
+							var req_amount = q.target_amount
+							var current_amount = GameState.player_inventory.get_item_amount(item_id) if item_id != "" else 0
 							
-							if current_amount >= req_amount:
-								GameState.player_inventory.remove_item(item_id, req_amount)
-								GameState.gold += q.reward_gold
-								completed_quests_count += 1
+							if item_id == "" or current_amount >= req_amount:
+								if item_id != "":
+									GameState.player_inventory.remove_item(item_id, req_amount)
 								
+								complete_quest(q)
+								
+								var reward_g = q.get_gold_reward()
 								var lines = [
-									"Ah, the " + str(req_amount) + " " + q.item_name + "! Fantastic work.",
+									"Ah, the " + str(req_amount) + " " + (q.target_item.name if q.target_item else "items") + "! Fantastic work.",
 									"Thank you for your help, citizen.",
-									"Here is your reward of " + str(q.reward_gold) + " Gold."
+									"Here is your reward of " + str(reward_g) + " Gold."
 								]
 								
 								GameState.show_npc_dialogue(talk_anchor, npc_display_name, lines, func():
-									GameState.spawn_ui_floating_text("Quest Completed: " + q.title + "! Received " + str(q.reward_gold) + " Gold")
+									GameState.spawn_ui_floating_text("Quest Completed: " + q.title + "! Received " + str(reward_g) + " Gold")
 								)
-								
-								accepted_quests.erase(q)
 								completed_any = true
-								quests_updated.emit()
 								break
 						if not completed_any:
 							var lines = ["You have active quests for me, but you do not have all the required items yet:"]
 							for q in matching_quests:
-								var current = GameState.player_inventory.get_item_amount(q.item_id)
-								lines.append("- " + q.title + ": Need " + str(q.item_amount) + " " + q.item_name + " (Have " + str(current) + ")")
+								var item_id = q.target_item.id if q.target_item else ""
+								var current = GameState.player_inventory.get_item_amount(item_id) if item_id != "" else 0
+								lines.append("- " + q.title + ": Need " + str(q.target_amount) + " " + (q.target_item.name if q.target_item else "") + " (Have " + str(current) + ")")
 							GameState.show_npc_dialogue(talk_anchor, npc_display_name, lines)
 				else:
 					bubble._on_close_pressed()
 			)
 	)
 
-func get_save_data() -> Dictionary:
-	return {
-		"active_quests": active_quests,
-		"accepted_quests": accepted_quests,
-		"completed_quests_count": completed_quests_count
-	}
-
-func load_save_data(data: Dictionary) -> void:
-	active_quests = data.get("active_quests", {
-		"Valley Province": [],
-		"Oakhaven Province": []
-	})
-	accepted_quests = data.get("accepted_quests", [])
-	completed_quests_count = data.get("completed_quests_count", 0)
-	last_checked_day = TimeManager.time_days
+func complete_quest(quest: Resource) -> void:
+	if active_quests_list.has(quest):
+		active_quests_list.erase(quest)
+		
+	if not completed_quest_ids.has(quest.id):
+		completed_quest_ids.append(quest.id)
+		
+	# Apply rewards
+	GameState.gold += quest.get_gold_reward()
 	
-	# If loaded/active data is empty, populate quests for the current day
-	var total_active = 0
-	for region in active_quests:
-		total_active += active_quests[region].size()
-	if total_active == 0 and accepted_quests.is_empty():
-		generate_quests_for_day(TimeManager.time_days)
+	var career_ref = quest.gates_profession_promotion if quest.gates_profession_promotion != "" else "patreon"
+	if career_ref != "None":
+		GameState.gain_profession_xp(career_ref, quest.get_xp_reward())
 	else:
-		quests_updated.emit()
-
-func accept_relationship_quest(quest: Dictionary) -> void:
-	accepted_quests.append(quest)
-	quests_updated.emit()
-	GameState.spawn_ui_floating_text("Quest Accepted: " + quest.title)
-
-func complete_quest(quest: Dictionary) -> void:
-	if accepted_quests.has(quest):
-		accepted_quests.erase(quest)
-	GameState.gold += quest.reward_gold
-	
-	if GameState.completed_relation_quests == null:
-		GameState.completed_relation_quests = []
-	GameState.completed_relation_quests.append(quest.id)
+		GameState.gain_profession_xp("patreon", quest.get_xp_reward())
+		
+	GameState.influence += quest.get_influence_reward()
 	
 	# Award relationship bonus
-	var target_id = quest.get("target_npc_id")
+	var target_id = quest.giver_npc_id
 	var npcs = get_tree().get_nodes_in_group("NPCs")
 	for npc in npcs:
 		if npc.get("quest_npc_id") == target_id:
@@ -424,4 +372,62 @@ func complete_quest(quest: Dictionary) -> void:
 				GameState.spawn_ui_floating_text("Relationship with %s increased (+15 Affinity)!" % npc.npc_name)
 				
 	completed_quests_count += 1
+	_update_quest_states()
 	quests_updated.emit()
+
+func get_save_data() -> Dictionary:
+	var active_ids = []
+	for q in active_quests_list:
+		active_ids.append(q.id)
+		
+	var board_ids = {}
+	for region in active_quests:
+		board_ids[region] = []
+		for q in active_quests[region]:
+			board_ids[region].append(q.id)
+			
+	return {
+		"active_quest_ids": active_ids,
+		"board_quest_ids": board_ids,
+		"completed_quest_ids": completed_quest_ids,
+		"completed_quests_count": completed_quests_count
+	}
+
+func load_save_data(data: Dictionary) -> void:
+	completed_quest_ids = Array(data.get("completed_quest_ids", []))
+	completed_quests_count = data.get("completed_quests_count", 0)
+	
+	active_quests_list.clear()
+	var active_ids = data.get("active_quest_ids", [])
+	for q_id in active_ids:
+		if quest_map.has(q_id):
+			active_quests_list.append(quest_map[q_id])
+			
+	var board_ids = data.get("board_quest_ids", {})
+	for region in active_quests:
+		active_quests[region] = []
+		var ids = board_ids.get(region, [])
+		for q_id in ids:
+			if quest_map.has(q_id):
+				active_quests[region].append(quest_map[q_id])
+				
+	_update_quest_states()
+	quests_updated.emit()
+
+func accept_relationship_quest(quest_dict: Dictionary) -> void:
+	var q = QuestData.new()
+	q.id = quest_dict.get("id", "rel_" + str(randi() % 10000))
+	q.title = quest_dict.get("title", "")
+	q.description = quest_dict.get("description", "")
+	q.giver_npc_id = quest_dict.get("target_npc_id", "")
+	q.region = quest_dict.get("region", "Valley Province")
+	
+	var item_id = quest_dict.get("item_id", "")
+	if item_id != "" and EconomyManager.item_database.has(item_id):
+		q.target_item = EconomyManager.item_database[item_id]
+	q.target_amount = quest_dict.get("item_amount", 0)
+	q.gold_reward = quest_dict.get("reward_gold", 0)
+	
+	active_quests_list.append(q)
+	quests_updated.emit()
+	GameState.spawn_ui_floating_text("Quest Accepted: " + q.title)

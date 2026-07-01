@@ -32,13 +32,24 @@ func process_hired_worker(delta: float) -> void:
 		if not is_instance_valid(npc.target_mega_node):
 			npc.target_mega_node = npc.get_node_or_null(active_gathering_node_path)
 			
-		var req_tool = npc.econ_brain.get_required_tool_id_for_node(active_gathering_node_path)
+		var node = npc.target_mega_node
+		var required_type = ""
+		var item_level = 1
+		if is_instance_valid(node):
+			var res_id = node.resource_type_id
+			if npc.has_meta("selected_gather_resource"):
+				res_id = npc.get_meta("selected_gather_resource")
+			required_type = GameState.get_required_tool_type_for_resource(res_id)
+			var econ = Engine.get_main_loop().root.get_node_or_null("EconomyManager")
+			if econ and econ.item_database.has(res_id):
+				item_level = econ.item_database[res_id].item_level
+				
 		var has_tool = false
 		var eq = npc.get_node_or_null("EquipmentComponent")
-		if req_tool != "":
+		if required_type != "":
 			if eq:
 				var current_tool = eq.get_equipped_item("tool")
-				if current_tool != null and current_tool.id == req_tool:
+				if current_tool != null and GameState.is_tool_sufficient(current_tool.id, required_type, item_level):
 					has_tool = true
 			
 			if not has_tool:
@@ -50,7 +61,11 @@ func process_hired_worker(delta: float) -> void:
 						
 				if close_to_workshop:
 					npc.econ_brain.try_equip_tool_from_building(active_gathering_node_path)
-					if eq and not eq.get_equipped_item("tool"):
+					if eq:
+						var current_tool = eq.get_equipped_item("tool")
+						if current_tool != null and GameState.is_tool_sufficient(current_tool.id, required_type, item_level):
+							has_tool = true
+					if not has_tool:
 						npc._pause_employee_due_to_missing_tool()
 						return
 				else:
@@ -62,7 +77,7 @@ func process_hired_worker(delta: float) -> void:
 							npc.navigation.generate_path(doorstep)
 					return
 
-		if req_tool == "" or has_tool:
+		if required_type == "" or has_tool:
 			if npc.worker_state == "idle_at_workshop" or npc.worker_state == "traveling_to_workshop":
 				npc.worker_state = "traveling_to_node"
 				if is_instance_valid(npc.hired_by_building) and npc.global_position.y >= 9000.0:
@@ -269,26 +284,41 @@ func process_hired_worker(delta: float) -> void:
 					if npc.nav_motor and npc.nav_motor.nav_agent:
 						nav_finished = npc.nav_motor.nav_agent.is_navigation_finished()
 					if dist <= 32.0 or (nav_finished and dist <= 48.0):
-						if is_instance_valid(npc.hired_by_building.instanced_interior):
-							npc._teleport(npc.hired_by_building.instanced_interior.global_position + Vector2(0, 60))
-							if is_instance_valid(npc.hired_by_building.instanced_interior.crafting_bench):
-								var bench_pos = npc.hired_by_building.instanced_interior.crafting_bench.global_position
+						var interior = npc.hired_by_building.instanced_interior
+						if is_instance_valid(interior):
+							npc._teleport(interior.global_position + Vector2(128, 200))
+							var bench = null
+							if interior.has_method("get_free_workbench"):
+								bench = interior.get_free_workbench(npc)
+							else:
+								bench = interior.get_node_or_null("CraftingBench")
+								
+							if is_instance_valid(bench):
+								var bench_pos = bench.global_position
 								npc.navigation.generate_path(bench_pos)
 				else:
-					if is_instance_valid(npc.hired_by_building.instanced_interior) and is_instance_valid(npc.hired_by_building.instanced_interior.crafting_bench):
-						var bench_pos = npc.hired_by_building.instanced_interior.crafting_bench.global_position
-						if npc.nav_motor and npc.nav_motor.nav_agent.target_position != bench_pos:
-							npc.navigation.generate_path(bench_pos)
+					var interior = npc.hired_by_building.instanced_interior
+					if is_instance_valid(interior):
+						var bench = null
+						if interior.has_method("get_free_workbench"):
+							bench = interior.get_free_workbench(npc)
+						else:
+							bench = interior.get_node_or_null("CraftingBench")
 							
-						var dist = npc.global_position.distance_to(bench_pos)
-						var nav_finished = false
-						if npc.nav_motor and npc.nav_motor.nav_agent:
-							nav_finished = npc.nav_motor.nav_agent.is_navigation_finished()
-						
-						if dist <= 55.0 or nav_finished:
-							npc.worker_state = "producing_goods"
-							npc.velocity = Vector2.ZERO
-							npc.navigation.update_movement_animation(Vector2.ZERO)
+						if is_instance_valid(bench):
+							var bench_pos = bench.global_position
+							if npc.nav_motor and npc.nav_motor.nav_agent.target_position != bench_pos:
+								npc.navigation.generate_path(bench_pos)
+								
+							var dist = npc.global_position.distance_to(bench_pos)
+							var nav_finished = false
+							if npc.nav_motor and npc.nav_motor.nav_agent:
+								nav_finished = npc.nav_motor.nav_agent.is_navigation_finished()
+							
+							if dist <= 55.0 or nav_finished:
+								npc.worker_state = "producing_goods"
+								npc.velocity = Vector2.ZERO
+								npc.navigation.update_movement_animation(Vector2.ZERO)
 								
 		"producing_goods":
 			var is_paused = false
@@ -374,7 +404,28 @@ func process_employee_leisure(delta: float) -> void:
 				npc.wait_timer = randf_range(4.0, 8.0)
 			return
 			
-		npc.leisure_spot_building = targets.pick_random()
+		var home_settlement = npc.get("spawn_settlement")
+		if not home_settlement:
+			home_settlement = GameState.get_nearest_settlement(npc)
+			
+		var local_targets = []
+		var provincial_targets = []
+		var npc_prov = GameState.get_province_of_node(home_settlement) if home_settlement else ""
+		
+		for t in targets:
+			var t_sett = GameState.get_nearest_settlement(t)
+			if t_sett == home_settlement:
+				local_targets.append(t)
+			if npc_prov != "" and t_sett and GameState.get_province_of_node(t_sett) == npc_prov:
+				provincial_targets.append(t)
+				
+		var final_targets = targets
+		if not local_targets.is_empty():
+			final_targets = local_targets
+		elif not provincial_targets.is_empty():
+			final_targets = provincial_targets
+			
+		npc.leisure_spot_building = final_targets.pick_random()
 		var target_pos = npc.leisure_spot_building.get_interaction_position() if npc.leisure_spot_building.has_method("get_interaction_position") else npc.leisure_spot_building.global_position
 		npc.navigation.generate_path(target_pos)
 	else:

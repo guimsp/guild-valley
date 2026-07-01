@@ -4,7 +4,6 @@
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/restoration_flask.tres" id="2_flask"]
 [ext_resource type="Resource" path="res://common/items/instances/Raw Materials/spice_grubs.tres" id="3_spices"]
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/fine_ledger.tres" id="4_ledger"]
-[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/archduke_treatment_contract.tres" id="5_contract"]
 
 [resource]
 script = ExtResource("1_script")
@@ -16,6 +15,6 @@ ExtResource("2_flask"): 2,
 ExtResource("3_spices"): 2,
 ExtResource("4_ledger"): 1
 }
-output_item = ExtResource("5_contract")
 output_amount = 1
 xp_reward = 200
+is_event = true

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bbi2lksp6dv4u"]
+
+[ext_resource type="Script" path="res://list_all_items.gd" id="1_script"]
+
+[node name="ListAllItems" type="Node2D"]
+script = ExtResource("1_script")

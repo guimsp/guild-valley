@@ -86,10 +86,10 @@ func choose_new_wander_target() -> void:
 	var nearby_walkables = []
 	var home_pos = npc.get_home_position()
 	for road in roads:
-		if road.global_position.distance_to(home_pos) < 300.0:
+		if road.global_position.distance_to(home_pos) < 1500.0:
 			nearby_walkables.append(road)
 	for plaza in plazas:
-		if plaza.global_position.distance_to(home_pos) < 300.0:
+		if plaza.global_position.distance_to(home_pos) < 1500.0:
 			nearby_walkables.append(plaza)
 			
 	if nearby_walkables.is_empty():

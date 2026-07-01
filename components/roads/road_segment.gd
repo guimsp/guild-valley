@@ -20,6 +20,7 @@ extends Area2D
 
 func _ready() -> void:
 	z_index = -1
+	z_as_relative = false
 	y_sort_enabled = false
 	add_to_group("Roads")
 	if not Engine.is_editor_hint():
@@ -62,7 +63,8 @@ func _draw() -> void:
 			draw_line(Vector2(x, -half.y), Vector2(x, half.y), Color(0.35, 0.35, 0.38), 1.0)
 			x += step
 	else:
-		draw_rect(Rect2(-size / 2.0, size), road_color)
+		if Engine.is_editor_hint():
+			draw_rect(Rect2(-size / 2.0, size), road_color)
 
 func _on_body_entered(body: Node2D) -> void:
 	if "active_roads_count" in body:

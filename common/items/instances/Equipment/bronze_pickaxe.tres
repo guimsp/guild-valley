@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 id = "bronze_pickaxe"
-name = "Bronze Pickaxe"
+name = "Copper Pickaxe"
 base_value = 60
 weight = 2.5
 category = "Product"

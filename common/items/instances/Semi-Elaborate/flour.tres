@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 id = "flour"
-name = "Sifted Flour"
+name = "Flour"
 item_level = 1
 base_value = 12
 weight = 0.3

@@ -1,0 +1,3355 @@
+[gd_scene format=3 uid="uid://bd2n3v5qmy3ml"]
+
+[node name="Node2D" type="Node2D" unique_id=34887235]
+
+[node name="Provinces" type="Node2D" parent="." unique_id=1828679760]
+
+[node name="Valley_Province" type="Node2D" parent="Provinces" unique_id=1346764224]
+
+[node name="ColorRect" type="ColorRect" parent="Provinces/Valley_Province" unique_id=690258362]
+offset_left = 56.00001
+offset_top = -4176.0
+offset_right = 96.000015
+offset_bottom = -4136.0
+scale = Vector2(153.49113, 97.63235)
+color = Color(1, 1, 1, 0.14509805)
+
+[node name="Label_Anchor" type="Marker2D" parent="Provinces/Valley_Province" unique_id=965115388]
+position = Vector2(3100, -2200)
+
+[node name="Oakhaven_Province" type="Node2D" parent="Provinces" unique_id=848434965]
+
+[node name="ColorRect" type="ColorRect" parent="Provinces/Oakhaven_Province" unique_id=255064808]
+offset_left = -4928.0
+offset_top = -1088.0
+offset_right = -4888.0
+offset_bottom = -1048.0
+scale = Vector2(103.21416, 100.45954)
+color = Color(1, 1, 1, 0.14509805)
+
+[node name="Label_Anchor" type="Marker2D" parent="Provinces/Oakhaven_Province" unique_id=403125608]
+position = Vector2(-2860, 920)
+
+[node name="Highland_Province" type="Node2D" parent="Provinces" unique_id=333300428]
+position = Vector2(680, 968)
+
+[node name="ColorRect" type="ColorRect" parent="Provinces/Highland_Province" unique_id=1120789523]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(135.24417, 106.30881)
+color = Color(1, 1, 1, 0.14509805)
+
+[node name="Label_Anchor" type="Marker2D" parent="Provinces/Highland_Province" unique_id=872407356]
+position = Vector2(0, 0)
+
+[node name="Settlements" type="Node2D" parent="." unique_id=1534247095]
+
+[node name="Cities" type="Node2D" parent="Settlements" unique_id=1714263561]
+
+[node name="City A" type="Node2D" parent="Settlements/Cities" unique_id=297000219]
+
+[node name="Prosperity_Tier_1" type="Node2D" parent="Settlements/Cities/City A" unique_id=1206765873]
+
+[node name="Slot" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=861746325]
+offset_left = 2496.0
+offset_top = -1952.0
+offset_right = 2624.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot" unique_id=234591333]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot11" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=2046656767]
+offset_left = 2768.0
+offset_top = -2216.0
+offset_right = 2896.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot11" unique_id=537581699]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot19" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1173431625]
+offset_left = 2912.0
+offset_top = -2216.0
+offset_right = 3040.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot19" unique_id=942577600]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot20" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1981430272]
+offset_left = 3056.0
+offset_top = -2216.0
+offset_right = 3184.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot20" unique_id=1483507399]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot12" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1822203043]
+offset_left = 2416.0
+offset_top = -2216.0
+offset_right = 2544.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot12" unique_id=984145967]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot13" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=855809702]
+offset_left = 2272.0
+offset_top = -2216.0
+offset_right = 2400.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot13" unique_id=1049448750]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot14" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1682350477]
+offset_left = 2128.0
+offset_top = -2216.0
+offset_right = 2256.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot14" unique_id=839716025]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot15" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=791329583]
+offset_left = 1984.0
+offset_top = -2216.0
+offset_right = 2112.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot15" unique_id=1699763182]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot16" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=446284083]
+offset_left = 1840.0
+offset_top = -2216.0
+offset_right = 1968.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot16" unique_id=822826373]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot26" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1286495600]
+offset_left = 1696.0
+offset_top = -2216.0
+offset_right = 1824.0
+offset_bottom = -2088.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot26" unique_id=1047845246]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot2" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1628744870]
+offset_left = 2352.0
+offset_top = -1952.0
+offset_right = 2480.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot2" unique_id=382278333]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot3" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=415271203]
+offset_left = 2208.0
+offset_top = -1952.0
+offset_right = 2336.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot3" unique_id=1722327126]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot23" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1563812662]
+offset_left = 1920.0
+offset_top = -1952.0
+offset_right = 2048.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot23" unique_id=146439561]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot24" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=926951041]
+offset_left = 1776.0
+offset_top = -1952.0
+offset_right = 1904.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot24" unique_id=772892778]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot25" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1245609029]
+offset_left = 1632.0
+offset_top = -1952.0
+offset_right = 1760.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot25" unique_id=136210164]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot7" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=2121436721]
+offset_left = 2144.0
+offset_top = -1688.0
+offset_right = 2272.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot7" unique_id=852695210]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot21" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=306767162]
+offset_left = 2064.0
+offset_top = -1432.0
+offset_right = 2192.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot21" unique_id=516831507]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot27" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=922873988]
+offset_left = 1920.0
+offset_top = -1432.0
+offset_right = 2048.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot27" unique_id=22297354]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot8" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=850514385]
+offset_left = 2000.0
+offset_top = -1688.0
+offset_right = 2128.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot8" unique_id=1890627827]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot9" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1725172747]
+offset_left = 1856.0
+offset_top = -1688.0
+offset_right = 1984.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot9" unique_id=370674806]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot4" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=768128052]
+offset_left = 3200.0
+offset_top = -1432.0
+offset_right = 3328.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot4" unique_id=1390273340]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot17" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=124317997]
+offset_left = 3344.0
+offset_top = -1432.0
+offset_right = 3472.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot17" unique_id=1284590606]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot18" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1007773069]
+offset_left = 3488.0
+offset_top = -1432.0
+offset_right = 3616.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot18" unique_id=1780255907]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot22" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1511070149]
+offset_left = 3632.0
+offset_top = -1432.0
+offset_right = 3760.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot22" unique_id=1123943402]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot5" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1143977357]
+offset_left = 3200.0
+offset_top = -1952.0
+offset_right = 3328.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot5" unique_id=159221064]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot6" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=1704265955]
+offset_left = 3344.0
+offset_top = -1952.0
+offset_right = 3472.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot6" unique_id=708961512]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot10" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=228579481]
+offset_left = 3488.0
+offset_top = -1952.0
+offset_right = 3616.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot10" unique_id=2117128276]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot28" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1" unique_id=570448125]
+offset_left = 3632.0
+offset_top = -1688.0
+offset_right = 3760.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Cities/City A/Prosperity_Tier_1/Slot28" unique_id=265389806]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Prosperity_Tier_2" type="Node2D" parent="Settlements/Cities/City A" unique_id=150632160]
+
+[node name="City B" type="Node2D" parent="Settlements/Cities" unique_id=1350414163]
+
+[node name="City C" type="Node2D" parent="Settlements/Cities" unique_id=1848028788]
+
+[node name="Towns" type="Node2D" parent="Settlements" unique_id=345426026]
+
+[node name="Town_A_1" type="Node2D" parent="Settlements/Towns" unique_id=1910172312]
+
+[node name="Prosperity_Tier_1" type="Node2D" parent="Settlements/Towns/Town_A_1" unique_id=1536880135]
+
+[node name="Slot29" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1105522442]
+offset_left = 544.0
+offset_top = -2960.0
+offset_right = 672.0
+offset_bottom = -2832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot29" unique_id=250510545]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot34" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=386529717]
+offset_left = 432.0
+offset_top = -3200.0
+offset_right = 560.0
+offset_bottom = -3072.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot34" unique_id=764607025]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot39" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=2141424217]
+offset_left = 288.0
+offset_top = -3200.0
+offset_right = 416.0
+offset_bottom = -3072.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot39" unique_id=196766885]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot40" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1387085390]
+offset_left = 352.0
+offset_top = -3424.0
+offset_right = 480.0
+offset_bottom = -3296.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot40" unique_id=158906138]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot41" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=114189530]
+offset_left = 208.0
+offset_top = -3424.0
+offset_right = 336.0
+offset_bottom = -3296.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot41" unique_id=219770321]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot42" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=620090343]
+offset_left = 360.0
+offset_top = -3680.0
+offset_right = 488.0
+offset_bottom = -3552.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot42" unique_id=503713415]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot43" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1178956687]
+offset_left = 504.0
+offset_top = -3680.0
+offset_right = 632.0
+offset_bottom = -3552.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot43" unique_id=380678591]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot44" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=359663273]
+offset_left = 648.0
+offset_top = -3680.0
+offset_right = 776.0
+offset_bottom = -3552.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot44" unique_id=244737968]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot30" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=2097218145]
+offset_left = 400.0
+offset_top = -2960.0
+offset_right = 528.0
+offset_bottom = -2832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot30" unique_id=595201189]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot31" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1089317678]
+offset_left = 928.0
+offset_top = -2960.0
+offset_right = 1056.0
+offset_bottom = -2832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot31" unique_id=931748062]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot33" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1580400758]
+offset_left = 1072.0
+offset_top = -2960.0
+offset_right = 1200.0
+offset_bottom = -2832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot33" unique_id=67641097]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot35" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1147422472]
+offset_left = 1104.0
+offset_top = -3200.0
+offset_right = 1232.0
+offset_bottom = -3072.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot35" unique_id=770917921]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot36" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=631905031]
+offset_left = 1248.0
+offset_top = -3200.0
+offset_right = 1376.0
+offset_bottom = -3072.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot36" unique_id=1620860759]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot37" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=426507931]
+offset_left = 1024.0
+offset_top = -3424.0
+offset_right = 1152.0
+offset_bottom = -3296.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot37" unique_id=1794307711]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot38" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=969308078]
+offset_left = 1168.0
+offset_top = -3424.0
+offset_right = 1296.0
+offset_bottom = -3296.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot38" unique_id=167829781]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot45" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1124195860]
+offset_left = 1312.0
+offset_top = -3424.0
+offset_right = 1440.0
+offset_bottom = -3296.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot45" unique_id=864698806]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot32" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1" unique_id=1948160723]
+offset_left = 784.0
+offset_top = -2960.0
+offset_right = 912.0
+offset_bottom = -2832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_1/Prosperity_Tier_1/Slot32" unique_id=2124006097]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Town_A_2" type="Node2D" parent="Settlements/Towns" unique_id=783366263]
+
+[node name="Slot46" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=151517888]
+offset_left = 5072.0
+offset_top = -1184.0
+offset_right = 5200.0
+offset_bottom = -1056.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot46" unique_id=1259024623]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot50" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=694673252]
+offset_left = 5392.0
+offset_top = -960.0
+offset_right = 5520.0
+offset_bottom = -832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot50" unique_id=1989944003]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot54" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=264495844]
+offset_left = 5072.0
+offset_top = -1440.0
+offset_right = 5200.0
+offset_bottom = -1312.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot54" unique_id=695423686]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot61" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=800768964]
+offset_left = 4688.0
+offset_top = -1184.0
+offset_right = 4816.0
+offset_bottom = -1056.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot61" unique_id=141022612]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot62" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=2068445461]
+offset_left = 4784.0
+offset_top = -1440.0
+offset_right = 4912.0
+offset_bottom = -1312.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot62" unique_id=1445533510]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot55" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=1417485231]
+offset_left = 5216.0
+offset_top = -1440.0
+offset_right = 5344.0
+offset_bottom = -1312.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot55" unique_id=1002137292]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot56" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=831031668]
+offset_left = 5360.0
+offset_top = -1440.0
+offset_right = 5488.0
+offset_bottom = -1312.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot56" unique_id=1438863907]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot57" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=344613285]
+offset_left = 5504.0
+offset_top = -1440.0
+offset_right = 5632.0
+offset_bottom = -1312.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot57" unique_id=424262915]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot52" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=1767854880]
+offset_left = 5536.0
+offset_top = -960.0
+offset_right = 5664.0
+offset_bottom = -832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot52" unique_id=1785067703]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot53" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=1392873031]
+offset_left = 5680.0
+offset_top = -960.0
+offset_right = 5808.0
+offset_bottom = -832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot53" unique_id=1156209875]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot58" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=803983707]
+offset_left = 5072.0
+offset_top = -728.0
+offset_right = 5200.0
+offset_bottom = -600.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot58" unique_id=1582188638]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot59" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=1409506689]
+offset_left = 5216.0
+offset_top = -728.0
+offset_right = 5344.0
+offset_bottom = -600.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot59" unique_id=1618153985]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot60" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=181202710]
+offset_left = 5360.0
+offset_top = -728.0
+offset_right = 5488.0
+offset_bottom = -600.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot60" unique_id=772086601]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot51" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=1654979830]
+offset_left = 4864.0
+offset_top = -960.0
+offset_right = 4992.0
+offset_bottom = -832.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot51" unique_id=181641731]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot47" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=59204692]
+offset_left = 5440.0
+offset_top = -1184.0
+offset_right = 5568.0
+offset_bottom = -1056.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot47" unique_id=1063114324]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot49" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=1732289680]
+offset_left = 5584.0
+offset_top = -1184.0
+offset_right = 5712.0
+offset_bottom = -1056.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot49" unique_id=760065132]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Slot48" type="ColorRect" parent="Settlements/Towns/Town_A_2" unique_id=117964105]
+offset_left = 5296.0
+offset_top = -1184.0
+offset_right = 5424.0
+offset_bottom = -1056.0
+size_flags_vertical = 8
+color = Color(0.5803922, 0.5803922, 0.5803922, 0.15686275)
+
+[node name="Signpost" type="ColorRect" parent="Settlements/Towns/Town_A_2/Slot48" unique_id=1725712975]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Town_B1" type="Node2D" parent="Settlements/Towns" unique_id=1479752007]
+position = Vector2(0, 1)
+
+[node name="Town_B2" type="Node2D" parent="Settlements/Towns" unique_id=1260294341]
+
+[node name="Town_C1" type="Node2D" parent="Settlements/Towns" unique_id=1134872287]
+
+[node name="Town_C2" type="Node2D" parent="Settlements/Towns" unique_id=605176354]
+
+[node name="HighwaysAndPlazas" type="Node2D" parent="." unique_id=1216312496]
+
+[node name="City_A_Roads" type="Node2D" parent="HighwaysAndPlazas" unique_id=1431730592]
+
+[node name="Road_1" type="Line2D" parent="HighwaysAndPlazas/City_A_Roads" unique_id=1436865044]
+position = Vector2(2454, -1560)
+points = PackedVector2Array(1258, -224, -2990, -224, -2990, 200, -4294, 1040, -6662, 1040)
+width = 64.0
+default_color = Color(0.41736758, 0.36885205, 0.2669301, 0.8980392)
+
+[node name="Road_2" type="Line2D" parent="HighwaysAndPlazas/City_A_Roads" unique_id=1360499601]
+position = Vector2(2472, -1296)
+points = PackedVector2Array(-640, -224, 1296, -224)
+width = 64.0
+default_color = Color(0.41736758, 0.36885205, 0.2669301, 0.8980392)
+
+[node name="Road_3" type="Line2D" parent="HighwaysAndPlazas/City_A_Roads" unique_id=1262947292]
+position = Vector2(2472, -1040)
+points = PackedVector2Array(-552, -224, 1288, -224)
+width = 64.0
+default_color = Color(0.41736758, 0.36885205, 0.2669301, 0.8980392)
+
+[node name="Road_4" type="Line2D" parent="HighwaysAndPlazas/City_A_Roads" unique_id=697601534]
+position = Vector2(1208, -1824)
+points = PackedVector2Array(416, -224, 1984, -224)
+width = 64.0
+default_color = Color(0.41736758, 0.36885205, 0.2669301, 0.8980392)
+
+[node name="Road_6" type="Line2D" parent="HighwaysAndPlazas/City_A_Roads" unique_id=351969753]
+position = Vector2(1312, -2072)
+points = PackedVector2Array(1208, -224, 1552, -224)
+width = 64.0
+default_color = Color(0.41736758, 0.36885205, 0.2669301, 0.8980392)
+
+[node name="Road_5" type="Line2D" parent="HighwaysAndPlazas/City_A_Roads" unique_id=808850286]
+position = Vector2(2471.9998, -2509.1357)
+rotation = 1.5716443
+points = PackedVector2Array(180.9524, -224, 1572.9451, -224)
+width = 128.0
+default_color = Color(0.41736758, 0.36885205, 0.2669301, 0.8980392)
+
+[node name="City_A_Plaza" type="ColorRect" parent="HighwaysAndPlazas/City_A_Roads" unique_id=1100210172]
+offset_left = 2760.0
+offset_top = -1755.136
+offset_right = 3272.0
+offset_bottom = -1435.136
+scale = Vector2(1, 0.64000493)
+color = Color(0.43556076, 0.42103565, 0.30910274, 0.8980392)
+
+[node name="Label" type="Label" parent="HighwaysAndPlazas/City_A_Roads/City_A_Plaza" unique_id=1443609586]
+layout_mode = 0
+offset_left = 229.0
+offset_top = 113.0
+offset_right = 270.0
+offset_bottom = 136.0
+scale = Vector2(1, 1.4374967)
+text = "Plaza"
+
+[node name="World" type="Node2D" parent="HighwaysAndPlazas" unique_id=1803165317]
+
+[node name="Line2D" type="Line2D" parent="HighwaysAndPlazas/World" unique_id=893825359]
+position = Vector2(2704, -936)
+points = PackedVector2Array(-8, 0, -8, 592, -576, 1312, -576, 3712)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Town_A_2_Roads" type="Node2D" parent="HighwaysAndPlazas" unique_id=162009579]
+
+[node name="Road_8" type="Line2D" parent="HighwaysAndPlazas/Town_A_2_Roads" unique_id=528644760]
+position = Vector2(3136, -800)
+points = PackedVector2Array(-408, 8, 2680, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Town_A_2_Plaza" type="ColorRect" parent="HighwaysAndPlazas/Town_A_2_Roads" unique_id=117087852]
+offset_left = 5064.0
+offset_top = -984.0
+offset_right = 5384.0
+offset_bottom = -728.0
+scale = Vector2(1, 0.64000493)
+color = Color(0.43556076, 0.42103565, 0.30910274, 0.8980392)
+
+[node name="Label" type="Label" parent="HighwaysAndPlazas/Town_A_2_Roads/Town_A_2_Plaza" unique_id=223674202]
+layout_mode = 0
+offset_left = 136.0
+offset_top = 24.99981
+offset_right = 177.0
+offset_bottom = 47.99981
+scale = Vector2(1, 1.4374967)
+text = "Plaza"
+
+[node name="Road_9" type="Line2D" parent="HighwaysAndPlazas/Town_A_2_Roads" unique_id=6988209]
+position = Vector2(5104, -1024)
+points = PackedVector2Array(-400, 8, 664, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_12" type="Line2D" parent="HighwaysAndPlazas/Town_A_2_Roads" unique_id=255650075]
+position = Vector2(5120, -568)
+points = PackedVector2Array(-120, 8, 384, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_11" type="Line2D" parent="HighwaysAndPlazas/Town_A_2_Roads" unique_id=1236996931]
+position = Vector2(5192, -1280)
+points = PackedVector2Array(-392, 8, 456, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_10" type="Line2D" parent="HighwaysAndPlazas/Town_A_2_Roads" unique_id=505755321]
+position = Vector2(5040.0005, -1056)
+rotation = 1.5725045
+points = PackedVector2Array(528.02655, 8, -1615.9703, 8, -2199.2861, 419.7583)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Town_A_1_Roads" type="Node2D" parent="HighwaysAndPlazas" unique_id=1597220627]
+
+[node name="Town_A_1_Plaza" type="ColorRect" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=1621345018]
+offset_left = 632.0
+offset_top = -3224.0
+offset_right = 952.0
+offset_bottom = -2968.0
+scale = Vector2(1, 0.64000493)
+color = Color(0.43556076, 0.42103565, 0.30910274, 0.8980392)
+
+[node name="Label" type="Label" parent="HighwaysAndPlazas/Town_A_1_Roads/Town_A_1_Plaza" unique_id=747664541]
+layout_mode = 0
+offset_left = 136.0
+offset_top = 24.99981
+offset_right = 177.0
+offset_bottom = 47.99981
+scale = Vector2(1, 1.4374967)
+text = "Plaza"
+
+[node name="Road_1" type="Line2D" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=1165236384]
+position = Vector2(736, -2912)
+points = PackedVector2Array(-8, 1160, -8, -152)
+width = 96.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_2" type="Line2D" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=1005039063]
+position = Vector2(632, -3040)
+points = PackedVector2Array(-360, 8, 784, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_4" type="Line2D" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=338064904]
+position = Vector2(640, -3264)
+points = PackedVector2Array(-408, 8, 4144, 8, 4144, -336, 4744, -336)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_7" type="Line2D" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=2135279736]
+position = Vector2(600, -3520)
+points = PackedVector2Array(-248, 8, 216, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_5" type="Line2D" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=345099829]
+position = Vector2(608, -3488.0005)
+rotation = 1.5725045
+points = PackedVector2Array(8.01416, 8, 424.01318, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_6" type="Line2D" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=170239315]
+position = Vector2(992.00006, -3488.0005)
+rotation = 1.5725045
+points = PackedVector2Array(8.01416, 8.013733, 424.01318, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="Road_3" type="Line2D" parent="HighwaysAndPlazas/Town_A_1_Roads" unique_id=1955637420]
+position = Vector2(712, -2800)
+points = PackedVector2Array(-304, 8, 480, 8)
+width = 64.0
+default_color = Color(0.40392157, 0.36078432, 0.27058825, 1)
+
+[node name="ResourceNodes" type="Node2D" parent="." unique_id=1434572727]
+
+[node name="Resource_Iron_01" type="ColorRect" parent="ResourceNodes" unique_id=338958617]
+offset_left = 4720.0
+offset_top = -3952.0
+offset_right = 4976.0
+offset_bottom = -3792.0
+size_flags_vertical = 8
+color = Color(0.6655913, 0.5227665, 0, 0.54509807)
+
+[node name="Label" type="Label" parent="ResourceNodes/Resource_Iron_01" unique_id=520544184]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 151.0
+offset_bottom = 31.0
+text = "Resource_Iron_01"
+
+[node name="Interact" type="ColorRect" parent="ResourceNodes/Resource_Iron_01" unique_id=140317522]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -10.0
+offset_right = 40.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Resource_Timber_01" type="ColorRect" parent="ResourceNodes" unique_id=1607591851]
+offset_left = 5008.0
+offset_top = -3952.0
+offset_right = 5264.0
+offset_bottom = -3792.0
+size_flags_vertical = 8
+color = Color(0.6655913, 0.5227665, 0, 0.54509807)
+
+[node name="Label" type="Label" parent="ResourceNodes/Resource_Timber_01" unique_id=1191348274]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 151.0
+offset_bottom = 31.0
+text = "Resource_Timber_01"
+
+[node name="Interact" type="ColorRect" parent="ResourceNodes/Resource_Timber_01" unique_id=588176812]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -10.0
+offset_right = 40.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Resource_Farmstead_01" type="ColorRect" parent="ResourceNodes" unique_id=482436650]
+offset_left = 5296.0
+offset_top = -3952.0
+offset_right = 5552.0
+offset_bottom = -3792.0
+size_flags_vertical = 8
+color = Color(0.6655913, 0.5227665, 0, 0.54509807)
+
+[node name="Label" type="Label" parent="ResourceNodes/Resource_Farmstead_01" unique_id=2087127791]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 151.0
+offset_bottom = 31.0
+text = "Resource_Farmstead_01"
+
+[node name="Interact" type="ColorRect" parent="ResourceNodes/Resource_Farmstead_01" unique_id=1479135644]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -10.0
+offset_right = 40.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="StaticBuildings" type="Node2D" parent="." unique_id=1245538011]
+
+[node name="City_A_Buildings" type="Node2D" parent="StaticBuildings" unique_id=1517808635]
+
+[node name="Town_Hall" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=955217891]
+offset_left = 2768.0
+offset_top = -1984.0
+offset_right = 2928.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Town_Hall" unique_id=1303910387]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 8.0
+offset_right = 117.0
+offset_bottom = 31.0
+text = "Town Hall"
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Town_Hall" unique_id=1419519513]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Royal_House" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=740594078]
+offset_left = 2616.0
+offset_top = -2496.0
+offset_right = 2776.0
+offset_bottom = -2336.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Royal_House" unique_id=535298811]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 8.0
+offset_right = 131.0
+offset_bottom = 31.0
+text = "Royal_House"
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Royal_House" unique_id=110566424]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Chappel" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=930647488]
+offset_left = 2944.0
+offset_top = -1984.0
+offset_right = 3104.0
+offset_bottom = -1824.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Chappel" unique_id=1617120911]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 8.0
+offset_right = 117.0
+offset_bottom = 31.0
+text = "Chappel"
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Chappel" unique_id=1248123594]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Law_House" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=423913323]
+offset_left = 2768.0
+offset_top = -1464.0
+offset_right = 2928.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Law_House" unique_id=2129181914]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 8.0
+offset_right = 133.0
+offset_bottom = 31.0
+text = "Law_House"
+horizontal_alignment = 1
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Law_House" unique_id=631567244]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Guild_Patreon" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=28745522]
+offset_left = 3280.0
+offset_top = -1720.0
+offset_right = 3440.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Guild_Patreon" unique_id=1555430947]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 8.0
+offset_right = 133.0
+offset_bottom = 31.0
+text = "Guild_Patreon"
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Guild_Patreon" unique_id=462465737]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Guild_Showman" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=2146407819]
+offset_left = 3456.0
+offset_top = -1720.0
+offset_right = 3616.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Guild_Showman" unique_id=1977896974]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 140.0
+offset_bottom = 31.0
+text = "Guild_Showman"
+horizontal_alignment = 1
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Guild_Showman" unique_id=1617277660]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Guild_Craftsman" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=912807654]
+offset_left = 2464.0
+offset_top = -1720.0
+offset_right = 2624.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Guild_Craftsman" unique_id=431567629]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 145.0
+offset_bottom = 31.0
+text = "Guild_Craftsman"
+horizontal_alignment = 1
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Guild_Craftsman" unique_id=561570841]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Guild_Woodmaker" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=1128083475]
+offset_left = 2288.0
+offset_top = -1720.0
+offset_right = 2448.0
+offset_bottom = -1560.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Guild_Woodmaker" unique_id=686663410]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 150.0
+offset_bottom = 31.0
+text = "Guild_Woodmaker"
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Guild_Woodmaker" unique_id=2091893763]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Guild_Herbalist" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=2117124468]
+offset_left = 2464.0
+offset_top = -1464.0
+offset_right = 2624.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Guild_Herbalist" unique_id=1951708609]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 150.0
+offset_bottom = 31.0
+text = "Guild_Herbalist"
+horizontal_alignment = 1
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Guild_Herbalist" unique_id=1162686267]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Guild_Tailor" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=1188691149]
+offset_left = 2208.0
+offset_top = -1464.0
+offset_right = 2368.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Guild_Tailor" unique_id=1917646085]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 150.0
+offset_bottom = 31.0
+text = "Guild_Tailor"
+horizontal_alignment = 1
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Guild_Tailor" unique_id=429092113]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Guild_Scholar" type="ColorRect" parent="StaticBuildings/City_A_Buildings" unique_id=1052031292]
+offset_left = 2944.0
+offset_top = -1464.0
+offset_right = 3104.0
+offset_bottom = -1304.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/City_A_Buildings/Guild_Scholar" unique_id=1768045760]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 150.0
+offset_bottom = 31.0
+text = "Guild_Scholar"
+horizontal_alignment = 1
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/City_A_Buildings/Guild_Scholar" unique_id=498607866]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Town_A_1_Buildings" type="Node2D" parent="StaticBuildings" unique_id=623859932]
+
+[node name="Town_Hall" type="ColorRect" parent="StaticBuildings/Town_A_1_Buildings" unique_id=1748960811]
+offset_left = 640.0
+offset_top = -3456.0
+offset_right = 800.0
+offset_bottom = -3296.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/Town_A_1_Buildings/Town_Hall" unique_id=1347756419]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 8.0
+offset_right = 131.0
+offset_bottom = 31.0
+text = "Town Hall"
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/Town_A_1_Buildings/Town_Hall" unique_id=1419519091]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="Town_A_2_Buildings" type="Node2D" parent="StaticBuildings" unique_id=1703309978]
+
+[node name="Town_Hall" type="ColorRect" parent="StaticBuildings/Town_A_2_Buildings" unique_id=651041520]
+offset_left = 4832.0
+offset_top = -1216.0
+offset_right = 4992.0
+offset_bottom = -1056.0
+size_flags_vertical = 8
+color = Color(0.92941177, 0.28235295, 0.15686275, 0.54509807)
+
+[node name="Label" type="Label" parent="StaticBuildings/Town_A_2_Buildings/Town_Hall" unique_id=1546823226]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 8.0
+offset_right = 131.0
+offset_bottom = 31.0
+text = "Town Hall"
+
+[node name="Door" type="ColorRect" parent="StaticBuildings/Town_A_2_Buildings/Town_Hall" unique_id=1084480700]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -5.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(1, 0.77416545, 0.4294994, 1)
+
+[node name="TerrainObstacles" type="Node2D" parent="." unique_id=1484508693]
+
+[node name="Macro" type="Node2D" parent="TerrainObstacles" unique_id=2141971740]
+
+[node name="Walls" type="Node2D" parent="TerrainObstacles/Macro" unique_id=640632501]
+
+[node name="City_A" type="Node2D" parent="TerrainObstacles/Macro/Walls" unique_id=1490387168]
+
+[node name="Wall_Main" type="Line2D" parent="TerrainObstacles/Macro/Walls/City_A" unique_id=229787053]
+position = Vector2(2408, -1176)
+points = PackedVector2Array(216, 0, -504, 0, -704, -180.86401, -704, -476.864, -944, -476.864, -944, -568)
+width = 40.0
+default_color = Color(0.20511743, 0.20511743, 0.20511743, 1)
+
+[node name="Wall_Main2" type="Line2D" parent="TerrainObstacles/Macro/Walls/City_A" unique_id=1285847509]
+position = Vector2(1456, -1832)
+points = PackedVector2Array(8, 8, 8, -312, 152, -440, 1024, -440, 1024, -712, 1448, -712, 1448, -440, 1800, -440, 1800, -160, 2224, -160, 2376, 0, 2376, 656, 1312, 656)
+width = 40.0
+default_color = Color(0.20392157, 0.20392157, 0.20392157, 1)
+
+[node name="South_Gate" type="ColorRect" parent="TerrainObstacles/Macro/Walls/City_A" unique_id=1453567930]
+offset_left = 2632.0
+offset_top = -1192.0
+offset_right = 2672.0
+offset_bottom = -1152.0
+scale = Vector2(3.16, 1.2000098)
+color = Color(1, 0.77254903, 0.43137255, 1)
+
+[node name="West_Gate" type="ColorRect" parent="TerrainObstacles/Macro/Walls/City_A" unique_id=1672230833]
+offset_left = 1432.0
+offset_top = -1816.0
+offset_right = 1472.0
+offset_bottom = -1776.0
+scale = Vector2(1.4000001, 1.6000098)
+color = Color(1, 0.77254903, 0.43137255, 1)
+
+[node name="Rivers" type="Node2D" parent="TerrainObstacles/Macro" unique_id=16785429]
+
+[node name="Line2D" type="Line2D" parent="TerrainObstacles/Macro/Rivers" unique_id=1296510435]
+position = Vector2(1984, -1079.9999)
+rotation = -3.1412742
+points = PackedVector2Array(-640, 8, 96, 8, 368.07898, 247.88293, 448.14783, 463.85742, 600.1478, 463.80896, 632.19116, 599.7988, 1448.191, 599.53894, 2488.191, 599.2129)
+width = 96.0
+default_color = Color(0.14142525, 9.048581e-06, 0.60429823, 1)
+
+[node name="Lakes" type="Node2D" parent="TerrainObstacles/Macro" unique_id=1057194928]
+
+[node name="ColorRect" type="ColorRect" parent="TerrainObstacles/Macro/Lakes" unique_id=1928445279]
+offset_left = 320.0
+offset_top = -2736.0
+offset_right = 369.43243
+offset_bottom = -2694.2583
+scale = Vector2(5.936956, 4.593572)
+color = Color(0.14117648, 0, 0.6039216, 1)
+
+[node name="ColorRect2" type="ColorRect" parent="TerrainObstacles/Macro/Lakes" unique_id=700178826]
+offset_left = 136.0
+offset_top = -2920.0
+offset_right = 166.99231
+offset_bottom = -2838.1465
+scale = Vector2(5.936956, 4.593572)
+color = Color(0.14117648, 0, 0.6039216, 1)
+
+[node name="Scatter_Blocks" type="Node2D" parent="TerrainObstacles" unique_id=967073698]
+
+[node name="Aesthetic_Clutter" type="Node2D" parent="TerrainObstacles" unique_id=1963887688]
+
+[node name="City_A" type="Node2D" parent="TerrainObstacles/Aesthetic_Clutter" unique_id=731234488]
+
+[node name="Decorative_A" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/City_A" unique_id=332728935]
+offset_left = 2560.0
+offset_top = -2216.0
+offset_right = 2624.0
+offset_bottom = -2088.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_A2" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/City_A" unique_id=1753406757]
+offset_left = 2536.0
+offset_top = -2400.0
+offset_right = 2600.0
+offset_bottom = -2336.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_A3" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/City_A" unique_id=156844861]
+offset_left = 2792.0
+offset_top = -2400.0
+offset_right = 2856.0
+offset_bottom = -2336.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_C" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/City_A" unique_id=1827519838]
+offset_left = 3120.0
+offset_top = -1952.0
+offset_right = 3184.0
+offset_bottom = -1824.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_D" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/City_A" unique_id=737145524]
+offset_left = 3120.0
+offset_top = -1432.0
+offset_right = 3184.0
+offset_bottom = -1304.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_E" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/City_A" unique_id=1221318495]
+offset_left = 2384.0
+offset_top = -1432.0
+offset_right = 2448.0
+offset_bottom = -1304.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_B" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/City_A" unique_id=52610966]
+offset_left = 2064.0
+offset_top = -1952.0
+offset_right = 2192.0
+offset_bottom = -1824.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Town_A_1" type="Node2D" parent="TerrainObstacles/Aesthetic_Clutter" unique_id=885717937]
+
+[node name="Decorative_E2" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/Town_A_1" unique_id=1243069780]
+offset_left = 816.0
+offset_top = -3424.0
+offset_right = 944.0
+offset_bottom = -3296.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_E3" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/Town_A_1" unique_id=2115214214]
+offset_left = 1024.0
+offset_top = -3200.0
+offset_right = 1088.0
+offset_bottom = -3072.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_E4" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/Town_A_1" unique_id=1537400430]
+offset_left = 496.0
+offset_top = -3424.0
+offset_right = 560.0
+offset_bottom = -3296.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Town_A_2" type="Line2D" parent="TerrainObstacles/Aesthetic_Clutter" unique_id=225757222]
+
+[node name="Decorative_E5" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/Town_A_2" unique_id=1242588935]
+offset_left = 4720.0
+offset_top = -960.0
+offset_right = 4848.0
+offset_bottom = -832.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_E6" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/Town_A_2" unique_id=586252628]
+offset_left = 5216.0
+offset_top = -1184.0
+offset_right = 5280.0
+offset_bottom = -1056.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Decorative_E7" type="ColorRect" parent="TerrainObstacles/Aesthetic_Clutter/Town_A_2" unique_id=1594605412]
+offset_left = 4928.0
+offset_top = -1440.0
+offset_right = 4992.0
+offset_bottom = -1312.0
+scale = Vector2(1, 1.0000293)
+color = Color(0.26089165, 0.234025, 0.13049653, 1)
+
+[node name="Regions" type="Node2D" parent="." unique_id=520413442]
+
+[node name="Valley Province" type="Node2D" parent="Regions" unique_id=1974602926]
+
+[node name="Region_City_A" type="ColorRect" parent="Regions/Valley Province" unique_id=65803704]
+offset_left = 1472.0
+offset_top = -2528.0002
+offset_right = 1512.0
+offset_bottom = -2488.0002
+scale = Vector2(58.334774, 33.81406)
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Region_Town_A_2" type="ColorRect" parent="Regions/Valley Province" unique_id=2084127136]
+offset_left = 4640.0
+offset_top = -1488.0001
+offset_right = 4680.0
+offset_bottom = -1448.0001
+scale = Vector2(31.379097, 25.296707)
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Region_Town_A_1" type="ColorRect" parent="Regions/Valley Province" unique_id=1364290374]
+offset_left = 128.0
+offset_top = -3735.9998
+offset_right = 168.0
+offset_bottom = -3695.9998
+scale = Vector2(34.72652, 25.96321)
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Oakhaven Province" type="Node2D" parent="Regions" unique_id=1974602927]
+
+[node name="Region_City_B" type="ColorRect" parent="Regions/Oakhaven Province" unique_id=65803705]
+offset_left = -4416.0
+offset_top = 720.0
+offset_right = -2728.0
+offset_bottom = 2048.0
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Region_Town_B_1" type="ColorRect" parent="Regions/Oakhaven Province" unique_id=2084127137]
+offset_left = -4560.0
+offset_top = -904.0
+offset_right = -3440.0
+offset_bottom = 80.0
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Region_Town_B_2" type="ColorRect" parent="Regions/Oakhaven Province" unique_id=1364290375]
+offset_left = -2432.0
+offset_top = 984.0
+offset_right = -1060.0
+offset_bottom = 2224.0
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Highland Province" type="Node2D" parent="Regions" unique_id=1974602928]
+
+[node name="Region_City_C" type="ColorRect" parent="Regions/Highland Province" unique_id=65803706]
+offset_left = 1016.0
+offset_top = 3328.0
+offset_right = 3308.0
+offset_bottom = 4808.0
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Region_Town_C_1" type="ColorRect" parent="Regions/Highland Province" unique_id=2084127138]
+offset_left = 2544.0
+offset_top = 1672.0
+offset_right = 3704.0
+offset_bottom = 2776.0
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Region_Town_C_2" type="ColorRect" parent="Regions/Highland Province" unique_id=1364290376]
+offset_left = 4008.0
+offset_top = 3024.0
+offset_right = 5228.0
+offset_bottom = 4344.0
+color = Color(0, 0.99215686, 0.6784314, 0.03529412)
+
+[node name="Spawners" type="Node2D" parent="." unique_id=919947349]
+
+[node name="Town_A_1_Spawns" type="Node2D" parent="Spawners" unique_id=2011183942]
+
+[node name="Player_Spawn_Anchor" type="Marker2D" parent="Spawners/Town_A_1_Spawns" unique_id=341285678]
+position = Vector2(728, -2792)
+
+[node name="Rival1_Spawn_Anchor" type="Marker2D" parent="Spawners/Town_A_1_Spawns" unique_id=705939444]
+position = Vector2(1480, -3232)
+
+[node name="Town_A_2_Spawns" type="Node2D" parent="Spawners" unique_id=649632428]
+
+[node name="Player_Spawn_Anchor" type="Marker2D" parent="Spawners/Town_A_2_Spawns" unique_id=276536702]
+position = Vector2(4704, -800)
+
+[node name="Rival1_Spawn_Anchor" type="Marker2D" parent="Spawners/Town_A_2_Spawns" unique_id=1545485756]
+position = Vector2(5032, -1424)
+
+[node name="Story_NPCs" type="Node2D" parent="Spawners" unique_id=827125680]
+
+[node name="Guild_Patreon_City_A" type="Node2D" parent="Spawners/Story_NPCs" unique_id=1217640343]
+
+[node name="Spawn_Mike" type="Marker2D" parent="Spawners/Story_NPCs/Guild_Patreon_City_A" unique_id=693056264]
+position = Vector2(14408, -2040)
+
+[node name="Spawn_Lara" type="Marker2D" parent="Spawners/Story_NPCs/Guild_Patreon_City_A" unique_id=992340883]
+position = Vector2(14376, -1928)
+rotation = -1.2368623
+
+[node name="Spawn_Gill" type="Marker2D" parent="Spawners/Story_NPCs/Guild_Patreon_City_A" unique_id=699840530]
+position = Vector2(14544, -1928)
+
+[node name="Spawn_Beleon" type="Marker2D" parent="Spawners/Story_NPCs/Guild_Patreon_City_A" unique_id=1468745697]
+position = Vector2(14536, -2040)
+
+[node name="Interior_Void" type="Node2D" parent="." unique_id=1165094563]
+
+[node name="Fixed_Unique" type="Node2D" parent="Interior_Void" unique_id=2128725304]
+
+[node name="Int_City_A_TownHall" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=720253895]
+offset_left = 9784.0
+offset_top = -2088.0
+offset_right = 10040.0
+offset_bottom = -1832.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_TownHall" unique_id=521952659]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Town Hall - City A"
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_TownHall" unique_id=1759798767]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Royal_House" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=451516090]
+offset_left = 10944.0
+offset_top = -2088.0
+offset_right = 11200.0
+offset_bottom = -1832.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Royal_House" unique_id=2003651104]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Royal_House"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Royal_House" unique_id=1993535428]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Chappel" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=465902303]
+offset_left = 12032.0
+offset_top = -2088.0
+offset_right = 12288.0
+offset_bottom = -1832.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Chappel" unique_id=1161616738]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Chappel"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Chappel" unique_id=1310419220]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Law_House" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=1762989135]
+offset_left = 13120.0
+offset_top = -2088.0
+offset_right = 13376.0
+offset_bottom = -1832.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Law_House" unique_id=1018784908]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Law_House"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Law_House" unique_id=773226851]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Guild_Patreon" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=1778229484]
+offset_left = 14344.0
+offset_top = -2088.0
+offset_right = 14600.0
+offset_bottom = -1832.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Patreon" unique_id=800115161]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Guild_Patreon"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Patreon" unique_id=1854661558]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Guild_Showman" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=32657088]
+offset_left = 9792.0
+offset_top = -704.0
+offset_right = 10048.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Showman" unique_id=1892519405]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Guild Showman"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Showman" unique_id=1059788249]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Guild_Craftsman" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=1037258999]
+offset_left = 10944.0
+offset_top = -704.0
+offset_right = 11200.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Craftsman" unique_id=1353810033]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Guild Craftsman"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Craftsman" unique_id=1407838746]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Guild_Woodmaker" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=1429308640]
+offset_left = 12040.0
+offset_top = -704.0
+offset_right = 12296.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Woodmaker" unique_id=303920737]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Guild Woodmaker"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Woodmaker" unique_id=1339044014]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Guild_Herbalist" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=1986987446]
+offset_left = 13128.0
+offset_top = -704.0
+offset_right = 13384.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Herbalist" unique_id=301200833]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Guild Herbalist"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Herbalist" unique_id=1642019526]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Guild_Tailor" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=1795614155]
+offset_left = 14336.0
+offset_top = -704.0
+offset_right = 14592.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Tailor" unique_id=1952317471]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Guild Tailor"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Tailor" unique_id=183897088]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_City_A_Guild_Scholar" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=538830839]
+offset_left = 15744.0
+offset_top = -704.0
+offset_right = 16000.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Scholar" unique_id=1767445371]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Guild Scholar"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_City_A_Guild_Scholar" unique_id=761735572]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_Town_A_1_Town_Hall" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=4294734]
+offset_left = 17160.0
+offset_top = -704.0
+offset_right = 17416.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_Town_A_1_Town_Hall" unique_id=561803175]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Town Hall"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_Town_A_1_Town_Hall" unique_id=903310595]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Int_Town_A_2_Town_Hall" type="ColorRect" parent="Interior_Void/Fixed_Unique" unique_id=767540067]
+offset_left = 18376.0
+offset_top = -704.0
+offset_right = 18632.0
+offset_bottom = -448.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Fixed_Unique/Int_Town_A_2_Town_Hall" unique_id=1001757856]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Town Hall"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Fixed_Unique/Int_Town_A_2_Town_Hall" unique_id=393694734]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Templates" type="Node2D" parent="Interior_Void" unique_id=750210952]
+
+[node name="Patreon" type="Node2D" parent="Interior_Void/Templates" unique_id=1459789127]
+
+[node name="Tmp_Flour_Mill_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=206852193]
+offset_left = 9792.0
+offset_top = 640.0
+offset_right = 10048.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Flour_Mill_lvl1" unique_id=1951323540]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Flour Mill"
+horizontal_alignment = 1
+
+[node name="Walls" type="Node2D" parent="Interior_Void/Templates/Patreon/Tmp_Flour_Mill_lvl1" unique_id=1420480446]
+
+[node name="Wall" type="Line2D" parent="Interior_Void/Templates/Patreon/Tmp_Flour_Mill_lvl1/Walls" unique_id=1347097064]
+points = PackedVector2Array(0, 0, 0, 256, 256, 256, 256, 0, 0, 0)
+default_color = Color(0.12591085, 0.12591085, 0.12591082, 1)
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Flour_Mill_lvl1" unique_id=766150993]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Bench_Slot_1" type="Marker2D" parent="Interior_Void/Templates/Patreon/Tmp_Flour_Mill_lvl1" unique_id=1559437454]
+position = Vector2(128, 16)
+
+[node name="Bench_Slot_2" type="Marker2D" parent="Interior_Void/Templates/Patreon/Tmp_Flour_Mill_lvl1" unique_id=1694493591]
+position = Vector2(40, 16)
+
+[node name="Bench_Slot_3" type="Marker2D" parent="Interior_Void/Templates/Patreon/Tmp_Flour_Mill_lvl1" unique_id=757895116]
+position = Vector2(208, 16)
+
+[node name="Tmp_Bakery_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=1323154923]
+offset_left = 10944.0
+offset_top = 640.0
+offset_right = 11200.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Bakery_lvl1" unique_id=1950714563]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Bakery"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Bakery_lvl1" unique_id=833477953]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Bakery_lvl2" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=544103953]
+offset_left = 10944.0
+offset_top = 1920.0
+offset_right = 11200.0
+offset_bottom = 2176.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Bakery_lvl2" unique_id=1764819758]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Bakery lvl2"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Bakery_lvl2" unique_id=141198873]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Bakery_lvl3" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=435405333]
+offset_left = 10944.0
+offset_top = 3200.0
+offset_right = 11200.0
+offset_bottom = 3456.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Bakery_lvl3" unique_id=1121982702]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Bakery lvl3"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Bakery_lvl3" unique_id=1933699032]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Farmestead_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=1435839124]
+offset_left = 12032.0
+offset_top = 640.0
+offset_right = 12288.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Farmestead_lvl1" unique_id=1173434853]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Farmestead"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Farmestead_lvl1" unique_id=1535974380]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Tavern_lvl5" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=963205104]
+offset_left = 13136.0
+offset_top = 640.0
+offset_right = 13392.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Tavern_lvl5" unique_id=668553005]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "tavern"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Tavern_lvl5" unique_id=1008975994]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Inn_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=206280695]
+offset_left = 14336.0
+offset_top = 640.0
+offset_right = 14592.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Inn_lvl1" unique_id=920327151]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Inn"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Inn_lvl1" unique_id=920209799]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Inn_lvl2" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=100895362]
+offset_left = 14336.0
+offset_top = 1928.0
+offset_right = 14592.0
+offset_bottom = 2184.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Inn_lvl2" unique_id=1444229558]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Inn lvl2"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Inn_lvl2" unique_id=1841646441]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Distillery_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=434427099]
+offset_left = 15752.0
+offset_top = 640.0
+offset_right = 16008.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Distillery_lvl1" unique_id=1132927627]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Distillery"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Distillery_lvl1" unique_id=166545636]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Distillery_lvl2" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=895954756]
+offset_left = 15752.0
+offset_top = 1920.0
+offset_right = 16008.0
+offset_bottom = 2176.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Distillery_lvl2" unique_id=1581821531]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Distillery lvl2"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Distillery_lvl2" unique_id=234519217]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Grand_Casino_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=2097713949]
+offset_left = 17160.0
+offset_top = 640.0
+offset_right = 17416.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Grand_Casino_lvl1" unique_id=1788545468]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Grand casino"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Grand_Casino_lvl1" unique_id=387971118]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Event_Hall_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=1176075901]
+offset_left = 18376.0
+offset_top = 640.0
+offset_right = 18632.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Event_Hall_lvl1" unique_id=441477036]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -24.0
+offset_right = 199.0
+offset_bottom = -1.0
+text = "Event Hall"
+horizontal_alignment = 1
+
+[node name="ColorExit_AnchorRect" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Event_Hall_lvl1" unique_id=1531292963]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="Tmp_Imperial_Gastronomy_Spire_lvl1" type="ColorRect" parent="Interior_Void/Templates/Patreon" unique_id=1351666766]
+offset_left = 19720.0
+offset_top = 640.0
+offset_right = 19976.0
+offset_bottom = 896.0
+color = Color(0.31760544, 0.24463946, 0.15768483, 1)
+
+[node name="Label" type="Label" parent="Interior_Void/Templates/Patreon/Tmp_Imperial_Gastronomy_Spire_lvl1" unique_id=102089806]
+layout_mode = 0
+offset_left = 24.0
+offset_top = -24.0
+offset_right = 232.0
+offset_bottom = -1.0
+text = "Imperial Gastronomy Spire"
+horizontal_alignment = 1
+
+[node name="Exit_Anchor" type="ColorRect" parent="Interior_Void/Templates/Patreon/Tmp_Imperial_Gastronomy_Spire_lvl1" unique_id=609913649]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.2559582, 0.39646155)
+color = Color(0.9647059, 0.78039217, 0.4392157, 1)
+
+[node name="MapLimits" type="Node2D" parent="." unique_id=369947985]
+
+[node name="MapLimits1" type="Line2D" parent="MapLimits" unique_id=1541839608]
+position = Vector2(6544, -4280)
+points = PackedVector2Array(0, -8, 8, 9776, -11744, 9768)
+width = 40.0
+default_color = Color(0.04755766, 0.047557645, 0.047557645, 1)
+
+[node name="MapLimits2" type="Line2D" parent="MapLimits" unique_id=1380746005]
+position = Vector2(-5128.001, 5488.001)
+rotation = 3.1378117
+points = PackedVector2Array(0, -8, 8, 9776, -11744, 9768)
+width = 40.0
+default_color = Color(0.04755766, 0.047557645, 0.047557645, 1)

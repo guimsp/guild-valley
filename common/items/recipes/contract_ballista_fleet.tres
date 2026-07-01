@@ -4,7 +4,6 @@
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/steel_ingot.tres" id="2_steel"]
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/heavy_chain.tres" id="3_chain"]
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/advanced_structural_beam.tres" id="4_beam"]
-[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/ballista_fleet_contract.tres" id="5_contract"]
 
 [resource]
 script = ExtResource("1_script")
@@ -16,6 +15,6 @@ ExtResource("2_steel"): 4,
 ExtResource("3_chain"): 2,
 ExtResource("4_beam"): 2
 }
-output_item = ExtResource("5_contract")
 output_amount = 1
 xp_reward = 120
+is_event = true

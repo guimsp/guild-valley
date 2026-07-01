@@ -5,7 +5,6 @@
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/gilded_cream_cake.tres" id="3_gilded"]
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/common_wine.tres" id="4_wine"]
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/fine_aged_schnapps.tres" id="5_schnapps"]
-[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/royal_event_certificate.tres" id="6_cert"]
 
 [resource]
 script = ExtResource("1_script")
@@ -18,6 +17,6 @@ ExtResource("3_gilded"): 5,
 ExtResource("4_wine"): 5,
 ExtResource("5_schnapps"): 5
 }
-output_item = ExtResource("6_cert")
 output_amount = 1
 xp_reward = 150
+is_event = true

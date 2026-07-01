@@ -4,7 +4,6 @@
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/chemical_solvent.tres" id="2_solvent"]
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/nitre_powder.tres" id="3_nitre"]
 [ext_resource type="Resource" path="res://common/items/instances/Semi-Elaborate/advanced_structural_beam.tres" id="4_beam"]
-[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/crop_blight_contract.tres" id="5_contract"]
 
 [resource]
 script = ExtResource("1_script")
@@ -16,6 +15,6 @@ ExtResource("2_solvent"): 4,
 ExtResource("3_nitre"): 4,
 ExtResource("4_beam"): 2
 }
-output_item = ExtResource("5_contract")
 output_amount = 1
 xp_reward = 150
+is_event = true

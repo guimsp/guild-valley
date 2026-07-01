@@ -12,6 +12,19 @@ func update_inventory_panel(hud: GameHUD, grid_container: GridContainer) -> void
 	if not grid_container:
 		return
 		
+	# Find which slot index is currently focused before rebuilding
+	var prev_focused_idx = -1
+	var focused = hud.get_viewport().gui_get_focus_owner()
+	if focused and focused.get_parent() == grid_container:
+		prev_focused_idx = focused.get_index()
+	elif context_popup and context_popup.visible:
+		for entry in GameState.window_stack:
+			if entry["window"] == context_popup:
+				var cached = entry["cached_focus"]
+				if is_instance_valid(cached) and cached.get_parent() == grid_container:
+					prev_focused_idx = cached.get_index()
+					break
+		
 	# Clear previous inventory nodes
 	for child in grid_container.get_children():
 		grid_container.remove_child(child)
@@ -107,6 +120,22 @@ func update_inventory_panel(hud: GameHUD, grid_container: GridContainer) -> void
 		
 	update_player_equipment_ui(hud)
 	link_inventory_grid_focus(hud, grid_container)
+	
+	# Restore focus to the slot panel at the same index
+	if prev_focused_idx != -1 and grid_container.get_child_count() > 0:
+		var target_idx = min(prev_focused_idx, grid_container.get_child_count() - 1)
+		var new_focus_target = grid_container.get_child(target_idx)
+		
+		var updated_cached = false
+		if context_popup and context_popup.visible:
+			for entry in GameState.window_stack:
+				if entry["window"] == context_popup:
+					entry["cached_focus"] = new_focus_target
+					updated_cached = true
+					break
+					
+		if not updated_cached:
+			new_focus_target.grab_focus()
 
 func update_player_equipment_ui(hud: GameHUD) -> void:
 	if not hud._active_player or not hud._active_player.has_node("EquipmentComponent"):
@@ -175,12 +204,10 @@ func on_equipment_slot_pressed(hud: GameHUD, slot_name: String) -> void:
 			hud.spawn_floating_text("Inventory too full to unequip!", hud.inventory_window.global_position + hud.inventory_window.size / 2.0)
 			return
 			
-	open_confirm_prompt(hud, "Unequip Item", "Unequip %s?" % item.name, func():
-		eq.call("unequip_item", slot_name)
-		GameState.player_inventory.add_item(item, 1)
-		hud._active_player.recalculate_equipment_stats()
-		hud.update_inventory_panel()
-	)
+	eq.call("unequip_item", slot_name)
+	GameState.player_inventory.add_item(item, 1)
+	hud._active_player.recalculate_equipment_stats()
+	hud.update_inventory_panel()
 
 func on_inventory_slot_interacted(hud: GameHUD, item: ItemData, slot_panel: PanelContainer = null) -> void:
 	if not item:
@@ -214,6 +241,10 @@ func _init_context_popup(hud: GameHUD) -> void:
 	hud.add_child(popup)
 	popup.hide()
 	context_popup = popup
+	popup.visibility_changed.connect(func():
+		if not popup.visible:
+			GameState.unregister_window(popup)
+	)
 
 func _show_slot_context_popup(hud: GameHUD, item: ItemData, slot_panel: PanelContainer) -> void:
 	if not context_popup:
@@ -221,7 +252,7 @@ func _show_slot_context_popup(hud: GameHUD, item: ItemData, slot_panel: PanelCon
 		
 	var vbox = context_popup.get_node("VBox") as VBoxContainer
 	for child in vbox.get_children():
-		child.queue_free()
+		child.free()
 		
 	var is_equipable = item.equipment_slot != "None"
 	var is_skill_book = item is SkillBook
@@ -248,14 +279,14 @@ func _show_slot_context_popup(hud: GameHUD, item: ItemData, slot_panel: PanelCon
 		vbox.add_child(equip_btn)
 		first_focus_btn = equip_btn
 	elif is_consumable:
-		var consume_btn = Button.new()
-		consume_btn.text = "Consume"
-		consume_btn.pressed.connect(func():
+		var use_btn = Button.new()
+		use_btn.text = "Use"
+		use_btn.pressed.connect(func():
 			context_popup.hide()
 			_consume_item(hud, item)
 		)
-		vbox.add_child(consume_btn)
-		first_focus_btn = consume_btn
+		vbox.add_child(use_btn)
+		first_focus_btn = use_btn
 		
 	var more_data_btn = Button.new()
 	more_data_btn.text = "More Data"
@@ -267,15 +298,16 @@ func _show_slot_context_popup(hud: GameHUD, item: ItemData, slot_panel: PanelCon
 	if not first_focus_btn:
 		first_focus_btn = more_data_btn
 		
-	var delete_btn = Button.new()
-	delete_btn.text = "Delete"
-	delete_btn.pressed.connect(func():
+	var destroy_btn = Button.new()
+	destroy_btn.text = "Destroy"
+	destroy_btn.pressed.connect(func():
 		context_popup.hide()
-		open_confirm_prompt(hud, "Delete Item", "Permanently delete 1 unit of %s?" % item.name, func():
+		open_confirm_prompt(hud, "Destroy Item", "Permanently destroy 1 unit of %s?" % item.name, func():
 			GameState.player_inventory.remove_item(item.id, 1)
+			hud.update_inventory_panel()
 		)
 	)
-	vbox.add_child(delete_btn)
+	vbox.add_child(destroy_btn)
 	
 	var cancel_btn = Button.new()
 	cancel_btn.text = "Cancel"
@@ -291,7 +323,9 @@ func _show_slot_context_popup(hud: GameHUD, item: ItemData, slot_panel: PanelCon
 			child.add_theme_font_size_override("font_size", 9)
 			hud.call("_setup_button_hover", child)
 			
+	context_popup.size = Vector2.ZERO
 	context_popup.show()
+	GameState.register_window(context_popup, func(): context_popup.hide())
 	
 	var target_panel = slot_panel
 	if not target_panel:
@@ -304,7 +338,7 @@ func _show_slot_context_popup(hud: GameHUD, item: ItemData, slot_panel: PanelCon
 	else:
 		context_popup.global_position = hud.inventory_window.global_position + (hud.inventory_window.size / 2.0) - (context_popup.size / 2.0)
 		
-	var screen_size = hud.get_viewport_rect().size
+	var screen_size = hud.get_viewport().get_visible_rect().size
 	if context_popup.global_position.x + context_popup.size.x > screen_size.x:
 		if target_panel:
 			context_popup.global_position.x = target_panel.global_position.x - context_popup.size.x - 8
@@ -330,13 +364,12 @@ func _equip_item(hud: GameHUD, item: ItemData) -> void:
 				hud.spawn_floating_text("Bag is full, cannot swap!", hud._active_player.global_position)
 				return
 				
-	open_confirm_prompt(hud, "Equip Item", "Equip %s?" % item.name, func():
-		GameState.player_inventory.remove_item(item.id, 1)
-		var prev = eq.call("equip_item", slot_name, item) as ItemData
-		if prev:
-			GameState.player_inventory.add_item(prev, 1)
-		hud._active_player.recalculate_equipment_stats()
-	)
+	GameState.player_inventory.remove_item(item.id, 1)
+	var prev = eq.call("equip_item", slot_name, item) as ItemData
+	if prev:
+		GameState.player_inventory.add_item(prev, 1)
+	hud._active_player.recalculate_equipment_stats()
+	hud.update_inventory_panel()
 
 func _consume_item(hud: GameHUD, item: ItemData) -> void:
 	GameState.player_inventory.remove_item(item.id, 1)
@@ -426,6 +459,10 @@ func _init_confirm_popup(hud: GameHUD) -> void:
 	hud.add_child(popup)
 	popup.hide()
 	confirm_popup = popup
+	popup.visibility_changed.connect(func():
+		if not popup.visible:
+			GameState.unregister_window(popup)
+	)
 
 func open_confirm_prompt(hud: GameHUD, title_text: String, desc_text: String, confirm_callback: Callable, yes_text: String = "Yes", no_text: String = "No") -> void:
 	if not confirm_popup:
@@ -461,6 +498,7 @@ func open_confirm_prompt(hud: GameHUD, title_text: String, desc_text: String, co
 	)
 	
 	confirm_popup.show()
+	GameState.register_window(confirm_popup, func(): confirm_popup.hide())
 	confirm_popup.global_position = hud.inventory_window.global_position + (hud.inventory_window.size / 2.0) - (confirm_popup.size / 2.0)
 	yes_btn.grab_focus()
 
@@ -520,6 +558,10 @@ func _init_employee_selection_popup(hud: GameHUD) -> void:
 	hud.add_child(popup)
 	popup.hide()
 	employee_popup = popup
+	popup.visibility_changed.connect(func():
+		if not popup.visible:
+			GameState.unregister_window(popup)
+	)
 
 func _init_trait_replacement_popup(hud: GameHUD) -> void:
 	if trait_replacement_popup:
@@ -577,6 +619,10 @@ func _init_trait_replacement_popup(hud: GameHUD) -> void:
 	hud.add_child(popup)
 	popup.hide()
 	trait_replacement_popup = popup
+	popup.visibility_changed.connect(func():
+		if not popup.visible:
+			GameState.unregister_window(popup)
+	)
 
 func _use_skill_book(hud: GameHUD, book: SkillBook) -> void:
 	if not employee_popup:
@@ -634,6 +680,7 @@ func _use_skill_book(hud: GameHUD, book: SkillBook) -> void:
 			hud.call("_setup_button_hover", btn)
 			
 	employee_popup.show()
+	GameState.register_window(employee_popup, func(): employee_popup.hide())
 	employee_popup.global_position = hud.inventory_window.global_position + (hud.inventory_window.size / 2.0) - (employee_popup.size / 2.0)
 	
 	var close_btn = employee_popup.find_child("CloseButton", true, false) as Button
@@ -690,6 +737,7 @@ func _show_trait_replacement_panel(hud: GameHUD, npc: Node, book: SkillBook) -> 
 		hud.call("_setup_button_hover", btn)
 		
 	trait_replacement_popup.show()
+	GameState.register_window(trait_replacement_popup, func(): trait_replacement_popup.hide())
 	trait_replacement_popup.global_position = hud.inventory_window.global_position + (hud.inventory_window.size / 2.0) - (trait_replacement_popup.size / 2.0)
 	
 	if button_container.get_child_count() > 0:

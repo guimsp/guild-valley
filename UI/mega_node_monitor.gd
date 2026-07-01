@@ -20,6 +20,10 @@ var gather_popup_step: int = 0
 var selected_gather_item_id: String = ""
 
 func _ready() -> void:
+	var scroll = get_node_or_null("VBox/ScrollContainer") as ScrollContainer
+	if scroll:
+		UIFocusHelper.register_scroll_container(scroll)
+		
 	_init_styles()
 	close_btn.pressed.connect(_on_close_pressed)
 	gather_self_btn.pressed.connect(_on_gather_self_pressed)
@@ -293,6 +297,7 @@ func _render_gather_popup_step() -> void:
 		scroll.add_child(items_grid)
 		
 		var node_type = target_node.resource_type_id if target_node else "wheat"
+		var econ_mgr = get_node_or_null("/root/EconomyManager")
 		var items = []
 		if node_type == "wheat":
 			items = [
@@ -311,7 +316,20 @@ func _render_gather_popup_step() -> void:
 				{"id": "cotton", "name": "Cotton"},
 				{"id": "berries", "name": "Berries"},
 				{"id": "honey", "name": "Honey"},
-				{"id": "venison", "name": "Venison"}
+				{"id": "venison", "name": "Venison"},
+				{"id": "wild_animal_hides", "name": "Wild Animal Hides"}
+			]
+		elif node_type == "venison":
+			items = [
+				{"id": "venison", "name": "Venison"},
+				{"id": "wild_animal_hides", "name": "Wild Animal Hides"}
+			]
+		else:
+			var display_name = node_type.capitalize()
+			if econ_mgr and econ_mgr.item_database.has(node_type):
+				display_name = econ_mgr.item_database[node_type].name
+			items = [
+				{"id": node_type, "name": display_name}
 			]
 			
 		var item_buttons = []
@@ -420,6 +438,25 @@ func _render_gather_popup_step() -> void:
 		slider.focus_mode = Control.FOCUS_ALL
 		content_area.add_child(slider)
 		
+		# Tool requirement label
+		var req_tool_lbl = Label.new()
+		var req_type = GameState.get_required_tool_type_for_resource(selected_gather_item_id)
+		var item_level = 1
+		if econ_mgr and econ_mgr.item_database.has(selected_gather_item_id):
+			item_level = econ_mgr.item_database[selected_gather_item_id].item_level
+			
+		if req_type != "":
+			if item_level >= 4:
+				req_tool_lbl.text = "Required Tool: Iron/Steel " + req_type.capitalize()
+			else:
+				req_tool_lbl.text = "Required Tool: Copper/Iron/Steel " + req_type.capitalize()
+		else:
+			req_tool_lbl.text = "Required Tool: None"
+		req_tool_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		req_tool_lbl.add_theme_font_size_override("font_size", 10)
+		req_tool_lbl.modulate = Color(0.9, 0.6, 0.2)
+		content_area.add_child(req_tool_lbl)
+
 		var info_lbl = Label.new()
 		info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		info_lbl.add_theme_font_size_override("font_size", 11)
@@ -430,8 +467,23 @@ func _render_gather_popup_step() -> void:
 			var ticks = duration / 3.0
 			var congestion = target_node.get_congestion_factor() if target_node else 1.0
 			var base_y = target_node.base_yield if target_node else 1.0
-			var est_yield = int(floor(ticks * base_y * congestion))
-			var fee = target_node.get_entry_fee() if target_node else 50
+			
+			var gathering_mult = 1.0
+			var player = get_tree().get_first_node_in_group("Player")
+			if player:
+				var eq = player.get_node_or_null("EquipmentComponent")
+				if eq:
+					gathering_mult += eq.get_total_gathering_bonus()
+			
+			var gather_time = 8.0
+			var econ = get_node_or_null("/root/EconomyManager")
+			if econ and econ.item_database.has(selected_gather_item_id):
+				var item_res = econ.item_database[selected_gather_item_id]
+				gather_time = econ.get_algorithmic_gathering_time(item_res.item_level)
+			
+			var tick_yield = (3.0 / gather_time) * base_y * congestion * gathering_mult
+			var est_yield = int(floor(ticks * tick_yield))
+			var fee = _get_adjusted_entry_fee(selected_gather_item_id)
 			info_lbl.text = "Duration: %d seconds\nEst. Yield: %d units\nPermit Fee: %d Gold" % [duration, est_yield, fee]
 			
 		update_yield_info.call(slider.value)
@@ -516,6 +568,15 @@ func _render_gather_popup_step() -> void:
 		_close_gather_popup()
 	)
 
+func _get_adjusted_entry_fee(resource_id: String) -> int:
+	var base_fee = target_node.get_entry_fee() if target_node else 50
+	var econ = get_node_or_null("/root/EconomyManager")
+	if econ and econ.item_database.has(resource_id):
+		var item = econ.item_database[resource_id]
+		if item.item_level >= 4:
+			return base_fee * 3
+	return base_fee
+
 func _confirm_gather_popup_stop(duration: int) -> void:
 	var player = get_tree().get_first_node_in_group("Player")
 	if not player or not target_node:
@@ -527,7 +588,37 @@ func _confirm_gather_popup_stop(duration: int) -> void:
 		_close_gather_popup()
 		return
 		
-	var fee = target_node.get_entry_fee()
+	# Enforce tool requirements for gathering
+	var required_type = GameState.get_required_tool_type_for_resource(selected_gather_item_id)
+	if required_type != "":
+		var eq = player.get_node_or_null("EquipmentComponent")
+		var has_tool = false
+		var equipped_tool = null
+		if eq:
+			equipped_tool = eq.get_equipped_item("tool")
+		print("[MegaNodeMonitor] player = ", player.name, ", eq = ", eq, ", equipped_tool = ", equipped_tool.id if equipped_tool else "None", ", required_type = ", required_type)
+			
+		var item_level = 1
+		var econ = get_node_or_null("/root/EconomyManager")
+		if econ and econ.item_database.has(selected_gather_item_id):
+			item_level = econ.item_database[selected_gather_item_id].item_level
+			
+		if equipped_tool and GameState.is_tool_sufficient(equipped_tool.id, required_type, item_level):
+			has_tool = true
+			
+		if not has_tool:
+			_shake_ui()
+			var msg = "Requires "
+			if item_level >= 4:
+				msg += "an Iron or Steel "
+			else:
+				msg += "a Copper, Iron, or Steel "
+			msg += required_type.capitalize() + "!"
+			GameState.spawn_ui_floating_text(msg)
+			_close_gather_popup()
+			return
+		
+	var fee = _get_adjusted_entry_fee(selected_gather_item_id)
 	if GameState.gold >= fee:
 		GameState.gold -= fee
 		player.set_meta("selected_gather_resource", selected_gather_item_id)

@@ -446,8 +446,9 @@ func _populate_employees_status_tab(hud: GameHUD, scroll: ScrollContainer) -> vo
 		var task_text: String = "Idle"
 		if emp_dict.get("active_recipe_path") != "":
 			var recipe = load(emp_dict["active_recipe_path"])
-			if recipe and recipe.get("output_item"):
-				task_text = "Crafting: %s" % recipe.output_item.name
+			if recipe:
+				var out_name = recipe.output_item.name if recipe.output_item else recipe.recipe_name
+				task_text = "Crafting: %s" % out_name
 				var total_t: float = emp_dict.get("craft_total_time", 0.0)
 				var cur_t: float = emp_dict.get("craft_timer", 0.0)
 				if total_t > 0.0:

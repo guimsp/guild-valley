@@ -23,11 +23,11 @@ func on_shop_search_resolved(stall: CollisionObject2D) -> void:
 		# Remove item and put on failed/cooldown penalty in profile
 		if npc.profile:
 			npc.profile.shopping_queue.erase(npc.target_item_id)
-			if npc.profile.demand_profiles.has(npc.target_item_id):
+			if npc.profile.demand_timers.has(npc.target_item_id):
 				# Increment unmet necessity accumulation count (max 2)
-				npc.profile.demand_profiles[npc.target_item_id]["accumulation"] = min(2, npc.profile.demand_profiles[npc.target_item_id].get("accumulation", 1) + 1)
-				# Penalty retry timer (15 to 30 seconds, scaled 4x)
-				npc.profile.demand_profiles[npc.target_item_id]["timer"] = randf_range(15.0, 30.0)
+				npc.profile.increment_accumulation(npc.target_item_id)
+				# Penalty retry timer (15 to 30 seconds)
+				npc.profile.set_retry_timer(npc.target_item_id)
 				
 		# Visual alert
 		npc.spawn_debug_emote("X No Shop", Color.RED)
@@ -53,61 +53,65 @@ func process_transact() -> void:
 			npc.current_state = npc.State.SEARCH_CHOOSE
 		return
 		
-	# Perform transaction
-	var item_data: ItemData = npc._economy_manager.item_database.get(npc.target_item_id) if npc._economy_manager else null
-	var is_public_market_stall = (npc.target_stall is MarketStall) and (npc.target_stall.ownership_type == "Public")
+	if not npc.profile:
+		npc.current_state = npc.State.SEARCH_CHOOSE
+		return
+		
+	# Loop over all items in the queue and transact them if in stock
+	var items_in_queue = npc.profile.shopping_queue.duplicate()
 	
-	var available_stock = npc.target_stall.inventory.get_item_amount(npc.target_item_id) if not is_public_market_stall else 999
-	var wanted_amount = 1
-	if npc.profile and npc.profile.demand_profiles.has(npc.target_item_id):
-		wanted_amount = npc.profile.demand_profiles[npc.target_item_id].get("accumulation", 1)
+	for item_id in items_in_queue:
+		var available_stock = npc.target_stall.inventory.get_item_amount(item_id)
+		var item_data: ItemData = npc._economy_manager.item_database.get(item_id) if npc._economy_manager else null
 		
-	var buy_limit = 999
-	if npc.npc_type == npc.NPCType.TYPE_CONSUMER and not is_public_market_stall:
-		if item_data and item_data.get_item_category() == 2: # Finished Product
-			buy_limit = randi_range(1, 2)
-			
-	var buy_amount = min(wanted_amount, min(available_stock, buy_limit))
-	
-	if item_data and buy_amount > 0:
-		var ignore_t = false
-		if npc.active_commercial_route and npc.active_commercial_route.get("is_smuggler") == true:
-			ignore_t = true
-		var price = npc.target_stall.get_buy_price(item_data, ignore_t)
-		var total_cost = price * buy_amount
-		
-		# Deduct stock if NOT Public
-		if not is_public_market_stall:
-			npc.target_stall.inventory.remove_item(npc.target_item_id, buy_amount)
-		
-		# Pay the owner
-		payout_stall_owner(npc.target_stall, total_cost, item_data, buy_amount)
-		
-		# Successful transaction feedback (show amount if > 1)
-		if buy_amount > 1:
-			npc.spawn_debug_emote("+%d %s ($%d)" % [buy_amount, item_data.name, total_cost], Color.GREEN)
-		else:
-			npc.spawn_debug_emote("+%s ($%d)" % [item_data.name, total_cost], Color.GREEN)
-		
-		# Remove from shopping queue and reset accumulation
-		if npc.profile:
-			npc.profile.shopping_queue.erase(npc.target_item_id)
-			# Reset normal demand timer and reset accumulation to 1
-			if npc.profile.demand_profiles.has(npc.target_item_id):
-				npc.profile.demand_profiles[npc.target_item_id]["accumulation"] = 1
-				var min_c = npc.profile.demand_profiles[npc.target_item_id].get("cooldown_min", 30.0)
-				var max_c = npc.profile.demand_profiles[npc.target_item_id].get("cooldown_max", 60.0)
-				npc.profile.demand_profiles[npc.target_item_id]["timer"] = randf_range(min_c, max_c)
-	else:
-		# Out of stock since we arrived
-		npc.spawn_debug_emote("X Sold Out", Color.RED)
-		if npc.profile:
-			npc.profile.shopping_queue.erase(npc.target_item_id)
-			if npc.profile.demand_profiles.has(npc.target_item_id):
-				npc.profile.demand_profiles[npc.target_item_id]["accumulation"] = min(2, npc.profile.demand_profiles[npc.target_item_id].get("accumulation", 1) + 1)
-				npc.profile.demand_profiles[npc.target_item_id]["timer"] = randf_range(15.0, 30.0) # short retry (scaled 4x)
+		if item_data and available_stock > 0:
+			var wanted_amount = 1
+			if npc.profile.demand_timers.has(item_id):
+				wanted_amount = npc.profile.get_accumulation(item_id)
 				
-	# Combo shopping check
+			var buy_limit = 999
+			if npc.npc_type == npc.NPCType.TYPE_CONSUMER:
+				if item_data.get_item_category() == 2: # Finished Product
+					buy_limit = randi_range(1, 2)
+					
+			var buy_amount = min(wanted_amount, min(available_stock, buy_limit))
+			
+			if buy_amount > 0:
+				var ignore_t = false
+				if npc.active_commercial_route and npc.active_commercial_route.get("is_smuggler") == true:
+					ignore_t = true
+				var price = npc.target_stall.get_buy_price(item_data, ignore_t)
+				var total_cost = price * buy_amount
+				
+				# Deduct stock
+				npc.target_stall.inventory.remove_item(item_id, buy_amount)
+				
+				# Pay the owner
+				payout_stall_owner(npc.target_stall, total_cost, item_data, buy_amount)
+				
+				# Successful transaction feedback
+				if buy_amount > 1:
+					npc.spawn_debug_emote("+%d %s ($%d)" % [buy_amount, item_data.name, total_cost], Color.GREEN)
+				else:
+					npc.spawn_debug_emote("+%s ($%d)" % [item_data.name, total_cost], Color.GREEN)
+				
+				# Remove from queue and list, and reset cooldowns
+				npc.profile.shopping_queue.erase(item_id)
+				npc.profile.shopping_list.erase(item_id)
+				if npc.profile.demand_timers.has(item_id):
+					npc.profile.reset_accumulation(item_id)
+					npc.profile.reset_demand_cooldown(item_id)
+		else:
+			# Not in stock. Check if it was the target item
+			if item_id == npc.target_item_id:
+				npc.spawn_debug_emote("X Sold Out", Color.RED)
+				npc.profile.shopping_queue.erase(item_id)
+				npc.profile.shopping_list.erase(item_id)
+				if npc.profile.demand_timers.has(item_id):
+					npc.profile.increment_accumulation(item_id)
+					npc.profile.set_retry_timer(item_id)
+
+	# Combo shopping check - transition back to select next target or return home
 	npc.current_state = npc.State.SEARCH_CHOOSE
 
 func payout_stall_owner(stall: CollisionObject2D, amount: int, item_data: ItemData, qty: int) -> void:
@@ -179,24 +183,23 @@ func try_equip_tool_from_building(node_path: String) -> void:
 	if not is_instance_valid(node):
 		return
 		
-	var tool_id = ""
 	var res_id = node.get("resource_type_id")
-	match res_id:
-		"wheat":
-			tool_id = "bronze_scythe"
-		"cotton":
-			tool_id = "bronze_sickle"
-		"iron_ore":
-			tool_id = "bronze_pickaxe"
-			
-	print("[Tool System] %s node resource_type_id: %s -> tool needed: %s" % [worker_name, res_id, tool_id])
-			
-	if tool_id == "":
+	if npc.has_meta("selected_gather_resource"):
+		res_id = npc.get_meta("selected_gather_resource")
+		
+	var required_type = GameState.get_required_tool_type_for_resource(res_id)
+	
+	if required_type == "":
 		return
 		
+	var item_level = 1
+	var econ_mgr = npc.get("_economy_manager") if npc.get("_economy_manager") else Engine.get_main_loop().root.get_node_or_null("EconomyManager")
+	if econ_mgr and econ_mgr.item_database.has(res_id):
+		item_level = econ_mgr.item_database[res_id].item_level
+		
 	var current_tool = eq.get_equipped_item("tool")
-	if current_tool != null and current_tool.id == tool_id:
-		print("[Tool System] %s already has tool %s equipped." % [worker_name, tool_id])
+	if current_tool != null and GameState.is_tool_sufficient(current_tool.id, required_type, item_level):
+		print("[Tool System] %s already has sufficient tool %s equipped." % [worker_name, current_tool.id])
 		return
 		
 	if current_tool != null:
@@ -212,25 +215,21 @@ func try_equip_tool_from_building(node_path: String) -> void:
 	if not target_storage:
 		target_storage = npc.hired_by_building.get("inventory")
 		
-	var tool_in_storage_count = 0
 	if target_storage:
-		tool_in_storage_count = target_storage.get_item_amount(tool_id)
-	
-	print("[Tool System] %s storage tool count for %s: %d" % [worker_name, tool_id, tool_in_storage_count])
-
-	if target_storage:
-		var found_tool_res: ItemData = null
-		for slot in target_storage.slots:
-			if slot["item"] and slot["item"].id == tool_id:
-				found_tool_res = slot["item"]
-				break
+		var tool_to_equip = GameState.find_sufficient_tool(target_storage, required_type, item_level)
+		if tool_to_equip != "":
+			var found_tool_res: ItemData = null
+			for slot in target_storage.slots:
+				if slot["item"] and slot["item"].id == tool_to_equip:
+					found_tool_res = slot["item"]
+					break
+			if found_tool_res:
+				target_storage.remove_item(tool_to_equip, 1)
+				eq.equip_item("tool", found_tool_res)
+				print("[Tool System] %s successfully equipped %s from %s storage." % [worker_name, tool_to_equip, building_name])
+				return
 				
-		if found_tool_res:
-			target_storage.remove_item(tool_id, 1)
-			eq.equip_item("tool", found_tool_res)
-			print("[Tool System] %s successfully equipped %s from %s storage." % [worker_name, tool_id, building_name])
-		else:
-			print("[Tool System] %s failed to equip %s: tool not found in %s storage!" % [worker_name, tool_id, building_name])
+	print("[Tool System] %s failed to find sufficient tool for %s in %s storage!" % [worker_name, res_id, building_name])
 
 func try_equip_item_from_building(slot_name: String, item_id: String) -> void:
 	if not npc or not is_instance_valid(npc.hired_by_building):

@@ -8,12 +8,18 @@ var active_alerts: Array = []
 var past_alerts: Array = []
 var last_alert_times: Dictionary = {}
 
-func add_alert(title: String, description: String, alert_type: String, building_ref: Node2D = null) -> void:
-	# Cooldown check: prevent alerts of same title/building within 3 minutes (180,000 msec)
+func add_alert(title: String, description: String, alert_type: String, building_ref: Node2D = null, is_one_time: bool = false) -> void:
+	# Only allow alerts for Player-owned buildings if a building is referenced
+	if is_instance_valid(building_ref) and "ownership_type" in building_ref:
+		if building_ref.ownership_type != "Player":
+			return
+			
+	# Cooldown check: prevent alerts of same title/building within 3 minutes (180,000 msec), or 1 second for one-time alerts
 	var cooldown_key = title + "_" + (str(building_ref.get_path()) if is_instance_valid(building_ref) else "")
 	var now = Time.get_ticks_msec()
+	var cd_duration = 1000 if is_one_time else 180000
 	if last_alert_times.has(cooldown_key):
-		if now - last_alert_times[cooldown_key] < 180000:
+		if now - last_alert_times[cooldown_key] < cd_duration:
 			return
 	last_alert_times[cooldown_key] = now
 
@@ -54,7 +60,8 @@ func add_alert(title: String, description: String, alert_type: String, building_
 	}
 	
 	active_alerts.append(alert_data)
-	past_alerts.insert(0, alert_data)
+	if not is_one_time:
+		past_alerts.insert(0, alert_data)
 	
 	alert_added.emit(alert_data)
 

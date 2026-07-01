@@ -43,7 +43,7 @@ func _process(delta: float) -> void:
 
 func start_gathering(character: Node2D, node: Area2D) -> void:
 	var res_id = node.resource_type_id
-	if character.is_in_group("Player") and character.has_meta("selected_gather_resource"):
+	if character.has_meta("selected_gather_resource"):
 		res_id = character.get_meta("selected_gather_resource")
 		
 	gathered_buffer[character] = {
@@ -51,7 +51,7 @@ func start_gathering(character: Node2D, node: Area2D) -> void:
 		"amount": 0.0
 	}
 
-func stop_gathering(character: Node2D) -> void:
+func stop_gathering(_character: Node2D) -> void:
 	# Keep the buffer in memory so players can recall and collect even if they walk away,
 	# but ensure it can be collected.
 	pass
@@ -215,7 +215,7 @@ func collect_rival_worker_yield(worker: Node2D) -> void:
 							rival.inventory.add_item(item_res, amount)
 							rival._spawn_floating_text("Deposited %d %s!" % [amount, item_res.name])
 
-func collect_player_yield(player: Node2D, node: Area2D) -> void:
+func collect_player_yield(player: Node2D, _node: Area2D) -> void:
 	if gathered_buffer.has(player):
 		var data = gathered_buffer[player]
 		var res_id = data["resource_id"]

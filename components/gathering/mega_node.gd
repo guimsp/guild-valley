@@ -31,13 +31,19 @@ func _draw() -> void:
 		border_color = Color(0.85, 0.85, 0.9, 0.6)
 		
 	var radius = 96.0
+	var is_circle = false
 	for child in get_children():
-		if child is CollisionShape2D and child.shape is CircleShape2D:
-			radius = child.shape.radius
-			break
+		if child is CollisionShape2D:
+			if child.shape is CircleShape2D:
+				radius = child.shape.radius
+				is_circle = true
+				break
+			elif child.shape is RectangleShape2D:
+				return
 			
-	draw_circle(Vector2.ZERO, radius, color)
-	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, border_color, 2.0, true)
+	if is_circle:
+		draw_circle(Vector2.ZERO, radius, color)
+		draw_arc(Vector2.ZERO, radius, 0, TAU, 64, border_color, 2.0, true)
 
 func get_congestion_factor() -> float:
 	return max(0.4, 1.0 - ((active_gatherers.size() - 1) * 0.15))

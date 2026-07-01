@@ -4,6 +4,10 @@ var current_province: String = "Valley Province"
 var active_tab: String = "Elections"
 var is_single_window: bool = false
 var _countdown_labels: Array[Label] = []
+var active_npc: Node2D = null
+
+func set_active_npc(npc: Node2D) -> void:
+	active_npc = npc
 
 # References to UI elements
 var title_lbl: Label
@@ -521,6 +525,9 @@ func _render_donations() -> void:
 						if GameState.gold >= don.amount:
 							GameState.gold -= don.amount
 							pm.add_prosperity(current_province, don.prosperity)
+							if is_instance_valid(active_npc) and active_npc.get("npc_runtime_state"):
+								var local_state = active_npc.npc_runtime_state.local_state
+								local_state["total_donated"] = local_state.get("total_donated", 0.0) + don.prosperity
 							_refresh_display()
 							call_deferred("_focus_action_button", "Confirm Donation")
 						else:
@@ -530,6 +537,9 @@ func _render_donations() -> void:
 						if has_qty >= don.amount:
 							GameState.player_inventory.remove_item(don.id, don.amount)
 							pm.add_prosperity(current_province, don.prosperity)
+							if is_instance_valid(active_npc) and active_npc.get("npc_runtime_state"):
+								var local_state = active_npc.npc_runtime_state.local_state
+								local_state["total_donated"] = local_state.get("total_donated", 0.0) + don.prosperity
 							_refresh_display()
 							call_deferred("_focus_action_button", "Confirm Donation")
 						else:
@@ -576,11 +586,14 @@ func _render_wholesalers() -> void:
 	timer_lbl.set_meta("format_prefix", "Refreshes in: ")
 	_countdown_labels.append(timer_lbl)
 	
-	var bundles = [
+	var bundles_fallback = [
 		{ "id": "iron_ore", "name": "Wholesale Iron Ore", "req": 30, "gold": 80, "influence": 5, "path": "Raw Materials" },
 		{ "id": "iron_ingot", "name": "Wholesale Iron Ingot", "req": 60, "gold": 200, "influence": 15, "path": "Semi-Elaborate" },
 		{ "id": "cloth", "name": "Wholesale Cloth", "req": 100, "gold": 350, "influence": 30, "path": "Semi-Elaborate" }
 	]
+	var bundles = bundles_fallback
+	if is_instance_valid(active_npc) and active_npc.get("npc_runtime_state"):
+		bundles = active_npc.npc_runtime_state.local_state.get("bundles_list", bundles_fallback)
 	
 	for i in range(bundles.size()):
 		var b = bundles[i]
@@ -595,7 +608,12 @@ func _render_wholesalers() -> void:
 		btn_style.set_corner_radius_all(6)
 		btn_style.set_border_width_all(1)
 		
-		var is_purchased = gc.purchased_bundles.get(b.id, false)
+		var is_purchased = false
+		if is_instance_valid(active_npc) and active_npc.get("npc_runtime_state"):
+			is_purchased = active_npc.npc_runtime_state.local_state.get("purchased_bundles", {}).get(b.id, false)
+		else:
+			is_purchased = gc.purchased_bundles.get(b.id, false)
+			
 		var is_locked = current_prosperity < b.req
 		if is_locked:
 			btn_style.border_color = Color(0.6, 0.2, 0.2, 0.4)
@@ -639,7 +657,13 @@ func _render_wholesalers() -> void:
 								GameState.gold -= b.gold
 								GameState.influence -= b.influence
 								GameState.player_inventory.add_item(item_res, 10)
-								gc.purchased_bundles[b.id] = true
+								if is_instance_valid(active_npc) and active_npc.get("npc_runtime_state"):
+									var local_state = active_npc.npc_runtime_state.local_state
+									if not local_state.has("purchased_bundles"):
+										local_state["purchased_bundles"] = {}
+									local_state["purchased_bundles"][b.id] = true
+								else:
+									gc.purchased_bundles[b.id] = true
 								GameState.spawn_ui_floating_text("Purchased %s!" % b.name)
 								_refresh_display()
 								call_deferred("_focus_action_button", "Purchase Bundle")

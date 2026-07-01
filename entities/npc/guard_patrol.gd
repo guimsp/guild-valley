@@ -12,11 +12,18 @@ func _ready() -> void:
 		animated_sprite.modulate = Color(0.5, 0.75, 1.0)
 
 func _physics_process(delta: float) -> void:
+	_action_label_timer -= delta
+	var should_update_label = false
+	if _action_label_timer <= 0.0:
+		_action_label_timer = randf_range(0.25, 0.45)
+		should_update_label = true
+
 	if is_talking:
 		velocity = Vector2.ZERO
 		if has_method("update_animation"):
 			update_animation(Vector2.ZERO)
-		_update_action_label()
+		if should_update_label:
+			NPCDiagnostics.update_action_label(self)
 		return
 
 	# Scanning check
@@ -46,7 +53,8 @@ func _physics_process(delta: float) -> void:
 		if animated_sprite:
 			animated_sprite.play("idle_" + last_direction)
 
-	_update_action_label()
+	if should_update_label:
+		NPCDiagnostics.update_action_label(self)
 
 func _perform_guard_scan() -> void:
 	var player = get_tree().get_first_node_in_group("Player")
@@ -188,12 +196,31 @@ func _arrest_player(player: CharacterBody2D, contraband_id: String, bubble: Node
 		if is_instance_valid(current_node):
 			current_node._on_body_exited(player)
 			
-	# Teleport to the province city center
+	# Teleport to the nearest local guardhouse doorstep/spawn anchor
 	var province = GameState.get_province_of_node(player)
-	var jail_pos = Vector2(1650, 480) # Valley City center
+	var jail_pos = Vector2(1650, 480) # Valley City center fallback
 	if province == "Oakhaven Province":
-		jail_pos = Vector2(5500, 480) # Oakhaven City center
+		jail_pos = Vector2(5500, 480) # Oakhaven City center fallback
+	elif province == "Highland Province":
+		jail_pos = Vector2(11500, 480) # Highland City center fallback
 		
+	var nearest_jail_dist = INF
+	var houses = get_tree().get_nodes_in_group("Houses")
+	for b in houses:
+		if is_instance_valid(b):
+			var b_name = b.name.to_lower()
+			var c_name = b.get("custom_name").to_lower() if b.get("custom_name") != null else ""
+			if "guardhouse" in b_name or "guardhouse" in c_name or "town_hall" in b_name or "town_hall" in c_name or "townhall" in b_name or "townhall" in c_name or "city_council" in b_name or "city_council" in c_name or "lawhouse" in b_name or "lawhouse" in c_name or "law_house" in b_name or "law_house" in c_name:
+				if GameState.get_province_of_node(b) == province:
+					var dist = player.global_position.distance_to(b.global_position)
+					if dist < nearest_jail_dist:
+						nearest_jail_dist = dist
+						var anchor = b.get_node_or_null("Jail_Spawn_Anchor")
+						if anchor:
+							jail_pos = anchor.global_position
+						else:
+							jail_pos = b.get_meta("blueprint_door_pos") if b.has_meta("blueprint_door_pos") else b.global_position
+							
 	TransitionScreen.transition_teleport(jail_pos)
 	
 	# Close dialog

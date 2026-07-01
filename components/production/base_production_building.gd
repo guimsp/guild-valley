@@ -8,7 +8,13 @@ extends StaticBody2D
 
 @export var buy_cost: int = 250
 @export var is_buyable: bool = true
-@export_enum("Public", "Player", "Rented", "NPC") var ownership_type: String = "Player"
+@export_enum("Public", "Player", "Rented", "NPC") var ownership_type: String = "Player":
+	set(val):
+		ownership_type = val
+		if is_node_ready():
+			_update_door_state()
+			if has_method("update_storefront_stall_state"):
+				update_storefront_stall_state()
 @export var owner_id: String = "Player"
 
 @export var custom_name: String = ""
@@ -33,7 +39,7 @@ var inventory: Node = null
 var building_storage: Node = null
 var entry_door: Area2D = null
 var interior_position: Vector2 = Vector2.ZERO
-var instanced_interior: Node2D = null
+var instanced_interior: Node = null
 
 # --- Storefront / Merchant Interface ---
 @export var market_name: String = ""
@@ -96,7 +102,8 @@ var improvements: Dictionary = {
 	"iron_reinforcements": 0,# Max level 3
 	"ornate_facade": 0,      # Max level 3
 	"strongbox_vault": 0,    # Max level 3
-	"auto_gathering": 0      # Max level 1
+	"auto_gathering": 0,     # Max level 1
+	"storefront": 0          # Max level 1
 }:
 	get:
 		return upgrade_component.improvements if upgrade_component else improvements
@@ -122,7 +129,8 @@ const IMPROVEMENT_DEFINITIONS: Dictionary = {
 	"iron_reinforcements": { "max_level": 3, "cost": 300, "name": "Iron Reinforcements", "description": "Adds rogue/sabotage protection (+15% success penalty)." },
 	"ornate_facade": { "max_level": 3, "cost": 150, "name": "Ornate Facade", "description": "Boosts building attractiveness by +5 rating per level." },
 	"strongbox_vault": { "max_level": 3, "cost": 150, "name": "Strongbox Vault", "description": "Increases strongbox gold capacity by +1000 per level." },
-	"auto_gathering": { "max_level": 1, "cost": 200, "name": "Auto Gathering", "description": "Employees gather raw materials from mega nodes when recipe inputs are missing." }
+	"auto_gathering": { "max_level": 1, "cost": 200, "name": "Auto Gathering", "description": "Employees gather raw materials from mega nodes when recipe inputs are missing." },
+	"storefront": { "max_level": 1, "cost": 150, "name": "Stall Storefront", "description": "Unlocks the overworld retail storefront to sell goods directly to shoppers." }
 }
 
 var rogue_sabotage_penalty: float = 0.0
@@ -321,7 +329,7 @@ func get_single_buy_price(item: ItemData, temp_stock: int) -> int:
 				
 	return int(price)
 
-func get_buy_price(item: ItemData) -> int:
+func get_buy_price(item: ItemData, ignore_tariffs: bool = false) -> int:
 	if custom_prices.has(item.id):
 		return custom_prices[item.id]
 	var current_stock: int = inventory.get_item_amount(item.id)
@@ -506,14 +514,20 @@ func _create_dynamic_door() -> void:
 	var shape = RectangleShape2D.new()
 	shape.size = Vector2(32, 16)
 	col_door.shape = shape
-	col_door.position = Vector2(0, 32)
+	if has_meta("blueprint_door_pos"):
+		col_door.global_position = get_meta("blueprint_door_pos")
+	else:
+		col_door.position = Vector2(0, 32)
 	add_child(col_door)
 
 func _create_entry_door() -> void:
 	entry_door = Area2D.new()
 	entry_door.name = "EntryDoorTrigger"
 	entry_door.set_script(load("res://components/teleport/teleport_trigger.gd"))
-	entry_door.position = Vector2(0, 32)
+	if has_meta("blueprint_door_pos"):
+		entry_door.global_position = get_meta("blueprint_door_pos")
+	else:
+		entry_door.position = Vector2(0, 32)
 	
 	var col = CollisionShape2D.new()
 	var shape = RectangleShape2D.new()
@@ -524,10 +538,15 @@ func _create_entry_door() -> void:
 	add_child(entry_door)
 	
 	entry_door.is_local_teleport = true
-	entry_door.target_spawn_position = interior_position + Vector2(0, 60)
 	entry_door.ownership_type = ownership_type
 	entry_door.owner_id = owner_id
 	entry_door.is_buyable = false
+	
+	if instanced_interior:
+		entry_door.target_room_node = instanced_interior
+		entry_door.target_spawn_position = interior_position + Vector2(128, 200)
+	else:
+		entry_door.target_spawn_position = interior_position + Vector2(128, 200)
 
 func _update_door_state() -> void:
 	if col_door:
@@ -599,6 +618,11 @@ func _ready_base() -> void:
 	if footprint:
 		footprint.disabled = true
 		
+	if has_meta("is_teleport_only") and get_meta("is_teleport_only") == true:
+		if fade_trigger:
+			fade_trigger.queue_free()
+			fade_trigger = null
+		
 	if fade_trigger:
 		if not fade_trigger.body_entered.is_connected(_on_fade_body_entered):
 			fade_trigger.body_entered.connect(_on_fade_body_entered)
@@ -610,20 +634,42 @@ func _ready_base() -> void:
 	var building_id = "bld_%s_%d_%d" % [name.to_lower(), int(global_position.x), int(global_position.y)]
 	interior_position = GameState.allocate_interior_space(building_id)
 	
-	var interior_scene = load("res://components/buildings/interior_template.tscn")
-	if interior_scene:
-		instanced_interior = interior_scene.instantiate() as Node2D
+	var template_node = null
+	if building_data and building_data.career == "patreon":
+		var scene_root = get_tree().current_scene if get_tree().current_scene else get_tree().root
+		template_node = scene_root.find_child("Tmp_Flour_Mill_lvl1", true, false)
+		if not template_node:
+			template_node = get_tree().root.find_child("Tmp_Flour_Mill_lvl1", true, false)
+			
+	if template_node:
+		instanced_interior = template_node.duplicate()
 		instanced_interior.name = "Interior_" + name + "_" + str(int(global_position.x))
+		instanced_interior.set_script(load("res://components/buildings/interior_template.gd"))
 		instanced_interior.global_position = interior_position
 		var parent_scene = get_tree().current_scene if get_tree().current_scene else get_tree().root
 		parent_scene.call_deferred("add_child", instanced_interior)
 		
 		var exit_spawn_pos = global_position + Vector2(0, 64)
 		instanced_interior.call_deferred("setup_interior", self, exit_spawn_pos)
+	else:
+		var interior_scene = load("res://components/buildings/interior_template.tscn")
+		if interior_scene:
+			instanced_interior = interior_scene.instantiate() as Node
+			instanced_interior.name = "Interior_" + name + "_" + str(int(global_position.x))
+			instanced_interior.global_position = interior_position
+			var parent_scene = get_tree().current_scene if get_tree().current_scene else get_tree().root
+			parent_scene.call_deferred("add_child", instanced_interior)
+			
+			var exit_spawn_pos = global_position + Vector2(0, 64)
+			instanced_interior.call_deferred("setup_interior", self, exit_spawn_pos)
 
 	_create_dynamic_door()
 	_create_entry_door()
 	_update_door_state()
+	if upgrade_component:
+		if not upgrade_component.improvement_purchased.is_connected(_on_improvement_purchased):
+			upgrade_component.improvement_purchased.connect(_on_improvement_purchased)
+	update_storefront_stall_state()
 	recalculate_building_parameters()
 
 func _on_fade_body_entered(body: Node2D) -> void:
@@ -761,7 +807,7 @@ func start_player_crafting(recipe_path: String) -> void:
 		craft_time /= prod
 		
 	# Level 8 Trait: Artisan's Efficiency
-	if level >= 8 and recipe.output_item.get("is_luxury_product") == true:
+	if level >= 8 and recipe.output_item and recipe.output_item.get("is_luxury_product") == true:
 		craft_time *= 0.85
 		
 	# Apply local law and delinquency modifiers to player
@@ -909,8 +955,12 @@ func _tick_player_crafting(delta: float) -> void:
 			
 		player_craft_timer -= delta
 		if player_craft_timer <= 0.0:
-			recipe = load(player_crafting_recipe_path)
 			if recipe:
+				if recipe.is_event:
+					_resolve_completed_event(recipe)
+					GameState.add_xp(recipe.required_career, recipe.xp_reward)
+					stop_player_crafting()
+					return
 				var out_item = recipe.output_item
 				var out_qty = recipe.output_amount
 				var target_b_storage = building_storage if building_storage else inventory
@@ -1021,7 +1071,7 @@ func _tick_player_crafting(delta: float) -> void:
 						var prod = player.get("productivity") if player else 1.0
 						if prod > 0.0:
 							craft_time /= prod
-						if level >= 8 and recipe.output_item.get("is_luxury_product") == true:
+						if level >= 8 and recipe.output_item and recipe.output_item.get("is_luxury_product") == true:
 							craft_time *= 0.85
 							
 						var pm = get_node_or_null("/root/PoliticsManager")
@@ -1119,3 +1169,147 @@ func get_service_price(recipe: Recipe) -> int:
 			var base_service_fee = (duration * profile.labor_base) * profile.scalar * 1.5
 			return int(round(base_service_fee))
 	return 20
+
+func update_storefront_stall_state() -> void:
+	var spawn_pos = Vector2.ZERO
+	if has_meta("stall_spawn_pos"):
+		spawn_pos = get_meta("stall_spawn_pos") as Vector2
+	else:
+		var anchor = get_node_or_null("Stall_Anchor")
+		if anchor:
+			spawn_pos = anchor.global_position
+		else:
+			spawn_pos = global_position + Vector2(32, 16)
+			
+	var should_have_stall = false
+	if ownership_type == "Player" or ownership_type == "NPC":
+		should_have_stall = improvements.get("storefront", 0) > 0
+	else:
+		should_have_stall = true
+		
+	var current_stall_exists = is_instance_valid(storefront_stall) and storefront_stall != self
+	
+	if should_have_stall:
+		if not current_stall_exists:
+			var stall_scene = load("res://components/market/market_stall.tscn")
+			if stall_scene:
+				var stall = stall_scene.instantiate() as MarketStall
+				get_parent().add_child(stall)
+				stall.global_position = spawn_pos
+				if stall.has_node("CollisionShape2D"):
+					var col = stall.get_node("CollisionShape2D") as CollisionShape2D
+					if col:
+						col.disabled = true
+				stall.collision_layer = 0
+				stall.collision_mask = 0
+				stall.ownership_type = ownership_type
+				stall.owner_id = owner_id
+				stall.inventory = inventory
+				stall.parent_building = self
+				storefront_stall = stall
+				print("[Building] Instantiated storefront stall at ", spawn_pos, " for ", name)
+	else:
+		if current_stall_exists:
+			print("[Building] Removing storefront stall for ", name)
+			storefront_stall.queue_free()
+			storefront_stall = self
+
+func _on_improvement_purchased(improvement_id: String, _new_level: int) -> void:
+	if improvement_id == "storefront":
+		update_storefront_stall_state()
+
+func _resolve_completed_event(recipe: Resource) -> void:
+	if not recipe or not recipe.is_event:
+		return
+		
+	var consumed_items: Array = []
+	for input in recipe.inputs:
+		var qty = recipe.inputs[input]
+		for j in range(qty):
+			consumed_items.append(input)
+			
+	var econ = get_node_or_null("/root/EconomyManager")
+	if not econ:
+		return
+		
+	var sbox = get_node_or_null("StrongboxComponent")
+	if not sbox:
+		return
+		
+	var base_influence: int = 15
+	var base_prestige: int = 30
+	
+	var r_name = recipe.resource_path.get_file().replace(".tres", "")
+	match r_name:
+		"contract_bridge_reconstruction":
+			base_influence = 30
+			base_prestige = 60
+		"contract_palace_remodeling":
+			base_influence = 50
+			base_prestige = 100
+		"contract_crop_blight":
+			base_influence = 50
+			base_prestige = 100
+		"contract_treat_archduke":
+			base_influence = 75
+			base_prestige = 150
+		"contract_ballista_fleet":
+			base_influence = 25
+			base_prestige = 50
+		"contract_honor_guard":
+			base_influence = 40
+			base_prestige = 80
+		"noble_event":
+			base_influence = 15
+			base_prestige = 30
+		"royal_event":
+			base_influence = 30
+			base_prestige = 60
+		_:
+			base_influence = recipe.required_level * 5
+			base_prestige = recipe.required_level * 10
+			
+	var contract_data: Dictionary = {
+		"influence": base_influence,
+		"prestige": base_prestige
+	}
+	
+	var resolution: Dictionary = econ.resolve_grand_event(consumed_items, contract_data)
+	var payout: int = resolution.get("payout", 0)
+	var outcome_tier: int = resolution.get("outcome_tier", 1)
+	var p_mult: float = resolution.get("prestige_multiplier", 1.0)
+	
+	var total_influence = int(round(float(base_influence) * p_mult))
+	var total_prestige = int(round(float(base_prestige) * p_mult))
+	
+	sbox.strongbox_gold += payout
+	
+	var client_type = "Guests"
+	if r_name == "royal_event": client_type = "Nobles"
+	elif r_name in ["contract_bridge_reconstruction", "contract_palace_remodeling"]: client_type = "Town Council"
+	elif r_name in ["contract_crop_blight", "contract_treat_archduke"]: client_type = "Sanitarium Board"
+	elif r_name in ["contract_ballista_fleet", "contract_honor_guard"]: client_type = "Military Guard"
+	elif r_name == "engrave_central_banking_charter": client_type = "Bank Board"
+	elif r_name in ["forge_extortion_mandate", "forge_regional_trade_passport"]: client_type = "Underworld Contacts"
+	
+	var outcome_str: String = "Regular"
+	match outcome_tier:
+		0: outcome_str = "Bad"
+		1: outcome_str = "Regular"
+		2: outcome_str = "Good"
+		3: outcome_str = "Excellent"
+		4: outcome_str = "Pristine"
+		
+	if ownership_type == "Player" or owner_id == "Player":
+		GameState.influence += total_influence
+		GameState.permanent_influence += total_prestige
+		
+	var tx_name = "%s (%s)" % [recipe.recipe_name, outcome_str]
+	sbox.add_transaction(tx_name, 1, payout, TimeManager.get_time_string() if has_node("/root/TimeManager") else "", client_type)
+	
+	if ownership_type == "Player" or owner_id == "Player":
+		GameState.spawn_ui_floating_text("+%d Gold, +%d Influence (%s: %s)" % [payout, total_influence, recipe.recipe_name, outcome_str])
+	
+	if outcome_tier == 0:
+		var msg = "A hosted %s suffered a mishap, resulting in poor reviews and reduced payouts." % recipe.recipe_name
+		AlertManager.add_alert("Grand Event Mishap!", msg, "warning", self)

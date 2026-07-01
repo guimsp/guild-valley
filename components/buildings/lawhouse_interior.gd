@@ -36,9 +36,7 @@ func setup_interior(parent_b: Node2D, exit_pos: Vector2) -> void:
 			npc.npc_name = "Councilor Marcus"
 			npc.quest_npc_id = "councilor_marcus"
 			
-		var animated_sprite = npc.get_node_or_null("AnimatedSprite2D")
-		if animated_sprite:
-			animated_sprite.modulate = Color(1.0, 0.9, 0.5) # Gold modulate for councilors
+		npc.rank_color = Color(1.0, 0.9, 0.5) # Gold modulate for councilors
 			
 		npc.position = Vector2(0, -60) # Standing at the center-north near desk
 		add_child(npc)
@@ -68,9 +66,10 @@ func setup_interior(parent_b: Node2D, exit_pos: Vector2) -> void:
 		print("[LawhouseInterior] Spawned guards: %s and %s" % [g1.npc_name, g2.npc_name])
 
 func _setup_interior_navigation() -> void:
+	var local_group = "nav_carve_obstacles_interior_" + str(get_instance_id())
 	if has_node("Walls"):
 		for wall in get_node("Walls").get_children():
-			wall.add_to_group("nav_carve_obstacles")
+			wall.add_to_group(local_group)
 			
 	var region = NavigationRegion2D.new()
 	region.name = "InteriorNavRegion"
@@ -79,7 +78,7 @@ func _setup_interior_navigation() -> void:
 	var poly = NavigationPolygon.new()
 	poly.parsed_geometry_type = NavigationPolygon.PARSED_GEOMETRY_STATIC_COLLIDERS
 	poly.source_geometry_mode = NavigationPolygon.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
-	poly.source_geometry_group_name = "nav_carve_obstacles"
+	poly.source_geometry_group_name = local_group
 	poly.agent_radius = 16.0
 	
 	var vertices = PackedVector2Array([

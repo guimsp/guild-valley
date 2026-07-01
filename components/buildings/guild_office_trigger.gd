@@ -16,7 +16,7 @@ func get_interaction_text() -> String:
 	var office_name = get_meta("office_name")
 	return "Guild Office: " + office_name
 
-func interact(player: CharacterBody2D) -> void:
+func interact(_player: CharacterBody2D) -> void:
 	var office_name = get_meta("office_name")
 	var prov = GameState.get_province_of_node(self) if GameState else "Valley Province"
 	var hud = get_tree().get_first_node_in_group("PlayerHUD")

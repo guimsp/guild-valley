@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://common/items/recipe.gd" id="1_script"]
 [ext_resource type="Resource" path="res://common/items/instances/Finished Goods/stage_costume.tres" id="2_costume"]
-[ext_resource type="Resource" path="res://common/items/instances/Finished Goods/casino_voucher.tres" id="3_voucher"]
 
 [resource]
 script = ExtResource("1_script")
@@ -13,6 +12,5 @@ recipe_name = "Grand Casino Lounge"
 required_career = "patreon"
 required_level = 7
 inputs = {}
-output_item = ExtResource("3_voucher")
 output_amount = 1
 xp_reward = 50

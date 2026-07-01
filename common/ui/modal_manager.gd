@@ -480,7 +480,8 @@ func _on_job_selected_direct(emp_idx: int, task: Object, is_indefinite: bool, am
 					target_pos = _building.instanced_interior.crafting_bench.global_position
 				npc.call("_generate_path", target_pos)
 			if GameState.has_method("add_alert"):
-				var msg = "%s cannot start producing %s: Missing inputs." % [emp.get("name", "Employee"), task.output_item.name]
+				var out_name = task.output_item.name if task.output_item else task.recipe_name
+				var msg = "%s cannot start producing %s: Missing inputs." % [emp.get("name", "Employee"), out_name]
 				AlertManager.add_alert("Production Blocked", msg, "warning", _building)
 			var hud = get_tree().get_first_node_in_group("PlayerHUD")
 			if hud: hud._spawn_floating_text("Employee assigned (Paused: Missing materials)", _building.global_position)

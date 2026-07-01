@@ -50,7 +50,7 @@ func _on_interaction_body_exited(body: Node2D) -> void:
 func get_interaction_text() -> String:
 	return "Craft"
 
-func interact(player: CharacterBody2D) -> void:
+func interact(_player: CharacterBody2D) -> void:
 	var hud = get_tree().get_first_node_in_group("PlayerHUD")
 	if not hud:
 		hud = get_tree().get_first_node_in_group("game_hud")

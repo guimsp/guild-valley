@@ -133,12 +133,23 @@ func get_road_path(from_pos: Vector2, to_pos: Vector2) -> Array[Vector2]:
 	return final_path
 
 func rebake_all_navigation_regions() -> void:
+	_bake_queued = true
+	_trigger_debounced_bake()
+
+func _trigger_debounced_bake() -> void:
 	if is_baking:
-		_bake_queued = true
 		return
 		
-	is_baking = true
+	# Debounce wait of 0.3s to allow rapid sequential spawns/loads to settle
+	await get_tree().create_timer(0.3).timeout
+	
+	if not _bake_queued:
+		return
+	if is_baking:
+		return
+		
 	_bake_queued = false
+	is_baking = true
 	
 	# Await a physics frame to ensure all colliders are registered in the physics server
 	await get_tree().physics_frame
@@ -150,30 +161,35 @@ func rebake_all_navigation_regions() -> void:
 			if node is Node2D and not node.is_in_group("nav_carve_obstacles"):
 				node.add_to_group("nav_carve_obstacles")
 	
-	# Rebake global ground region (async background thread)
+	# Gather all regions to bake sequentially
+	var pending_regions = []
+	
 	var global_navs = get_tree().get_nodes_in_group("GlobalNavRegion")
 	for region in global_navs:
 		if region is NavigationRegion2D:
-			region.bake_navigation_polygon(true)
+			pending_regions.append(region)
 			
-	# Rebake road regions (async background thread)
 	var roads = get_tree().get_nodes_in_group("Roads")
 	for road in roads:
 		var region = road.get_node_or_null("RoadNavRegion")
 		if region is NavigationRegion2D:
-			region.bake_navigation_polygon(true)
+			pending_regions.append(region)
 			
-	# Rebake plaza regions (async background thread)
 	var plazas = get_tree().get_nodes_in_group("Plazas")
 	for plaza in plazas:
 		var region = plaza.get_node_or_null("PlazaNavRegion")
 		if region is NavigationRegion2D:
-			region.bake_navigation_polygon(true)
+			pending_regions.append(region)
 			
-	# Give the server a moment to finish the thread before dropping the lock
-	await get_tree().physics_frame
+	# Bake them sequentially to prevent thread overlapping and warnings
+	for region in pending_regions:
+		if is_instance_valid(region):
+			region.bake_navigation_polygon(true)
+			await region.bake_finished
+			
 	is_baking = false
-	print("[RoadNavigation] Rebaked all navigation regions (ground, roads, plazas) async using nav_carve_obstacles group.")
+	print("[RoadNavigation] Rebaked all navigation regions (ground, roads, plazas) sequentially using nav_carve_obstacles group.")
 	
+	# If a new request was queued during the bake, trigger it now
 	if _bake_queued:
-		rebake_all_navigation_regions()
+		_trigger_debounced_bake()

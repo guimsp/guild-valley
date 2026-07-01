@@ -21,6 +21,7 @@ enum RarityTier {
 @export var price_elasticity_override: float = -1.0
 @export var price_override: int = -1
 @export var is_liquid: bool = false
+@export var base_demand_cooldown: float = 0.0
 
 # Unique identifier for the item (e.g. "wheat", "iron_ore")
 @export var id: String = ""
@@ -29,7 +30,11 @@ enum RarityTier {
 @export var item_level: int = 1
 
 # User-facing display name (e.g. "Wheat")
-@export var name: String = ""
+@export var name: String = "":
+	get:
+		if Engine.is_editor_hint():
+			return name
+		return name + " (lvl " + str(item_level) + ")"
 
 # Visual texture icon for UI inventory slots
 @export var icon: Texture2D
@@ -138,15 +143,21 @@ func get_rarity_tier() -> int:
 func get_target_stock() -> int:
 	if target_stock_override != -1:
 		return target_stock_override
+		
+	var base_stock = 80
 	match get_rarity_tier():
 		RarityTier.COMMON:
-			return 80
+			base_stock = 80
 		RarityTier.LUXURY:
-			return 35
+			base_stock = 35
 		RarityTier.RARE:
-			return 10
+			base_stock = 10
 		_:
-			return 80
+			base_stock = 80
+			
+	var lvl = max(1, item_level)
+	var scale = 1.0 / pow(lvl, 0.6)
+	return max(5, int(base_stock * scale))
 
 func get_price_elasticity() -> float:
 	if price_elasticity_override >= 0.0:

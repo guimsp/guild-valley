@@ -30,48 +30,35 @@ var law_paths = [
 
 var laws_db: Dictionary = {}
 
-var province_states: Dictionary = {
-	"Valley Province": {
-		"active_laws": {},
-		"current_ballot": [],
-		"sponsored_law": null,
-		"current_phase": 0,
-		"votes_history": []
-	},
-	"Oakhaven Province": {
-		"active_laws": {},
-		"current_ballot": [],
-		"sponsored_law": null,
-		"current_phase": 0,
-		"votes_history": []
-	}
-}
+var province_states: Dictionary = {}
+var delinquent_factions: Dictionary = {}
+var tax_backlog: Dictionary = {}
 
-var delinquent_factions: Dictionary = {
-	"Valley Province": {
-		"Player": false,
-		"Rival": false
-	},
-	"Oakhaven Province": {
-		"Player": false,
-		"Rival": false
-	}
-}
-
-var tax_backlog: Dictionary = {
-	"Valley Province": {
-		"Player": 0,
-		"Rival": 0
-	},
-	"Oakhaven Province": {
-		"Player": 0,
-		"Rival": 0
-	}
-}
+func initialize_politics_states(provinces: Array[String]) -> void:
+	province_states.clear()
+	delinquent_factions.clear()
+	tax_backlog.clear()
+	for prov in provinces:
+		province_states[prov] = {
+			"active_laws": {},
+			"current_ballot": [],
+			"sponsored_law": null,
+			"current_phase": 0,
+			"votes_history": []
+		}
+		delinquent_factions[prov] = {
+			"Player": false,
+			"Rival": false
+		}
+		tax_backlog[prov] = {
+			"Player": 0,
+			"Rival": 0
+		}
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	_load_laws_database()
+	initialize_politics_states(["Valley Province", "Oakhaven Province", "Highland Province"])
 
 func _load_laws_database() -> void:
 	for path in law_paths:
@@ -262,7 +249,7 @@ func pay_player_backlog(province: String) -> bool:
 	return false
 
 func process_seasonal_taxes() -> void:
-	var provinces = ["Valley Province", "Oakhaven Province"]
+	var provinces = GameState.get_provinces()
 	var rivals = get_tree().get_nodes_in_group("Rivals")
 	
 	for prov in provinces:
